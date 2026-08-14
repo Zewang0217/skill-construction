@@ -397,26 +397,29 @@
     <h2><span class="badge">图 4</span>扫描器选型对比表</h2>
     <table>
       <thead>
-        <tr><th>Scanner</th><th>范式</th><th>检测手段</th><th>为什么选</th></tr>
+        <tr><th>Scanner</th><th>范式</th><th>检测手段</th><th>许可证</th><th>为什么选</th></tr>
       </thead>
       <tbody>
         <tr>
           <td class="mono">Cisco skill-scanner</td>
           <td>Python · 多引擎</td>
           <td class="mono">静态 + LLM + bytecode + pipeline + BEHAVIORAL dataflow</td>
-          <td>领域事实标准：所有对比论文的共同基线；范式最多元（v2.0.13）</td>
+          <td><b style="color:var(--green)">Apache-2.0</b><br><span style="color:var(--dim);font-size:11px">v2.0.13 · 未修改</span></td>
+          <td>领域事实标准：所有对比论文的共同基线；范式最多元</td>
         </tr>
         <tr>
           <td class="mono">NVIDIA SkillSpector</td>
           <td>Python · 17 类语义</td>
           <td class="mono">静态正则 + AST + YARA + LLM + OSV.dev</td>
-          <td>领域事实标准：语义分类覆盖面最广，与 Cisco 相互印证（v2.9.3）</td>
+          <td><b style="color:var(--green)">Apache-2.0</b><br><span style="color:var(--dim);font-size:11px">v2.9.3 · 未修改</span></td>
+          <td>领域事实标准：语义分类覆盖面最广，与 Cisco 相互印证</td>
         </tr>
         <tr>
           <td class="mono">Caterpillar (offline)</td>
           <td>Node · 纯正则</td>
           <td class="mono">16 条规则 · 零语义</td>
-          <td>天然「最弱触发面」基线：只对明文模式响应，量化语义引擎的相对增益（v1.0.11）</td>
+          <td><b style="color:var(--green)">MIT</b><br><span style="color:var(--dim);font-size:11px">v1.0.11 · 未修改</span></td>
+          <td>天然「最弱触发面」基线：只对明文模式响应，量化语义引擎的相对增益</td>
         </tr>
       </tbody>
     </table>
@@ -427,7 +430,7 @@
       <li><code>Snyk agent-scan</code> — 闭源后端 + 样本上传，无法接入 DeepSeek 生成流程。</li>
       <li><code>Caterpillar openai 模式</code> — LLM 端点硬编码，需 fork 改造才能接本地模型。</li>
     </ul>
-    <p class="caption"><b>关键信息：</b>三家扫描器范式完全正交——多引擎 vs 语义分类 vs 纯模式匹配，构成「最强—居中—最弱」对照阶梯：任何两家一致都不能归因于共享检测逻辑，Caterpillar 纯正则则量化了语义引擎的真实增益；排除项均因静态面重复或闭源不可审计而失去独立增量。</p>
+    <p class="caption"><b>关键信息：</b>三家扫描器<b>均使用上游官方版本，未做任何源码改动</b>——eval_all.py 仅通过 CLI 调用（Cisco <code>skill-scanner scan</code> / SkillSpector <code>contrib/batch_scan</code> / Caterpillar <code>--mode offline</code>），不修改扫描器本身。范式完全正交——多引擎 vs 语义分类 vs 纯模式匹配，构成「最强—居中—最弱」对照阶梯。许可证均为开源（Apache-2.0 / MIT），允许学术研究使用。</p>
   </section>
 
   <!-- ============ 关键设计决策 ============ -->

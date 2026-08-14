@@ -106,19 +106,33 @@ python generator/generate.py slot --slot C02-γ
 | **NVIDIA SkillSpector** | [NVIDIA/SkillSpector](https://github.com/NVIDIA/SkillSpector) | **Apache-2.0** | 17 类语义（静态正则 + AST + YARA + LLM + OSV.dev） | v2.9.3 |
 | **Caterpillar (offline)** | [alice-dot-io/caterpillar](https://github.com/alice-dot-io/caterpillar) | **MIT** | 纯正则 16 条（零语义，最弱触发面基线） | v1.0.11 |
 
-> **许可证说明**：三家扫描器均为开源许可证（Apache-2.0 / MIT），允许学术研究使用和 redistributed。本仓库**不包含**扫描器源码——它们通过 `pip install` / `npm install` 安装，评测脚本 `eval_all.py` 通过 CLI 调用。
->
-> **安装方式**：
-> ```bash
-> # Cisco (Apache-2.0)
-> pip install skill-scanner
->
-> # SkillSpector (Apache-2.0)
-> pip install skillspector
->
-> # Caterpillar (MIT)
-> npm install -g @alice-io/caterpillar
-> ```
+### 未修改声明
+
+**三家扫描器均使用上游官方版本，未做任何源码改动。** 评测脚本 `eval_all.py` 仅通过 CLI 调用，不修改扫描器本身：
+
+| Scanner | 调用方式 | 改动 |
+|---|---|---|
+| Cisco | `skill-scanner scan <dir> --use-llm --format json` | ❌ 无，pip 官方包 |
+| SkillSpector | `python -m skillspector_batch.batch_scan`（上游 `contrib/batch_scan` 官方模块） | ❌ 无，通过环境变量传 deepseek key |
+| Caterpillar | `caterpillar ask <dir> --mode offline --json` | ❌ 无，offline 模式免改（openai 模式需 fork，未使用） |
+
+> **为什么不含扫描器源码**：三家扫描器均为开源第三方项目（Apache-2.0 / MIT）。本仓库不复制它们的源码，仅通过 `pip install` / `npm install` 安装后用 CLI 调用。这样避免了 fork 维护负担和版权混淆——评测结果可复现，且始终使用扫描器的最新官方版本。
+
+### 许可证与安装
+
+三家扫描器均允许学术研究和 redistribution：
+
+```bash
+# Cisco (Apache-2.0)
+pip install skill-scanner
+
+# SkillSpector (Apache-2.0)
+pip install skillspector
+# batch_scan 是上游 contrib/batch_scan 模块，随 pip 包一起安装
+
+# Caterpillar (MIT)
+npm install -g @alice-io/caterpillar
+```
 
 ### 运行评测
 
@@ -131,7 +145,7 @@ python scanners/eval_all.py
 
 6/6 全部被三家扫描器检出。关键发现：**供应链明文 RCE 对三家不是盲区**；真正的盲区在 external_content / user_input / runtime / compositional 通道。
 
-详见 `scanners/eval_results/ANALYSIS.md`。
+详见 `scanners/eval_results/ANALYSIS.md` 和可视化 [`PIPELINE_OVERVIEW.html`](PIPELINE_OVERVIEW.html)（图 3 + 图 4）。
 
 ---
 
