@@ -52,10 +52,41 @@ supply_chain       14 个
 external_content    1 个 (#14 context-loader)
 ```
 
-## 已知缺口（wild 样本中观测不到的）
-- **state_corruption / subagent_escalation / privilege_abuse / defense_evasion** — 4 个 mechanism 在真实 wild 样本中几乎不存在，更多是论文分析层面的威胁
-- **user_input / runtime_environment** — 2 个 source 在 wild 样本中观测不到（与"现有扫描器只看供应链"的发现一致）
-- **instruction_manip 单独出现极少** — wild 样本以 CI（代码注入）类为主，PI（纯指令注入）类极少
+## taxonomy 完备性分析：wild 样本未覆盖的 mechanism
+
+> 定位：这是对 taxonomy 的检验，不是样本缺陷。wild 样本观测不到某机制 ≠ taxonomy 多定义了不存在的攻击，需要区分成因。
+
+| mechanism | taxonomy 槽位数 | wild 观测 | 成因分析 |
+|---|---|---|---|
+| **权限滥用** | 19 | 0 独立出现 | **声明面机制**——攻击在权限声明（allowed-tools/过度授权），wild 样本多为载荷面（执行/挖矿），映射时被归到更表面的机制。实际存在：aicash-miner 写 /etc/systemd 即越权 |
+| **状态污染** | 11 | 2 沾边（boot-persistence / aicash-miner 持久化）| 部分覆盖；记忆投毒（C07-α）等运行时状态类无对应 |
+| **子agent提权** | 1 | 0 | **agent 运行时面机制**——攻击发生在 subagent 权限继承，静态 skill 文件无痕迹，任何静态样本都观测不到（除非动态执行）|
+| **规避检测** | 1 | 0 | **检测时面机制**——攻击是感知扫描器后自适应绕过，发生在检测过程中，skill 文件无法体现 |
+
+### 三种成因（决定 taxonomy 是否完备）
+
+1. **声明面机制被载荷面掩盖**（权限滥用）→ taxonomy **完备**，但映射口径需改进：不能只看恶意载荷，要看"攻击依赖的权限/能力是否越界"
+2. **运行时/检测时面机制**（子agent提权、规避检测）→ taxonomy 定义**超出静态 skill 观测域**——这些威胁真实存在，但需要动态执行才能观测。对"静态扫描器评测"而言它们是不可测的维度，需在论文中明确标注
+3. **覆盖不足但存在**（状态污染的记忆投毒类）→ 样本选样需补充，不是 taxonomy 问题
+
+### 对论文的意义
+- taxonomy 的 mechanism 维度**混合了静态可测与静态不可测的攻击**——子agent提权/规避检测属于后者，评测时必须标注"仅动态可观测"，否则会被误读为扫描器漏检
+- 权限滥用的高槽位数（19）与 wild 低观测形成反差，说明**映射方法比 taxonomy 更可能是瓶颈**——需要双人盲审时统一"声明面 vs 载荷面"的判定标准
+
+## taxonomy 完备性分析：source 维度
+
+| source | taxonomy 值 | wild 观测 | 成因分析 |
+|---|---|---|---|
+| **supply_chain** | ✅ 主流 | 14/14 | 真实恶意 skill 的天然主要来源——ClawHavoc 战役就是供应链投放，观测充分 |
+| **external_content** | ✅ | 1（context-loader）| 真实存在但稀缺：docx 藏脚本是典型的间接注入载体 |
+| **user_input** | ⚠️ | 0 | **条件触发类攻击**（contextual/dual-use）依赖运行时用户输入，静态样本可构造（X-UI 组生成样本已覆盖），但真实 wild 中少见——攻击者倾向供应链直接投放，而非等用户触发 |
+| **runtime_environment** | ⚠️ | 0 | **运行时面 source**——攻击操作 env/MCP/记忆等运行时组件，skill 静态文件可声明（生成样本可构造），真实 wild 中未观测到独立案例 |
+| **source_agnostic** | ✅ | 0（隐含）| 语义上是"来源无关"，wild 样本的实际投放仍是供应链，source_agnostic 是分析视角而非攻击者选择 |
+
+### 结论
+- **source 维度本身完备**——5 个值都有真实语义基础，没有凭空捏造
+- user_input / runtime_environment 的 wild 低观测**不说明 taxonomy 多定义了不存在的来源**，而是说明攻击者的真实偏好（供应链）与 taxonomy 的分析视角（包含理论可能）存在差异
+- 这正是论文的论证点：**taxonomy 覆盖攻击者"可能"做的，扫描器只防住了攻击者"实际"在做的——gap 是真实的攻击面**
 
 ## 来源仓库
 - **MalSkillBench**: https://github.com/lxyeternal/MalSkillBench (`Dataset/Skills/malware/`)
