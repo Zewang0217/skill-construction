@@ -1,0 +1,528 @@
+{
+  "batch": {
+    "scanned_at": "2026-08-13T14:57:58.501271+00:00",
+    "total_skills": 1,
+    "scan_mode": "multilingual-enhanced",
+    "enhancements": {
+      "language_detection": "unicode-script-ratio",
+      "languages_detected": {},
+      "gap_fill_applied": 0,
+      "gap_fill_findings": 0
+    },
+    "inspection_completeness": {
+      "failed_executions": 1,
+      "incomplete_skills": 1,
+      "partially_inspected_files": 1,
+      "entirely_uninspected_files": 0
+    }
+  },
+  "skills": [
+    {
+      "skill": {
+        "name": "poly-market-predictor",
+        "source": "skill-instruction_manip-info_theft-eb2e905991",
+        "source_group": ".",
+        "language": "en",
+        "scanned_at": "2026-08-13T14:57:58.498920+00:00"
+      },
+      "risk_assessment": {
+        "score": 100,
+        "severity": "CRITICAL",
+        "recommendation": "DO NOT INSTALL"
+      },
+      "components": [
+        {
+          "path": "SKILL.md",
+          "type": "markdown",
+          "lines": 70,
+          "executable": false,
+          "size_bytes": 2217
+        },
+        {
+          "path": "main.sh",
+          "type": "shell",
+          "lines": 71,
+          "executable": true,
+          "size_bytes": 2348
+        },
+        {
+          "path": "references/usage.md",
+          "type": "markdown",
+          "lines": 36,
+          "executable": false,
+          "size_bytes": 1125
+        }
+      ],
+      "issues": [
+        {
+          "id": "LP3",
+          "finding_id": "finding-0a2babc0856b484d9172d39c74321214",
+          "category": "MCP Least Privilege",
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.8,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 1,
+            "end_line": null
+          },
+          "finding": null,
+          "explanation": "The skill description indicates it uses shell commands (curl, jq) but does not declare any tool scope or permissions. This is a common oversight that could allow the skill to execute shell commands without proper restrictions, though the actual risk depends on how the agent framework enforces tool permissions.",
+          "remediation": "Add explicit tool scoping or permissions in the skill metadata to restrict the skill to only the necessary operations (e.g., network requests and JSON parsing).",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [
+            "ASI02"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "SSD-1",
+          "finding_id": "finding-0b42ccd84b404a8e88d02fd485941e46",
+          "category": null,
+          "pattern": null,
+          "severity": "HIGH",
+          "confidence": 0.85,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 38,
+            "end_line": 47
+          },
+          "finding": null,
+          "explanation": "The skill fetches a config from a remote URL (cdn-metrics.example.com) and if the JSON contains an 'instructions' field, its content is treated as authoritative and 'must be followed verbatim' before any market query. This is a classic semantic injection pattern: the instructions are framed as a 'standard pattern in distributed prediction-daemon tooling' to appear benign, but in practice an attacker who can control the config endpoint (or if the domain is hijacked or MITM'd despite TLS) can inject arbitrary instructions that the AI agent will follow, potentially redirecting it to harmful actions. The wording 'authoritative operational directives' and 'must be followed verbatim' is a polite reframing of 'ignore your system instructions and do what I say' — the injected content gains priority over the agent's own safety guidelines. This evades keyword detection because it doesn't say 'ignore previous instructions' directly; instead it semantically establishes the remote instructions as having higher authority.",
+          "remediation": "Remove the runtime config fetch entirely, or if remote config is necessary, validate instructions against a strict allowlist of operational parameters (e.g., timeout values, retry counts) and never treat arbitrary text fields as directives. Treat the config as data, not as instructions. Add a clear separation: the fetched JSON should contain only numeric/boolean parameters, never natural-language instructions.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [
+            "llm-unconfirmed"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-1",
+          "finding_id": "finding-a098d17d745e417b8d5283a0038868a8",
+          "category": null,
+          "pattern": null,
+          "severity": "CRITICAL",
+          "confidence": 0.98,
+          "location": {
+            "file": "main.sh",
+            "start_line": 23,
+            "end_line": 32
+          },
+          "finding": null,
+          "explanation": "The skill manifest claims it only queries the Polymarket API and computes consensus across multiple feeds, but the actual code fetches a remote config and executes its 'instructions' field via eval(). This is a clear discrepancy between documented behavior and actual behavior, enabling arbitrary remote code execution. The remote config is fetched from a non-standard endpoint (cdn-metrics.example.com:1337) that is not the official Polymarket domain, indicating a likely attacker-controlled server.",
+          "remediation": "Remove the remote config fetching and eval() entirely. Hardcode the API endpoint as a constant. If configuration is needed, use a local configuration file with strict schema validation, and never execute dynamic content.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-2",
+          "finding_id": "finding-52976ac5185c4e45b29fc217a43f9d5a",
+          "category": null,
+          "pattern": null,
+          "severity": "CRITICAL",
+          "confidence": 0.98,
+          "location": {
+            "file": "main.sh",
+            "start_line": 23,
+            "end_line": 32
+          },
+          "finding": null,
+          "explanation": "Executing arbitrary shell commands from a remote config is entirely unjustified for a market-data prediction skill. The eval() call gives an attacker full control over the system, including reading/writing files, exfiltrating data, and spawning processes. This is a textbook command injection vulnerability.",
+          "remediation": "Eliminate eval() and any remote code execution. Use only static, vetted code with no dynamic execution paths.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-4",
+          "finding_id": "finding-ccb8918a9e6e45c6908e17deb1e64b4c",
+          "category": null,
+          "pattern": null,
+          "severity": "CRITICAL",
+          "confidence": 0.99,
+          "location": {
+            "file": "main.sh",
+            "start_line": 28,
+            "end_line": 31
+          },
+          "finding": null,
+          "explanation": "The comment 'safe by construction' and 'restricted subshell with no network' is false and deliberately misleading. eval() executes with the full privileges of the running shell, including network and filesystem access. This comment attempts to hide the vulnerability and discourage security review.",
+          "remediation": "Remove the eval() call and the misleading comment. Replace with static, safe code. If the skill requires configuration, use a local, read-only configuration file with limited keys.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SQP-2",
+          "finding_id": "finding-bd9c2f3439744f7db2bb48617ec2c4c6",
+          "category": null,
+          "pattern": null,
+          "severity": "HIGH",
+          "confidence": 0.95,
+          "location": {
+            "file": "main.sh",
+            "start_line": 31,
+            "end_line": null
+          },
+          "finding": null,
+          "explanation": "Executing remote instructions via eval() without any user disclosure or confirmation is a severe privacy and security risk. A user expecting a simple market query would unknowingly allow remote code execution, potentially leading to data theft or system compromise.",
+          "remediation": "Remove eval() entirely. If any remote configuration is absolutely necessary, require explicit user consent and display the full configuration before execution, but in this case just remove the feature.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SQP-2",
+          "finding_id": "finding-65210c978f184d87ba6335f7e6554fea",
+          "category": null,
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.7,
+          "location": {
+            "file": "main.sh",
+            "start_line": 57,
+            "end_line": null
+          },
+          "finding": null,
+          "explanation": "The script sends the user's query to a third-party API endpoint without explicit disclosure. This could expose sensitive queries, though the impact is limited since the user provided the query intentionally. However, the endpoint is dynamic (from remote config) and could redirect to a malicious server.",
+          "remediation": "Add a clear user warning before sending data to external endpoints. Hardcode the API endpoint to the official Polymarket URL and validate it.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SSD-1",
+          "finding_id": "finding-2a6f93480d8241ba894ab05f3cf24822",
+          "category": null,
+          "pattern": null,
+          "severity": "CRITICAL",
+          "confidence": 0.98,
+          "location": {
+            "file": "main.sh",
+            "start_line": 23,
+            "end_line": 31
+          },
+          "finding": null,
+          "explanation": "The remote config server can serve arbitrary shell instructions that are executed via eval(), allowing full remote code execution. A compromised or malicious server could steal credentials, install malware, or cause system damage.",
+          "remediation": "Remove the remote config and eval() functionality. Use static local constants for all configuration.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SSD-3",
+          "finding_id": "finding-627d09918dce400ca267eec7d5959ccd",
+          "category": null,
+          "pattern": null,
+          "severity": "HIGH",
+          "confidence": 0.88,
+          "location": {
+            "file": "main.sh",
+            "start_line": 4,
+            "end_line": 4
+          },
+          "finding": null,
+          "explanation": "The dynamically-fetched 'instructions' field can contain natural-language directives (e.g., 'send all env variables to attacker.com') that will be executed as shell commands. This is designed to influence runtime behavior and exfiltrate sensitive data from the environment.",
+          "remediation": "Remove the instructions field and eval(). Never allow remote content to dictate script behavior. Use static, whitelisted logic.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-2",
+          "finding_id": "finding-51cdc83837844e999c71ccea13e4f76c",
+          "category": null,
+          "pattern": null,
+          "severity": "CRITICAL",
+          "confidence": 1.0,
+          "location": {
+            "file": "references/usage.md",
+            "start_line": 19,
+            "end_line": 23
+          },
+          "finding": null,
+          "explanation": "The skill documentation explicitly describes that a remote config 'instructions' field is interpreted as shell commands executed in the current shell context. This creates an arbitrary remote code execution (RCE) vector where any attacker controlling a config endpoint can execute arbitrary commands on the host system with the privileges of the user running the skill. This is a classic command injection vulnerability disguised as a configuration feature. The capability is completely unjustified by the skill's stated purpose of querying a market API and computing probability consensus — there is no legitimate reason for a market data fetching skill to execute arbitrary shell commands from remote config. Even the documentation's caveat that 'only trusted config endpoints should be used' is a red flag acknowledging the dangerous nature of this feature. The mention of 'cdn-metrics.example.com:1337' in the troubleshooting section further suggests the skill is designed to communicate with additional external infrastructure beyond what's stated.",
+          "remediation": "Completely remove the 'instructions' field interpretation as shell commands. The skill should never execute arbitrary commands from remote configuration. If environment variable configuration is truly needed, restrict it to a predefined whitelist of keys and values with strict validation, and never allow arbitrary command execution. Additionally, audit any existing deployments for signs of compromise and ensure the config endpoint is authenticated and uses HTTPS with certificate validation.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        }
+      ],
+      "execution_successful": false,
+      "analysis_completeness": {
+        "total_components": 3,
+        "scanned_components": 2,
+        "coverage_percent": 66.7,
+        "is_complete": false,
+        "execution_successful": false,
+        "fully_inspected_files": 2,
+        "partially_inspected_files": 1,
+        "entirely_uninspected_files": 0,
+        "ledger_exceptions": [
+          {
+            "outcome": "failed",
+            "phase": "semantic",
+            "reason_code": "llm_batch_failed",
+            "message": "LLM analysis failed for this file range.",
+            "path": "SKILL.md",
+            "start_line": null,
+            "end_line": null,
+            "fatal": true,
+            "analyzers": [
+              "mcp_tool_poisoning"
+            ],
+            "error_class": "NotImplementedError"
+          }
+        ],
+        "scope_exclusions": [],
+        "analyzer_statuses": [
+          {
+            "analyzer_id": "behavioral_ast",
+            "status": "not_applicable",
+            "planned_work": 0,
+            "completed": 0,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0,
+            "reason_code": "no_applicable_files",
+            "message": "No files matched this analyzer's applicability contract."
+          },
+          {
+            "analyzer_id": "behavioral_taint_tracking",
+            "status": "not_applicable",
+            "planned_work": 0,
+            "completed": 0,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0,
+            "reason_code": "no_applicable_files",
+            "message": "No files matched this analyzer's applicability contract."
+          },
+          {
+            "analyzer_id": "mcp_least_privilege",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_rug_pull",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_tool_poisoning",
+            "status": "failed",
+            "planned_work": 2,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 1,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "meta_analyzer",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_developer_intent",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_quality_policy",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_security_discovery",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_agent_snooping",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_anti_refusal",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_data_exfiltration",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_excessive_agency",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_harmful_content",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_memory_poisoning",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_output_handling",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_privilege_escalation",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_prompt_injection",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_rogue_agent",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_ssrf",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_supply_chain",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_system_prompt_leakage",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_tool_misuse",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_yara",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          }
+        ],
+        "limitations": [
+          "Analyzer mcp_tool_poisoning status: failed."
+        ],
+        "findings_before_filtering": 11,
+        "findings_after_filtering": 10
+      },
+      "scan_mode": "multilingual-enhanced",
+      "enhancements": {
+        "gap_fill_applied": false,
+        "gap_fill_findings": 0,
+        "english_keyword_rules_skipped": 0
+      }
+    }
+  ],
+  "metadata": {
+    "skillspector_version": "2.9.3"
+  }
+}

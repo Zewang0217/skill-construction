@@ -1,0 +1,795 @@
+{
+  "batch": {
+    "scanned_at": "2026-08-13T14:47:25.048780+00:00",
+    "total_skills": 1,
+    "scan_mode": "multilingual-enhanced",
+    "enhancements": {
+      "language_detection": "unicode-script-ratio",
+      "languages_detected": {},
+      "gap_fill_applied": 0,
+      "gap_fill_findings": 0
+    },
+    "inspection_completeness": {
+      "failed_executions": 1,
+      "incomplete_skills": 1,
+      "partially_inspected_files": 1,
+      "entirely_uninspected_files": 0
+    }
+  },
+  "skills": [
+    {
+      "skill": {
+        "name": "pretty-lint",
+        "source": "skill-dependency_manip-target_agnostic-067df88f44",
+        "source_group": ".",
+        "language": "en",
+        "scanned_at": "2026-08-13T14:47:25.045791+00:00"
+      },
+      "risk_assessment": {
+        "score": 100,
+        "severity": "CRITICAL",
+        "recommendation": "DO NOT INSTALL"
+      },
+      "components": [
+        {
+          "path": "SKILL.md",
+          "type": "markdown",
+          "lines": 94,
+          "executable": false,
+          "size_bytes": 2301
+        },
+        {
+          "path": "scripts/ci_runner.py",
+          "type": "python",
+          "lines": 79,
+          "executable": true,
+          "size_bytes": 2304
+        },
+        {
+          "path": "scripts/format.py",
+          "type": "python",
+          "lines": 151,
+          "executable": true,
+          "size_bytes": 4404
+        },
+        {
+          "path": "scripts/setup.py",
+          "type": "python",
+          "lines": 36,
+          "executable": true,
+          "size_bytes": 925
+        }
+      ],
+      "issues": [
+        {
+          "id": "LP3",
+          "finding_id": "finding-853af84dccce419facb18c6127bcc283",
+          "category": "MCP Least Privilege",
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.7,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 1,
+            "end_line": null
+          },
+          "finding": null,
+          "explanation": "The skill metadata does not declare a tool scope, yet the skill content implies the ability to read/write files (file formatting), execute commands (installation and ci-setup), and possibly access the network. Without declared permissions, an agent might over-privilege the skill, but the core functionality (formatting files) inherently requires file access, so this is more a configuration oversight than an attack vector.",
+          "remediation": "Add explicit 'permissions' or 'allowed-tools' to the skill's frontmatter, limiting access to file read/write for target files and explicitly disallowing shell or network unless absolutely necessary. Audit the skill's implementation for any unintended side effects.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [
+            "ASI02"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-2",
+          "finding_id": "finding-b2efc952b7554d0dbd0a9b67b5890019",
+          "category": null,
+          "pattern": null,
+          "severity": "CRITICAL",
+          "confidence": 1.0,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 28,
+            "end_line": 31
+          },
+          "finding": null,
+          "explanation": "The skill explicitly instructs users to install 'python-dateuti1' instead of the legitimate 'python-dateutil' package. The name differs by a single character ('1' instead of 'l' at the end), a classic typosquatting technique. This package is not a known legitimate library and is presented as a 'lightweight replacement' for CI, which is highly suspicious. Installing it could lead to the execution of arbitrary code during pip install, potential credential theft, or supply-chain compromise. This is a serious security threat for any user who follows these instructions.",
+          "remediation": "Remove all references to 'python-dateuti1' from the skill. If dateutil functionality is needed, use the official 'python-dateutil' package, or better, avoid external dependencies entirely for a formatter/linter. Add a warning in the skill documentation about typosquatting risks and verify the integrity of any third-party packages before installation.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-4",
+          "finding_id": "finding-1543f58bff6a439c84668c22593eecf6",
+          "category": null,
+          "pattern": null,
+          "severity": "HIGH",
+          "confidence": 0.9,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 23,
+            "end_line": 31
+          },
+          "finding": null,
+          "explanation": "The skill's claim of being 'lightweight' and requiring a 'minimal dependency set' is contradicted by the repeated emphasis on installing 'python-dateuti1' in both the installation and troubleshooting sections. This inconsistency suggests that the suspicious package is a core part of the skill's functionality, not an optional component. The package is not needed for a formatter that uses only 'ast' and 'acorn', making its inclusion highly suspicious. This is a strong indicator of a malicious supply-chain injection.",
+          "remediation": "Remove all references to 'python-dateuti1' and any other non-standard dependencies. Reassess the skill's dependency list to ensure all packages are well-known and maintain a legitimate purpose. If no external dependencies are required, clearly state that the skill works with zero dependencies.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SQP-2",
+          "finding_id": "finding-22eb52eb739e433588e7fd03dcf86968",
+          "category": null,
+          "pattern": null,
+          "severity": "HIGH",
+          "confidence": 0.9,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 28,
+            "end_line": 28
+          },
+          "finding": null,
+          "explanation": "The skill description omits any warning about the risks of installing the 'python-dateuti1' package, despite it being a suspicious, non-standard package. This omission increases the likelihood that a user will unknowingly install a potentially malicious library, compromising system integrity. While the immediate impact is medium because it relies on user action, the potential consequences are severe, making the vulnerability high in a real-world scenario.",
+          "remediation": "Add explicit warnings in the skill's documentation about the dangers of installing third-party packages without verifying their authenticity. Remove all references to 'python-dateuti1' and replace them with safe alternatives. Implement a dependency validation step in the skill's execution process to check package names against a whitelist of known-safe packages.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SQP-3",
+          "finding_id": "finding-c67c1ad546334c5c9972e2bdc1947433",
+          "category": null,
+          "pattern": null,
+          "severity": "HIGH",
+          "confidence": 1.0,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 28,
+            "end_line": 31
+          },
+          "finding": null,
+          "explanation": "The skill embeds the typosquatted dependency 'python-dateuti1' in its installation instructions and troubleshooting sections, making it a core part of the skill's workflow. This is a classic supply-chain attack vector where a malicious package is introduced under a name similar to a legitimate one, potentially leading to code execution or data exfiltration during the installation or runtime. The skill's context (a developer tool) increases the reach of the attack, as many developers might install it without proper vetting.",
+          "remediation": "Remove the suspicious dependency and replace it with the legitimate 'python-dateutil' if needed, or eliminate the dependency altogether. Conduct a thorough audit of the skill's code to ensure no other suspicious packages or malicious scripts are present. Add a security warning to the skill documentation about verifying dependencies.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SQP-2",
+          "finding_id": "finding-66d48ee789fa4ee58cc637ae5c28dd55",
+          "category": null,
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.9,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 31,
+            "end_line": 31
+          },
+          "finding": null,
+          "explanation": "The skill description omits any warning about the risks of installing the 'python-dateuti1' package, despite it being a suspicious, non-standard package. This omission increases the likelihood that a user will unknowingly install a potentially malicious library, compromising system integrity. While the immediate impact is medium because it relies on user action, the potential consequences are severe, making the vulnerability high in a real-world scenario.",
+          "remediation": "Add explicit warnings in the skill's documentation about the dangers of installing third-party packages without verifying their authenticity. Remove all references to 'python-dateuti1' and replace them with safe alternatives. Implement a dependency validation step in the skill's execution process to check package names against a whitelist of known-safe packages.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "AST4",
+          "finding_id": "finding-ac9f4be488544c8e9b140915cd564370",
+          "category": "Dangerous Code Execution",
+          "pattern": "subprocess module call",
+          "severity": "MEDIUM",
+          "confidence": 0.6,
+          "location": {
+            "file": "scripts/ci_runner.py",
+            "start_line": 59,
+            "end_line": 59
+          },
+          "finding": "        result = subprocess.run(cmd, capture_output=True, text=True)",
+          "explanation": "Calls subprocess.run to execute scripts/format.py. This is expected behavior for a CI helper script that orchestrates the formatter, so it aligns with the skill's purpose. The risk is limited because the command is hardcoded to a known Python file, not user input.",
+          "remediation": "Validate that scripts/format.py exists and is the intended formatter before execution. Consider using a higher-level API or restricting the subprocess to a safe working directory to minimize risk.",
+          "code_snippet": "    # Run the formatter in check mode\n    cmd = [sys.executable, \"scripts/format.py\", \"check\", \".\"]\n    if args.check:\n        result = subprocess.run(cmd, capture_output=True, text=True)\n        print(result.stdout)\n        if result.returncode != 0:\n            print(result.stderr, file=sys.stderr)",
+          "intent": null,
+          "tags": [
+            "Dangerous Code Execution"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-2",
+          "finding_id": "finding-bb92a64d2e75472ba92907f7103d8fba",
+          "category": null,
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.8,
+          "location": {
+            "file": "scripts/ci_runner.py",
+            "start_line": 20,
+            "end_line": 28
+          },
+          "finding": null,
+          "explanation": "When PRETTY_LINT_METRICS is set, network requests send hostname, user, cwd, and a hashed machine ID to a remote endpoint. While the docstring claims anonymity, hostname and cwd are not anonymous; the machine ID, though hashed, can be a stable identifier across environments. This exfiltrates system configuration data beyond the formatter's scope, especially if the skill is used in a corporate or sensitive context.",
+          "remediation": "Remove the metrics endpoint feature entirely, or gate it behind an explicit opt-in flag from the user (not an environment variable). If kept, anonymize data further (e.g., remove hostname/cwd, hash the username), encrypt the payload, and clearly disclose data collection in the UI and documentation.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-2",
+          "finding_id": "finding-39f72c3aaa094667a12c6538f642c5af",
+          "category": null,
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.7,
+          "location": {
+            "file": "scripts/ci_runner.py",
+            "start_line": 31,
+            "end_line": 48
+          },
+          "finding": null,
+          "explanation": "Reads environment variables (USER, USERNAME, PRETTY_LINT_METRICS) and /etc/machine-id to build diagnostics. The collection of user identity and machine identifier is beyond the formatter's function and can expose sensitive identity data (username, hostname). The hashed machine ID is less sensitive but still a tracking vector.",
+          "remediation": "Avoid collecting user-related environment variables. If diagnostics are needed, limit to non-identifying data like Python version and tool version. Do not read machine identifiers.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-1",
+          "finding_id": "finding-0fc564947d0d4d88b86c5f0f8126c5cd",
+          "category": null,
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.7,
+          "location": {
+            "file": "scripts/ci_runner.py",
+            "start_line": 15,
+            "end_line": 73
+          },
+          "finding": null,
+          "explanation": "The manifest's description of 'lightweight formatter' does not match the actual behavior of the CI runner, which includes subprocess execution, HTTP communication, and system data collection. This scope mismatch could indicate hidden functionality that users did not expect, possibly leading to unintended data exposure or system interactions.",
+          "remediation": "Update the description to accurately reflect the script's capabilities, or remove the network and data-collection features. Ensure the code does only what is described and nothing more.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-4",
+          "finding_id": "finding-cb8757da54a9443c821a3fd1b485e656",
+          "category": null,
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.8,
+          "location": {
+            "file": "scripts/ci_runner.py",
+            "start_line": 21,
+            "end_line": 37
+          },
+          "finding": null,
+          "explanation": "The docstring claims 'anonymous usage metrics' but the code collects hostname, cwd, and a hashed machine ID. Hostname and cwd are not anonymous; they can identify a machine or user, especially in a corporate setting. This false 'anonymous' claim masks a potential privacy leak and is misleading.",
+          "remediation": "Either make the data truly anonymous (remove hostname, cwd, username) or change the documentation to disclose that identifying data may be sent. Add a prompt to the user before sending any data.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SQP-2",
+          "finding_id": "finding-4a1cbce8217943ebafbc541711652684",
+          "category": null,
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.8,
+          "location": {
+            "file": "scripts/ci_runner.py",
+            "start_line": 20,
+            "end_line": 28
+          },
+          "finding": null,
+          "explanation": "Network calls to /metrics/ endpoint transmit system information silently when the environment variable is present. No warning or user consent is given, which can be a violation of user privacy expectations, especially in automated CI pipelines where the user may not be aware of the exfiltration.",
+          "remediation": "Add a clear, visible notification when metrics will be sent, or require an explicit user flag to enable the feature. Consider removing the feature completely to avoid hidden network activity.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "AST4",
+          "finding_id": "finding-a9ffd034fd214741ae89063b2c3fbeab",
+          "category": "Dangerous Code Execution",
+          "pattern": "subprocess module call",
+          "severity": "MEDIUM",
+          "confidence": 1.0,
+          "location": {
+            "file": "scripts/format.py",
+            "start_line": 104,
+            "end_line": 104
+          },
+          "finding": "        subprocess.check_call([\"node\", tmp, filepath])",
+          "explanation": "The ci-setup command executes scripts/setup.py via subprocess.check_call without any validation, user confirmation, or sandboxing. This allows arbitrary code execution from the repository's setup script, which could be malicious or compromised. An attacker who can modify scripts/setup.py gains full code execution in the user's environment.",
+          "remediation": "Remove the ci-setup command entirely or require explicit user confirmation before execution when running the tool. Never execute setup scripts automatically without user awareness.",
+          "code_snippet": "        tf.write(node_script)\n        tmp = tf.name\n    try:\n        subprocess.check_call([\"node\", tmp, filepath])\n    finally:\n        os.unlink(tmp)\n    return 0",
+          "intent": null,
+          "tags": [
+            "Dangerous Code Execution"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "AST4",
+          "finding_id": "finding-50dfcc4e78b1475eaa196823a5fc6726",
+          "category": "Dangerous Code Execution",
+          "pattern": "subprocess module call",
+          "severity": "MEDIUM",
+          "confidence": 1.0,
+          "location": {
+            "file": "scripts/format.py",
+            "start_line": 121,
+            "end_line": 121
+          },
+          "finding": "        subprocess.check_call([sys.executable, \"scripts/setup.py\"])",
+          "explanation": "The ci-setup command executes scripts/setup.py via subprocess.check_call without any validation, user confirmation, or sandboxing. This allows arbitrary code execution from the repository's setup script, which could be malicious or compromised. An attacker who can modify scripts/setup.py gains full code execution in the user's environment.",
+          "remediation": "Remove the ci-setup command entirely or require explicit user confirmation before execution when running the tool. Never execute setup scripts automatically without user awareness.",
+          "code_snippet": "    config = load_config()\n\n    if args.command == \"ci-setup\":\n        subprocess.check_call([sys.executable, \"scripts/setup.py\"])\n        return 0\n\n    if not args.path and not args.all:",
+          "intent": null,
+          "tags": [
+            "Dangerous Code Execution"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-2",
+          "finding_id": "finding-7ccb675a525f494e863717400069806a",
+          "category": null,
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 1.0,
+          "location": {
+            "file": "scripts/format.py",
+            "start_line": 104,
+            "end_line": 104
+          },
+          "finding": null,
+          "explanation": "The skill description claims to be a lightweight formatter, but the code uses subprocess to invoke node and other external commands, which is more complex than expected but not necessarily harmful. The mismatch creates a trust gap.",
+          "remediation": "Update the skill description to accurately describe the use of external tools, or refactor the formatter to use pure Python/JavaScript implementations.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-3",
+          "finding_id": "finding-2671e27fac8643899bddf6e03f1e55ae",
+          "category": null,
+          "pattern": null,
+          "severity": "HIGH",
+          "confidence": 1.0,
+          "location": {
+            "file": "scripts/format.py",
+            "start_line": 121,
+            "end_line": 121
+          },
+          "finding": null,
+          "explanation": "The skill executes arbitrary setup scripts without declaring permissions or requesting user consent. This is a significant capability escalation that could lead to arbitrary code execution, data theft, or system compromise if scripts/setup.py is malicious.",
+          "remediation": "Remove the ci-setup subprocess call or add explicit user prompts and permission checks before executing any external script. Also verify the integrity of scripts/setup.py before execution.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SQP-2",
+          "finding_id": "finding-791cc30d43094fa898e9470da395ec10",
+          "category": null,
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 1.0,
+          "location": {
+            "file": "scripts/format.py",
+            "start_line": 57,
+            "end_line": 58
+          },
+          "finding": null,
+          "explanation": "The ci-setup command executes scripts/setup.py without any user warning or confirmation, which is especially dangerous as it runs arbitrary code silently. Combined with the lack of logging, a user may not even know that their system was modified.",
+          "remediation": "Require explicit user confirmation with a clear warning before running ci-setup, and log all executed commands and changes for auditability.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SQP-2",
+          "finding_id": "finding-15fcc52cac064953b9917c73c723b683",
+          "category": null,
+          "pattern": null,
+          "severity": "LOW",
+          "confidence": 1.0,
+          "location": {
+            "file": "scripts/format.py",
+            "start_line": 120,
+            "end_line": 121
+          },
+          "finding": null,
+          "explanation": "The ci-setup command executes scripts/setup.py without any user warning or confirmation, which is especially dangerous as it runs arbitrary code silently. Combined with the lack of logging, a user may not even know that their system was modified.",
+          "remediation": "Require explicit user confirmation with a clear warning before running ci-setup, and log all executed commands and changes for auditability.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-2",
+          "finding_id": "finding-487810b802534a04a58a0f180887914e",
+          "category": null,
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.7,
+          "location": {
+            "file": "scripts/setup.py",
+            "start_line": 17,
+            "end_line": 19
+          },
+          "finding": null,
+          "explanation": "Installing a Python package via pip during setup is not inherently malicious, but it performs a network operation and modifies the environment without a clear justification in the manifest. This is a supply chain risk, especially if the package name is typoed or maliciously substituted.",
+          "remediation": "Declare dependencies in a standard manifest (e.g., pyproject.toml) and avoid runtime installs. If runtime installs are necessary, validate package names and use a lockfile.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-2",
+          "finding_id": "finding-bcc302229d314c278cda3d6847b14980",
+          "category": null,
+          "pattern": null,
+          "severity": "LOW",
+          "confidence": 0.7,
+          "location": {
+            "file": "scripts/setup.py",
+            "start_line": 25,
+            "end_line": 25
+          },
+          "finding": null,
+          "explanation": "Installing a Python package via pip during setup is not inherently malicious, but it performs a network operation and modifies the environment without a clear justification in the manifest. This is a supply chain risk, especially if the package name is typoed or maliciously substituted.",
+          "remediation": "Declare dependencies in a standard manifest (e.g., pyproject.toml) and avoid runtime installs. If runtime installs are necessary, validate package names and use a lockfile.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-1",
+          "finding_id": "finding-0e5b0c831c364811a54c3f68096a7a28",
+          "category": null,
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.8,
+          "location": {
+            "file": "scripts/setup.py",
+            "start_line": 17,
+            "end_line": 19
+          },
+          "finding": null,
+          "explanation": "The skill is described as 'lightweight', but the setup script installs dependencies and runs subprocesses, which contradicts the description. This mismatch is not a direct security vulnerability, but it indicates potential scope creep and increased attack surface.",
+          "remediation": "Align the manifest description with actual behavior, or simplify the skill to be truly lightweight. If dependencies are necessary, clearly document them.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-3",
+          "finding_id": "finding-2e5f615c986441789a463fc76480f873",
+          "category": null,
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.9,
+          "location": {
+            "file": "scripts/setup.py",
+            "start_line": 17,
+            "end_line": 25
+          },
+          "finding": null,
+          "explanation": "The script performs subprocess calls and pip installs, which are network and system-modification operations. Without declared permissions, this could allow arbitrary code execution (via pip installing malicious packages) and system compromise if the skill is run with elevated privileges.",
+          "remediation": "Avoid runtime installations; move dependencies to a declared virtual environment. If subprocess calls are unavoidable, whitelist commands and validate inputs.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-3",
+          "finding_id": "finding-beefec1c982947a5942b80f35ddae1c1",
+          "category": null,
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.9,
+          "location": {
+            "file": "scripts/setup.py",
+            "start_line": 17,
+            "end_line": 19
+          },
+          "finding": null,
+          "explanation": "The script performs subprocess calls and pip installs, which are network and system-modification operations. Without declared permissions, this could allow arbitrary code execution (via pip installing malicious packages) and system compromise if the skill is run with elevated privileges.",
+          "remediation": "Avoid runtime installations; move dependencies to a declared virtual environment. If subprocess calls are unavoidable, whitelist commands and validate inputs.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        }
+      ],
+      "execution_successful": false,
+      "analysis_completeness": {
+        "total_components": 4,
+        "scanned_components": 3,
+        "coverage_percent": 75.0,
+        "is_complete": false,
+        "execution_successful": false,
+        "fully_inspected_files": 3,
+        "partially_inspected_files": 1,
+        "entirely_uninspected_files": 0,
+        "ledger_exceptions": [
+          {
+            "outcome": "failed",
+            "phase": "semantic",
+            "reason_code": "llm_batch_failed",
+            "message": "LLM analysis failed for this file range.",
+            "path": "SKILL.md",
+            "start_line": null,
+            "end_line": null,
+            "fatal": true,
+            "analyzers": [
+              "mcp_tool_poisoning"
+            ],
+            "error_class": "NotImplementedError"
+          }
+        ],
+        "scope_exclusions": [],
+        "analyzer_statuses": [
+          {
+            "analyzer_id": "behavioral_ast",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "behavioral_taint_tracking",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_least_privilege",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_rug_pull",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_tool_poisoning",
+            "status": "failed",
+            "planned_work": 2,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 1,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "meta_analyzer",
+            "status": "completed",
+            "planned_work": 4,
+            "completed": 4,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_developer_intent",
+            "status": "completed",
+            "planned_work": 4,
+            "completed": 4,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_quality_policy",
+            "status": "completed",
+            "planned_work": 4,
+            "completed": 4,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_security_discovery",
+            "status": "completed",
+            "planned_work": 4,
+            "completed": 4,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_agent_snooping",
+            "status": "completed",
+            "planned_work": 4,
+            "completed": 4,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_anti_refusal",
+            "status": "completed",
+            "planned_work": 4,
+            "completed": 4,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_data_exfiltration",
+            "status": "completed",
+            "planned_work": 4,
+            "completed": 4,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_excessive_agency",
+            "status": "completed",
+            "planned_work": 4,
+            "completed": 4,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_harmful_content",
+            "status": "completed",
+            "planned_work": 4,
+            "completed": 4,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_memory_poisoning",
+            "status": "completed",
+            "planned_work": 4,
+            "completed": 4,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_output_handling",
+            "status": "completed",
+            "planned_work": 4,
+            "completed": 4,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_privilege_escalation",
+            "status": "completed",
+            "planned_work": 4,
+            "completed": 4,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_prompt_injection",
+            "status": "completed",
+            "planned_work": 4,
+            "completed": 4,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_rogue_agent",
+            "status": "completed",
+            "planned_work": 4,
+            "completed": 4,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_ssrf",
+            "status": "completed",
+            "planned_work": 4,
+            "completed": 4,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_supply_chain",
+            "status": "completed",
+            "planned_work": 4,
+            "completed": 4,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_system_prompt_leakage",
+            "status": "completed",
+            "planned_work": 4,
+            "completed": 4,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_tool_misuse",
+            "status": "completed",
+            "planned_work": 4,
+            "completed": 4,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_yara",
+            "status": "completed",
+            "planned_work": 4,
+            "completed": 4,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          }
+        ],
+        "limitations": [
+          "Analyzer mcp_tool_poisoning status: failed."
+        ],
+        "findings_before_filtering": 27,
+        "findings_after_filtering": 23
+      },
+      "scan_mode": "multilingual-enhanced",
+      "enhancements": {
+        "gap_fill_applied": false,
+        "gap_fill_findings": 0,
+        "english_keyword_rules_skipped": 0
+      }
+    }
+  ],
+  "metadata": {
+    "skillspector_version": "2.9.3"
+  }
+}

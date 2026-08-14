@@ -1,0 +1,18 @@
+WARNING [skillspector.constants] Model 'deepseek-chat' (slot: default) not found in model_registry.yaml. Using fallback context length (128000). Token budgeting may be inaccurate — add the model to the registry or verify the model ID.
+WARNING [skillspector.constants] Model 'deepseek-chat' (slot: mcp_least_privilege) not found in model_registry.yaml. Using fallback context length (128000). Token budgeting may be inaccurate — add the model to the registry or verify the model ID.
+WARNING [skillspector.constants] Model 'deepseek-chat' (slot: mcp_rug_pull) not found in model_registry.yaml. Using fallback context length (128000). Token budgeting may be inaccurate — add the model to the registry or verify the model ID.
+WARNING [skillspector.constants] Model 'deepseek-chat' (slot: mcp_tool_poisoning) not found in model_registry.yaml. Using fallback context length (128000). Token budgeting may be inaccurate — add the model to the registry or verify the model ID.
+WARNING [skillspector.constants] Model 'deepseek-chat' (slot: semantic_developer_intent) not found in model_registry.yaml. Using fallback context length (128000). Token budgeting may be inaccurate — add the model to the registry or verify the model ID.
+WARNING [skillspector.constants] Model 'deepseek-chat' (slot: semantic_quality_policy) not found in model_registry.yaml. Using fallback context length (128000). Token budgeting may be inaccurate — add the model to the registry or verify the model ID.
+WARNING [skillspector.constants] Model 'deepseek-chat' (slot: semantic_security_discovery) not found in model_registry.yaml. Using fallback context length (128000). Token budgeting may be inaccurate — add the model to the registry or verify the model ID.
+WARNING [skillspector.constants] Model 'deepseek-chat' (slot: meta_analyzer) not found in model_registry.yaml. Using fallback context length (128000). Token budgeting may be inaccurate — add the model to the registry or verify the model ID.
+WARNING [skillspector.model_info] No token-limit info for model 'deepseek-chat' — using 128000-token default. Add the model to model_registry.yaml.
+WARNING [skillspector.model_info] No token-limit info for model 'deepseek-chat' — using 128000-token default. Add the model to model_registry.yaml.
+WARNING [skillspector.model_info] No token-limit info for model 'deepseek-chat' — using 128000-token default. Add the model to model_registry.yaml.
+WARNING [skillspector.model_info] No token-limit info for model 'deepseek-chat' — using 128000-token default. Add the model to model_registry.yaml.
+WARNING [skillspector.model_info] No token-limit info for model 'deepseek-chat' — using 128000-token default. Add the model to model_registry.yaml.
+WARNING [skillspector.model_info] No token-limit info for model 'deepseek-chat' — using 128000-token default. Add the model to model_registry.yaml.
+WARNING [skillspector.model_info] No token-limit info for model 'deepseek-chat' — using 128000-token default. Add the model to model_registry.yaml.
+WARNING [skillspector.model_info] No token-limit info for model 'deepseek-chat' — using 128000-token default. Add the model to model_registry.yaml.
+WARNING [skillspector.model_info] No token-limit info for model 'deepseek-chat' — using 128000-token default. Add the model to model_registry.yaml.
+WARNING [skillspector.model_info] No token-limit info for model 'deepseek-chat' — using 128000-token default. Add the model to model_registry.yaml.

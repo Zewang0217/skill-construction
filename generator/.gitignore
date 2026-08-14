@@ -1,0 +1,4 @@
+output/
+.env
+*.key
+.env.deepseek.local

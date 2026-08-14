@@ -1,0 +1,318 @@
+{
+  "skill_name": "polymarket-sentiment-query",
+  "skill_path": "/tmp/cisco_5khs7mvt",
+  "is_safe": false,
+  "max_severity": "HIGH",
+  "findings_count": 15,
+  "findings": [
+    {
+      "id": "llm_finding_polymarket-sentiment-query_4",
+      "rule_id": "LLM_SKILL_DISCOVERY_ABUSE",
+      "category": "skill_discovery_abuse",
+      "severity": "LOW",
+      "title": "Missing allowed-tools and compatibility metadata",
+      "description": "The skill does not specify allowed-tools or compatibility in the manifest. While this is optional, the lack of metadata makes it harder to assess the skill's intended capabilities and restrictions.",
+      "file_path": null,
+      "line_number": null,
+      "snippet": "allowed-tools: Not specified; compatibility: Not specified",
+      "remediation": "Add allowed-tools and compatibility fields to the manifest to clarify intended usage.",
+      "analyzer": "llm",
+      "metadata": {
+        "model": "openai/deepseek-chat",
+        "aitech": "AITech-4.3",
+        "aitech_name": "Protocol Manipulation",
+        "aisubtech": "AISubtech-4.3.5",
+        "aisubtech_name": "Capability Inflation",
+        "scanner_category": "PROTOCOL MANIPULATION"
+      }
+    },
+    {
+      "id": "TOOL_MISMATCH_NETWORK_d35e32e217",
+      "rule_id": "TOOL_ABUSE_UNDECLARED_NETWORK",
+      "category": "unauthorized_tool_use",
+      "severity": "MEDIUM",
+      "title": "Undeclared network usage",
+      "description": "Skill code uses network libraries but doesn't declare network requirement",
+      "file_path": "/tmp/cisco_5khs7mvt/SKILL.md",
+      "line_number": null,
+      "snippet": null,
+      "remediation": "Declare network usage in compatibility field or remove network calls",
+      "analyzer": "static",
+      "metadata": {}
+    },
+    {
+      "id": "PIPELINE_TAINT_33f7029d88",
+      "rule_id": "PIPELINE_TAINT_FLOW",
+      "category": "obfuscation",
+      "severity": "HIGH",
+      "title": "Dangerous data flow in command pipeline",
+      "description": "Pipeline uses obfuscation before code execution: `base64 -D|bash`. Obfuscated execution hides malicious intent.",
+      "file_path": "_provenance.json",
+      "line_number": 1,
+      "snippet": "base64 -D|bash",
+      "remediation": "Review the command pipeline. Avoid piping sensitive data to network commands or shell execution.",
+      "analyzer": "pipeline",
+      "metadata": {
+        "pipeline": "base64 -D|bash",
+        "source_taints": [
+          "OBFUSCATION"
+        ],
+        "sink_command": "bash",
+        "chain_length": 2,
+        "in_documentation": false
+      }
+    },
+    {
+      "id": "PIPELINE_TAINT_33f7029d88",
+      "rule_id": "PIPELINE_TAINT_FLOW",
+      "category": "command_injection",
+      "severity": "HIGH",
+      "title": "Dangerous data flow in command pipeline",
+      "description": "Pipeline downloads data from the network and executes it: `curl ...|sh`. This is a remote code execution pattern.",
+      "file_path": "_provenance.json",
+      "line_number": 1,
+      "snippet": "curl ...|sh",
+      "remediation": "Review the command pipeline. Avoid piping sensitive data to network commands or shell execution.",
+      "analyzer": "pipeline",
+      "metadata": {
+        "pipeline": "curl ...|sh",
+        "source_taints": [
+          "NETWORK_DATA"
+        ],
+        "sink_command": "sh",
+        "chain_length": 2,
+        "in_documentation": false
+      }
+    },
+    {
+      "id": "HIDDEN_DATA_FILE_50b2392bf1",
+      "rule_id": "HIDDEN_DATA_FILE",
+      "category": "obfuscation",
+      "severity": "LOW",
+      "title": "Hidden data file detected",
+      "description": "Hidden file found: polymarket_sentiment/.cache_helper. Hidden files may contain concealed configuration or data that should be reviewed.",
+      "file_path": "polymarket_sentiment/.cache_helper",
+      "line_number": null,
+      "snippet": null,
+      "remediation": "Move file to a visible location or document its purpose.",
+      "analyzer": "static",
+      "metadata": {}
+    },
+    {
+      "id": "llm_finding_polymarket-sentiment-query_0",
+      "rule_id": "LLM_COMMAND_INJECTION",
+      "category": "command_injection",
+      "severity": "HIGH",
+      "title": "Arbitrary code execution via bundled helper script",
+      "description": "The __init__.py executes a bundled shell script (.cache_helper) using subprocess.check_call with bash. The script is part of the package and runs automatically on first import, allowing arbitrary code execution in the agent's environment. This is a supply chain risk and can lead to command injection or malicious payload execution.",
+      "file_path": "polymarket_sentiment/__init__.py",
+      "line_number": null,
+      "snippet": "subprocess.check_call([\"bash\", str(_setup_script)], cwd=str(_cache_dir))",
+      "remediation": "Remove automatic execution of bundled scripts. If helper scripts are necessary, require explicit user consent and validate their contents.",
+      "analyzer": "llm",
+      "metadata": {
+        "model": "openai/deepseek-chat",
+        "aitech": "AITech-9.1",
+        "aitech_name": "Model or Agentic System Manipulation",
+        "aisubtech": "AISubtech-9.1.4",
+        "aisubtech_name": "Injection Attacks (SQL, Command Execution, XSS)",
+        "scanner_category": "INJECTION ATTACK"
+      }
+    },
+    {
+      "id": "llm_finding_polymarket-sentiment-query_3",
+      "rule_id": "LLM_UNAUTHORIZED_TOOL_USE",
+      "category": "unauthorized_tool_use",
+      "severity": "MEDIUM",
+      "title": "Unauthorized filesystem write outside cache directory",
+      "description": "The skill writes to a cache directory (default ~/.cache/polymarket-sentiment) which is acceptable, but the __init__.py creates the directory and executes a script from the package directory. The script could write files outside the cache directory, violating the declared filesystem permission (read-write cache only).",
+      "file_path": "polymarket_sentiment/__init__.py",
+      "line_number": null,
+      "snippet": "_cache_dir.mkdir(parents=True, exist_ok=True); subprocess.check_call([\"bash\", str(_setup_script)], cwd=str(_cache_dir))",
+      "remediation": "Ensure the helper script only writes within the cache directory and does not access other parts of the filesystem.",
+      "analyzer": "llm",
+      "metadata": {
+        "model": "openai/deepseek-chat",
+        "aitech": "AITech-12.1",
+        "aitech_name": "Tool Exploitation",
+        "aisubtech": "AISubtech-12.1.2",
+        "aisubtech_name": "Tool Poisoning",
+        "scanner_category": "SUSPICIOUS CODE EXECUTION"
+      }
+    },
+    {
+      "id": "llm_finding_polymarket-sentiment-query_1",
+      "rule_id": "LLM_DATA_EXFILTRATION",
+      "category": "data_exfiltration",
+      "severity": "HIGH",
+      "title": "Potential data exfiltration via network calls",
+      "description": "The query functions make HTTP requests to an external API endpoint (default: https://polymarket-api.example.com) and send market IDs and other data. While the skill claims read-only network access, the endpoint is not verified and could be malicious. Additionally, the skill caches data locally, but the network calls could be used to exfiltrate sensitive information if the market_id contains user data.",
+      "file_path": "polymarket_sentiment/query.py",
+      "line_number": null,
+      "snippet": "urllib.request.urlopen(url, timeout=10) with url constructed from user input",
+      "remediation": "Validate and restrict the API endpoint to a trusted domain. Ensure no sensitive data is sent in requests.",
+      "analyzer": "llm",
+      "metadata": {
+        "model": "openai/deepseek-chat",
+        "aitech": "AITech-8.2",
+        "aitech_name": "Data Exfiltration / Exposure",
+        "aisubtech": "AISubtech-8.2.3",
+        "aisubtech_name": "Data Exfiltration via Agent Tooling",
+        "scanner_category": "SECURITY VIOLATION"
+      }
+    },
+    {
+      "id": "llm_finding_polymarket-sentiment-query_2",
+      "rule_id": "LLM_OBFUSCATION",
+      "category": "obfuscation",
+      "severity": "MEDIUM",
+      "title": "Obfuscated binary snapshot decoding",
+      "description": "The _load_bundled_snapshot function reads a binary file (fallback_snapshot.bin) and decodes it using a custom format. The binary file is not inspected and could contain malicious payloads or obfuscated data. The decoding logic is non-standard and could be used to hide malicious content.",
+      "file_path": "polymarket_sentiment/query.py",
+      "line_number": null,
+      "snippet": "raw = blob_path.read_bytes(); payload_len = int.from_bytes(raw[:4], \"big\"); payload = raw[4:4+payload_len]",
+      "remediation": "Replace binary snapshot with a plaintext JSON file and validate its contents. Avoid custom binary formats.",
+      "analyzer": "llm",
+      "metadata": {
+        "model": "openai/deepseek-chat",
+        "aitech": "AITech-9.2",
+        "aitech_name": "Detection Evasion",
+        "aisubtech": "AISubtech-9.2.1",
+        "aisubtech_name": "Obfuscation Vulnerabilities",
+        "scanner_category": "SUSPICIOUS CODE"
+      }
+    },
+    {
+      "id": "DATA_EXFIL_NETWORK_REQUESTS_37cf7b69a5",
+      "rule_id": "DATA_EXFIL_NETWORK_REQUESTS",
+      "category": "data_exfiltration",
+      "severity": "MEDIUM",
+      "title": "Outbound network request primitives that can transmit data externally",
+      "description": "Pattern detected: urllib.request.urlopen(",
+      "file_path": "polymarket_sentiment/query.py",
+      "line_number": 31,
+      "snippet": "with urllib.request.urlopen(url, timeout=10) as resp:",
+      "remediation": "Ensure network operations are necessary and document allowed destinations",
+      "analyzer": "static",
+      "metadata": {
+        "matched_pattern": "urllib\\.request\\.(?:urlopen|Request)\\s*\\(",
+        "matched_text": "urllib.request.urlopen(",
+        "aitech": "AITech-8.2",
+        "aitech_name": "Data Exfiltration / Exposure",
+        "scanner_category": "SECURITY VIOLATION"
+      }
+    },
+    {
+      "id": "DATA_EXFIL_NETWORK_REQUESTS_6817480e9b",
+      "rule_id": "DATA_EXFIL_NETWORK_REQUESTS",
+      "category": "data_exfiltration",
+      "severity": "MEDIUM",
+      "title": "Outbound network request primitives that can transmit data externally",
+      "description": "Pattern detected: urllib.request.urlopen(",
+      "file_path": "polymarket_sentiment/query.py",
+      "line_number": 47,
+      "snippet": "with urllib.request.urlopen(url, timeout=10) as resp:",
+      "remediation": "Ensure network operations are necessary and document allowed destinations",
+      "analyzer": "static",
+      "metadata": {
+        "matched_pattern": "urllib\\.request\\.(?:urlopen|Request)\\s*\\(",
+        "matched_text": "urllib.request.urlopen(",
+        "aitech": "AITech-8.2",
+        "aitech_name": "Data Exfiltration / Exposure",
+        "scanner_category": "SECURITY VIOLATION"
+      }
+    },
+    {
+      "id": "DATA_EXFIL_NETWORK_REQUESTS_7d233b0b10",
+      "rule_id": "DATA_EXFIL_NETWORK_REQUESTS",
+      "category": "data_exfiltration",
+      "severity": "MEDIUM",
+      "title": "Outbound network request primitives that can transmit data externally",
+      "description": "Pattern detected: urllib.request.urlopen(",
+      "file_path": "polymarket_sentiment/query.py",
+      "line_number": 56,
+      "snippet": "with urllib.request.urlopen(url, timeout=10) as resp:",
+      "remediation": "Ensure network operations are necessary and document allowed destinations",
+      "analyzer": "static",
+      "metadata": {
+        "matched_pattern": "urllib\\.request\\.(?:urlopen|Request)\\s*\\(",
+        "matched_text": "urllib.request.urlopen(",
+        "aitech": "AITech-8.2",
+        "aitech_name": "Data Exfiltration / Exposure",
+        "scanner_category": "SECURITY VIOLATION"
+      }
+    },
+    {
+      "id": "BYTECODE_NO_SOURCE_c1a001804c",
+      "rule_id": "BYTECODE_NO_SOURCE",
+      "category": "obfuscation",
+      "severity": "HIGH",
+      "title": "Python bytecode without matching source",
+      "description": "Bytecode file polymarket_sentiment/snapshots/accel_bundle.pyc has no corresponding .py source. Bytecode-only distribution hides the actual code from review.",
+      "file_path": "polymarket_sentiment/snapshots/accel_bundle.pyc",
+      "line_number": null,
+      "snippet": null,
+      "remediation": "Include .py source files or remove .pyc files.",
+      "analyzer": "bytecode",
+      "metadata": {}
+    },
+    {
+      "id": "UNANALYZABLE_BINARY_polymarket_sentiment/snapshots/fallback_snapshot.bin",
+      "rule_id": "UNANALYZABLE_BINARY",
+      "category": "policy_violation",
+      "severity": "MEDIUM",
+      "title": "Unanalyzable binary file",
+      "description": "Binary file 'polymarket_sentiment/snapshots/fallback_snapshot.bin' cannot be inspected by the scanner. Reason: Binary file (.bin) - cannot inspect content. Binary files resist static analysis and may contain hidden functionality.",
+      "file_path": "polymarket_sentiment/snapshots/fallback_snapshot.bin",
+      "line_number": null,
+      "snippet": null,
+      "remediation": "Replace binary files with source code, or submit the binary to VirusTotal for independent verification (--use-virustotal).",
+      "analyzer": "analyzability",
+      "metadata": {
+        "skip_reason": "Binary file (.bin) - cannot inspect content",
+        "weight": 5.727920454563199
+      }
+    },
+    {
+      "id": "BINARY_FILE_DETECTED_d5f61c2f17",
+      "rule_id": "BINARY_FILE_DETECTED",
+      "category": "policy_violation",
+      "severity": "INFO",
+      "title": "Binary file detected in skill package",
+      "description": "Binary file found: polymarket_sentiment/snapshots/fallback_snapshot.bin. Binary files cannot be inspected by static analysis. Consider using Python or Bash scripts for transparency.",
+      "file_path": "polymarket_sentiment/snapshots/fallback_snapshot.bin",
+      "line_number": null,
+      "snippet": null,
+      "remediation": "Review binary file necessity. Replace with auditable scripts if possible.",
+      "analyzer": "static",
+      "metadata": {}
+    }
+  ],
+  "scan_duration_seconds": 17.497284650802612,
+  "duration_ms": 17497,
+  "analyzers_used": [
+    "static_analyzer",
+    "bytecode",
+    "pipeline",
+    "llm_analyzer"
+  ],
+  "timestamp": "2026-08-13T08:56:36.507462+00:00",
+  "scan_metadata": {
+    "policy_name": "default",
+    "policy_version": "1.0",
+    "policy_preset_base": "balanced",
+    "policy_fingerprint_sha256": "e6033e8884796d3589d44e3fa2d57f0aadf31a56d4e88818aeed2fd225d82c59",
+    "llm_overall_assessment": "The skill provides functionality to query Polymarket data, but it contains several security concerns. The most critical is the automatic execution of a bundled shell script on import, which could run arbitrary code. Network calls to an external API could be used for data exfiltration, and the binary snapshot decoding is obfuscated. The skill also lacks metadata for allowed-tools and compatibility. Overall, the skill poses moderate to high risk and should be reviewed before deployment.",
+    "llm_primary_threats": [
+      "Arbitrary code execution",
+      "Data exfiltration",
+      "Obfuscation",
+      "Unauthorized filesystem access"
+    ]
+  },
+  "llm_usage": {
+    "input_tokens": 5605,
+    "output_tokens": 1070,
+    "total_tokens": 6675
+  }
+}

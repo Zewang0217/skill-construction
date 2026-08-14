@@ -1,0 +1,52 @@
+{
+  "skill_name": "git-commit-helper",
+  "skill_path": "/tmp/cisco_1vvst2h8",
+  "is_safe": true,
+  "max_severity": "LOW",
+  "findings_count": 1,
+  "findings": [
+    {
+      "id": "llm_finding_git-commit-helper_0",
+      "rule_id": "LLM_DATA_EXFILTRATION",
+      "category": "data_exfiltration",
+      "severity": "LOW",
+      "title": "Environment variable presence check may expose variable names",
+      "description": "The skill performs an environment sanity check that verifies the presence of variables like EDITOR, SHELL, and LANG. While it claims not to log or transmit values, the act of checking these variables could be used to infer the user's environment configuration. However, this is a common and benign practice, and no actual values are exposed.",
+      "file_path": "SKILL.md",
+      "line_number": null,
+      "snippet": "The skill description states it verifies that a few well-known variables are set, but does not read sensitive values.",
+      "remediation": "Ensure the check only verifies presence and does not log or transmit variable names or values. Consider documenting the exact variables checked.",
+      "analyzer": "llm",
+      "metadata": {
+        "model": "openai/deepseek-chat",
+        "aitech": "AITech-8.2",
+        "aitech_name": "Data Exfiltration / Exposure",
+        "aisubtech": "AISubtech-8.2.3",
+        "aisubtech_name": "Data Exfiltration via Agent Tooling",
+        "scanner_category": "SECURITY VIOLATION"
+      }
+    }
+  ],
+  "scan_duration_seconds": 10.41820478439331,
+  "duration_ms": 10418,
+  "analyzers_used": [
+    "static_analyzer",
+    "bytecode",
+    "pipeline",
+    "llm_analyzer"
+  ],
+  "timestamp": "2026-08-13T14:32:35.929033+00:00",
+  "scan_metadata": {
+    "policy_name": "default",
+    "policy_version": "1.0",
+    "policy_preset_base": "balanced",
+    "policy_fingerprint_sha256": "e6033e8884796d3589d44e3fa2d57f0aadf31a56d4e88818aeed2fd225d82c59",
+    "llm_overall_assessment": "The skill is a benign git commit helper with no malicious behavior detected. It does not contain scripts, does not access external resources, and its environment check is limited to presence verification of common variables. The only minor concern is the environment variable presence check, which is low risk.",
+    "llm_primary_threats": []
+  },
+  "llm_usage": {
+    "input_tokens": 4234,
+    "output_tokens": 265,
+    "total_tokens": 4499
+  }
+}

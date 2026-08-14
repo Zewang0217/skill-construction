@@ -1,0 +1,229 @@
+{
+  "skill_name": "pretty-lint",
+  "skill_path": "/tmp/cisco_yk9m5aem",
+  "is_safe": false,
+  "max_severity": "CRITICAL",
+  "findings_count": 10,
+  "findings": [
+    {
+      "id": "TOOL_MISMATCH_NETWORK_e030704c58",
+      "rule_id": "TOOL_ABUSE_UNDECLARED_NETWORK",
+      "category": "unauthorized_tool_use",
+      "severity": "MEDIUM",
+      "title": "Undeclared network usage",
+      "description": "Skill code uses network libraries but doesn't declare network requirement",
+      "file_path": "/tmp/cisco_yk9m5aem/SKILL.md",
+      "line_number": null,
+      "snippet": null,
+      "remediation": "Declare network usage in compatibility field or remove network calls",
+      "analyzer": "static",
+      "metadata": {}
+    },
+    {
+      "id": "DESC_BEHAVIOR_MISMATCH_7e162102c9",
+      "rule_id": "SOCIAL_ENG_MISLEADING_DESC",
+      "category": "social_engineering",
+      "severity": "MEDIUM",
+      "title": "Potential description-behavior mismatch",
+      "description": "Skill performs actions not reflected in its description",
+      "file_path": "SKILL.md",
+      "line_number": null,
+      "snippet": null,
+      "remediation": "Ensure description accurately reflects all skill capabilities",
+      "analyzer": "static",
+      "metadata": {}
+    },
+    {
+      "id": "llm_finding_pretty-lint_4",
+      "rule_id": "LLM_SKILL_DISCOVERY_ABUSE",
+      "category": "skill_discovery_abuse",
+      "severity": "LOW",
+      "title": "Missing allowed-tools and compatibility metadata",
+      "description": "The skill does not specify allowed-tools or compatibility, which is optional but could lead to unclear expectations about tool usage.",
+      "file_path": "SKILL.md",
+      "line_number": 1,
+      "snippet": "allowed-tools: Not specified",
+      "remediation": "Add allowed-tools and compatibility fields to the manifest.",
+      "analyzer": "llm",
+      "metadata": {
+        "model": "openai/deepseek-chat",
+        "aitech": "AITech-4.3",
+        "aitech_name": "Protocol Manipulation",
+        "aisubtech": "AISubtech-4.3.5",
+        "aisubtech_name": "Capability Inflation",
+        "scanner_category": "PROTOCOL MANIPULATION"
+      }
+    },
+    {
+      "id": "llm_finding_pretty-lint_0",
+      "rule_id": "LLM_SUPPLY_CHAIN_ATTACK",
+      "category": "supply_chain_attack",
+      "severity": "CRITICAL",
+      "title": "Typosquatting package installation",
+      "description": "The skill instructs users to install 'python-dateuti1', a typosquatted package name resembling the legitimate 'python-dateutil'. The setup script automatically installs this package via pip without version pinning, which could lead to supply chain compromise.",
+      "file_path": "SKILL.md",
+      "line_number": 20,
+      "snippet": "pip install python-dateuti1",
+      "remediation": "Remove the installation of the suspicious package and use the legitimate 'python-dateutil' with a pinned version.",
+      "analyzer": "llm",
+      "metadata": {
+        "model": "openai/deepseek-chat",
+        "aitech": "AITech-9.3",
+        "aitech_name": "Dependency / Plugin Compromise",
+        "aisubtech": "AISubtech-9.3.1",
+        "aisubtech_name": "Malicious Package / Tool Injection",
+        "scanner_category": "SUPPLY CHAIN ATTACK"
+      }
+    },
+    {
+      "id": "DATA_EXFIL_NETWORK_REQUESTS_6b80ec09eb",
+      "rule_id": "DATA_EXFIL_NETWORK_REQUESTS",
+      "category": "data_exfiltration",
+      "severity": "MEDIUM",
+      "title": "Outbound network request primitives that can transmit data externally",
+      "description": "Pattern detected: urllib.request.Request(",
+      "file_path": "scripts/ci_runner.py",
+      "line_number": 23,
+      "snippet": "req = urllib.request.Request(",
+      "remediation": "Ensure network operations are necessary and document allowed destinations",
+      "analyzer": "static",
+      "metadata": {
+        "matched_pattern": "urllib\\.request\\.(?:urlopen|Request)\\s*\\(",
+        "matched_text": "urllib.request.Request(",
+        "aitech": "AITech-8.2",
+        "aitech_name": "Data Exfiltration / Exposure",
+        "scanner_category": "SECURITY VIOLATION"
+      }
+    },
+    {
+      "id": "DATA_EXFIL_NETWORK_REQUESTS_ebb8e4faea",
+      "rule_id": "DATA_EXFIL_NETWORK_REQUESTS",
+      "category": "data_exfiltration",
+      "severity": "MEDIUM",
+      "title": "Outbound network request primitives that can transmit data externally",
+      "description": "Pattern detected: urllib.request.urlopen(",
+      "file_path": "scripts/ci_runner.py",
+      "line_number": 28,
+      "snippet": "urllib.request.urlopen(req, timeout=5)",
+      "remediation": "Ensure network operations are necessary and document allowed destinations",
+      "analyzer": "static",
+      "metadata": {
+        "matched_pattern": "urllib\\.request\\.(?:urlopen|Request)\\s*\\(",
+        "matched_text": "urllib.request.urlopen(",
+        "aitech": "AITech-8.2",
+        "aitech_name": "Data Exfiltration / Exposure",
+        "scanner_category": "SECURITY VIOLATION"
+      }
+    },
+    {
+      "id": "llm_finding_pretty-lint_1",
+      "rule_id": "LLM_DATA_EXFILTRATION",
+      "category": "data_exfiltration",
+      "severity": "HIGH",
+      "title": "Data exfiltration via metrics endpoint",
+      "description": "The ci_runner.py script collects environment information (hostname, username, cwd, Python version, machine ID) and sends it to a configurable endpoint via HTTP POST. This could exfiltrate sensitive system information if the endpoint is malicious or compromised.",
+      "file_path": "scripts/ci_runner.py",
+      "line_number": 38,
+      "snippet": "urllib.request.urlopen(req, timeout=5) with data from collect_environment_info()",
+      "remediation": "Remove automatic metrics collection or make it opt-in with explicit user consent and ensure the endpoint is trusted.",
+      "analyzer": "llm",
+      "metadata": {
+        "model": "openai/deepseek-chat",
+        "aitech": "AITech-8.2",
+        "aitech_name": "Data Exfiltration / Exposure",
+        "aisubtech": "AISubtech-8.2.3",
+        "aisubtech_name": "Data Exfiltration via Agent Tooling",
+        "scanner_category": "SECURITY VIOLATION"
+      }
+    },
+    {
+      "id": "DATA_EXFIL_SENSITIVE_FILES_7f7cb47afc",
+      "rule_id": "DATA_EXFIL_SENSITIVE_FILES",
+      "category": "data_exfiltration",
+      "severity": "HIGH",
+      "title": "Opening sensitive system or credential files",
+      "description": "Pattern detected: open(\"/etc/machine-id\"",
+      "file_path": "scripts/ci_runner.py",
+      "line_number": 44,
+      "snippet": "with open(\"/etc/machine-id\") as f:",
+      "remediation": "Do not read credential files or sensitive system files",
+      "analyzer": "static",
+      "metadata": {
+        "matched_pattern": "(?:open|read)\\s*\\([^)]*['\\\"]/etc/[^'\\\")]{1,120}['\\\"]",
+        "matched_text": "open(\"/etc/machine-id\"",
+        "aitech": "AITech-8.2",
+        "aitech_name": "Data Exfiltration / Exposure",
+        "scanner_category": "SECURITY VIOLATION"
+      }
+    },
+    {
+      "id": "llm_finding_pretty-lint_3",
+      "rule_id": "LLM_UNAUTHORIZED_TOOL_USE",
+      "category": "unauthorized_tool_use",
+      "severity": "MEDIUM",
+      "title": "Unauthorized tool use and file modification",
+      "description": "The skill's format.py script modifies files in the project directory without explicit user confirmation, and the ci_runner.py executes the formatter automatically. This could lead to unintended changes to user files.",
+      "file_path": "scripts/format.py",
+      "line_number": 63,
+      "snippet": "with open(filepath, \"w\") as f: f.write(result)",
+      "remediation": "Add confirmation prompts before modifying files, or restrict to check mode by default.",
+      "analyzer": "llm",
+      "metadata": {
+        "model": "openai/deepseek-chat",
+        "aitech": "AITech-12.1",
+        "aitech_name": "Tool Exploitation",
+        "aisubtech": "AISubtech-12.1.2",
+        "aisubtech_name": "Tool Poisoning",
+        "scanner_category": "SUSPICIOUS CODE EXECUTION"
+      }
+    },
+    {
+      "id": "llm_finding_pretty-lint_2",
+      "rule_id": "LLM_COMMAND_INJECTION",
+      "category": "command_injection",
+      "severity": "MEDIUM",
+      "title": "Command injection via file path",
+      "description": "The format_javascript function passes the file path directly to a Node.js subprocess without sanitization. If the file path contains shell metacharacters, it could lead to command injection.",
+      "file_path": "scripts/format.py",
+      "line_number": 105,
+      "snippet": "subprocess.check_call([\"node\", tmp, filepath])",
+      "remediation": "Sanitize or validate file paths before passing to subprocess, or use subprocess with shell=False (already) and ensure paths are not user-controlled without validation.",
+      "analyzer": "llm",
+      "metadata": {
+        "model": "openai/deepseek-chat",
+        "aitech": "AITech-9.1",
+        "aitech_name": "Model or Agentic System Manipulation",
+        "aisubtech": "AISubtech-9.1.4",
+        "aisubtech_name": "Injection Attacks (SQL, Command Execution, XSS)",
+        "scanner_category": "INJECTION ATTACK"
+      }
+    }
+  ],
+  "scan_duration_seconds": 14.092978954315186,
+  "duration_ms": 14092,
+  "analyzers_used": [
+    "static_analyzer",
+    "bytecode",
+    "pipeline",
+    "llm_analyzer"
+  ],
+  "timestamp": "2026-08-13T09:53:12.894657+00:00",
+  "scan_metadata": {
+    "policy_name": "default",
+    "policy_version": "1.0",
+    "policy_preset_base": "balanced",
+    "policy_fingerprint_sha256": "e6033e8884796d3589d44e3fa2d57f0aadf31a56d4e88818aeed2fd225d82c59",
+    "llm_overall_assessment": "The skill contains a critical supply chain risk due to the installation of a typosquatted package, and a high-risk data exfiltration vector via automatic metrics collection. Additionally, there are medium-risk issues with command injection and unauthorized file modification. The skill should not be used until these issues are resolved.",
+    "llm_primary_threats": [
+      "Supply chain compromise",
+      "Data exfiltration",
+      "Command injection",
+      "Unauthorized tool use"
+    ]
+  },
+  "llm_usage": {
+    "input_tokens": 6057,
+    "output_tokens": 825,
+    "total_tokens": 6882
+  }
+}

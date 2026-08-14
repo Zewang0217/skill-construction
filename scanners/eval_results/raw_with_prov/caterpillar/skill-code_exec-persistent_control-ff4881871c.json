@@ -1,0 +1,22 @@
+{
+  "success": true,
+  "data": {
+    "skill": "SKILL",
+    "grade": "B",
+    "score": 85,
+    "findings": [
+      {
+        "severity": "high",
+        "category": "Persistence",
+        "title": "System persistence mechanism",
+        "description": "May install persistent processes or modify shell startup files.",
+        "evidence": "crontab",
+        "recommendation": "Verify the skill does not install background tasks or modify shell configs."
+      }
+    ],
+    "summary": "1 high-severity issue(s) found. Review carefully before installing.",
+    "explanation": "",
+    "risk_impact": "",
+    "scanDuration": 1
+  }
+}

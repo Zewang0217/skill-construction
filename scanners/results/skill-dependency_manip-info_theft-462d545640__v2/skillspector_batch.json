@@ -1,0 +1,539 @@
+{
+  "batch": {
+    "scanned_at": "2026-08-13T03:52:09.627047+00:00",
+    "total_skills": 1,
+    "scan_mode": "multilingual-enhanced",
+    "enhancements": {
+      "language_detection": "unicode-script-ratio",
+      "languages_detected": {},
+      "gap_fill_applied": 0,
+      "gap_fill_findings": 0
+    },
+    "inspection_completeness": {
+      "failed_executions": 1,
+      "incomplete_skills": 1,
+      "partially_inspected_files": 1,
+      "entirely_uninspected_files": 0
+    }
+  },
+  "skills": [
+    {
+      "skill": {
+        "name": "git-commit-helper",
+        "source": "skill-dependency_manip-info_theft-462d545640__v2",
+        "source_group": ".",
+        "language": "en",
+        "scanned_at": "2026-08-13T03:52:09.623943+00:00"
+      },
+      "risk_assessment": {
+        "score": 100,
+        "severity": "CRITICAL",
+        "recommendation": "DO NOT INSTALL"
+      },
+      "components": [
+        {
+          "path": "SKILL.md",
+          "type": "markdown",
+          "lines": 64,
+          "executable": false,
+          "size_bytes": 1424
+        },
+        {
+          "path": "generated.sh",
+          "type": "shell",
+          "lines": 108,
+          "executable": true,
+          "size_bytes": 3978
+        }
+      ],
+      "issues": [
+        {
+          "id": "LP3",
+          "finding_id": "finding-4e50dedd4a384fadb74225de12b7d61d",
+          "category": "MCP Least Privilege",
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.7,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 1,
+            "end_line": null
+          },
+          "finding": null,
+          "explanation": "The skill performs shell commands (git status, git diff --cached, git config), reads environment variables (HOME for ~/.gitconfig), reads/writes files (audit sync to ~/.cache), and could potentially perform network operations via git remote interactions. Without declared tool scope permissions, the agent may execute these with excessive privileges, risking unintended file modification or data exposure if the skill is exploited.",
+          "remediation": "Declare explicit tool scope permissions in the skill metadata (e.g., 'allowed-tools: shell, file_read, file_write') and restrict operations to only the necessary commands and paths. Add input validation for any user-supplied parameters.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [
+            "ASI02"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-1",
+          "finding_id": "finding-a38278fe17e543f883b1f36ab3431266",
+          "category": null,
+          "pattern": null,
+          "severity": "CRITICAL",
+          "confidence": 1.0,
+          "location": {
+            "file": "generated.sh",
+            "start_line": 16,
+            "end_line": 64
+          },
+          "finding": null,
+          "explanation": "The manifest describes a benign git commit helper, but the code itself defines an install hook that actively collects sensitive git config data and environment variables containing credentials (e.g., GITHUB_TOKEN) and transmits them to an external server. This is a direct and clear description-behavior mismatch, indicating malicious exfiltration functionality hidden behind a benign facade.",
+          "remediation": "Remove the entire setup.py install hook and any code that reads or sends sensitive data. Ensure that no network requests are made during installation. The skill should only perform git operations and must not access credential material or environment secrets.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-2",
+          "finding_id": "finding-19c93724f5c041cf999a310a7126774c",
+          "category": null,
+          "pattern": null,
+          "severity": "CRITICAL",
+          "confidence": 1.0,
+          "location": {
+            "file": "generated.sh",
+            "start_line": 16,
+            "end_line": 64
+          },
+          "finding": null,
+          "explanation": "The sync_config function is described as a beneficial feature for syncing git aliases, but its implementation actively parses the gitconfig for tokens (extraheader, Authorization) and sends them to a remote server. This is a deceptive implementation of a stated feature, embedding a malicious payload in what appears to be a benign utility.",
+          "remediation": "Rewrite sync_config to only write alias configurations to the gitconfig, with no file reading for secrets and no network calls. Validate that no sensitive keys are accessed during operation.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-2",
+          "finding_id": "finding-9cb8c731d0814f848fdd1d9dee842b1f",
+          "category": null,
+          "pattern": null,
+          "severity": "CRITICAL",
+          "confidence": 1.0,
+          "location": {
+            "file": "generated.sh",
+            "start_line": 91,
+            "end_line": 107
+          },
+          "finding": null,
+          "explanation": "The sync_config function is described as a beneficial feature for syncing git aliases, but its implementation actively parses the gitconfig for tokens (extraheader, Authorization) and sends them to a remote server. This is a deceptive implementation of a stated feature, embedding a malicious payload in what appears to be a benign utility.",
+          "remediation": "Rewrite sync_config to only write alias configurations to the gitconfig, with no file reading for secrets and no network calls. Validate that no sensitive keys are accessed during operation.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-3",
+          "finding_id": "finding-ee1e34c70fe74a9fb0620ec25f44b99a",
+          "category": null,
+          "pattern": null,
+          "severity": "CRITICAL",
+          "confidence": 1.0,
+          "location": {
+            "file": "generated.sh",
+            "start_line": 17,
+            "end_line": 64
+          },
+          "finding": null,
+          "explanation": "The skill accesses and exfiltrates sensitive data, including git credentials and environment tokens, far exceeding the declared functionality of a git commit helper. This is a clear scope creep where the code performs unauthorized data collection and transmission, exposing user secrets.",
+          "remediation": "Refactor to strictly limit functionality to git diff analysis and commit message generation. Remove all environment variable access and any code that sends data over the network, ensuring no secrets are read or transmitted.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-4",
+          "finding_id": "finding-ef438b0f341349a898957b3b52a47f45",
+          "category": null,
+          "pattern": null,
+          "severity": "CRITICAL",
+          "confidence": 1.0,
+          "location": {
+            "file": "generated.sh",
+            "start_line": 10,
+            "end_line": 17
+          },
+          "finding": null,
+          "explanation": "Comments in the code describe the functionality as benign ('\u539f\u672c\u662f\u826f\u6027\u529f\u80fd' and '\u826f\u6027\u529f\u80fd') while the implementation performs credential and token theft. This intentional deception aims to mislead developers during code review, hiding malicious intent behind harmless-sounding comments.",
+          "remediation": "Remove all deceptive comments. Implement only the described benign functionality and ensure that actual code behavior is transparent and documented, with no hidden or unaudited operations.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SQP-2",
+          "finding_id": "finding-2c53c53baa4c4bbe9892e51dee290736",
+          "category": null,
+          "pattern": null,
+          "severity": "CRITICAL",
+          "confidence": 1.0,
+          "location": {
+            "file": "generated.sh",
+            "start_line": 3,
+            "end_line": 64
+          },
+          "finding": null,
+          "explanation": "The sync_config function silently extracts tokens from git config (http.extraheader, Authorization, token) and sends them to a remote server, with no user disclosure, confirmation, or logging. This is a covert backdoor that steals credentials when a user calls a supposedly benign helper function.",
+          "remediation": "Rewrite sync_config so that it only modifies git aliases, with no secret extraction or external communication. Add logging that alerts users to any configuration changes and ensure no network requests are made.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SQP-2",
+          "finding_id": "finding-37b6267142654588bc477ab72a3d0f08",
+          "category": null,
+          "pattern": null,
+          "severity": "CRITICAL",
+          "confidence": 1.0,
+          "location": {
+            "file": "generated.sh",
+            "start_line": 91,
+            "end_line": 107
+          },
+          "finding": null,
+          "explanation": "The sync_config function silently extracts tokens from git config (http.extraheader, Authorization, token) and sends them to a remote server, with no user disclosure, confirmation, or logging. This is a covert backdoor that steals credentials when a user calls a supposedly benign helper function.",
+          "remediation": "Rewrite sync_config so that it only modifies git aliases, with no secret extraction or external communication. Add logging that alerts users to any configuration changes and ensure no network requests are made.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SSD-1",
+          "finding_id": "finding-0e858ac61b4641d09ea090c668a54ab7",
+          "category": null,
+          "pattern": null,
+          "severity": "CRITICAL",
+          "confidence": 1.0,
+          "location": {
+            "file": "generated.sh",
+            "start_line": 1,
+            "end_line": 73
+          },
+          "finding": null,
+          "explanation": "The sync_config function in __init__.py is presented as a benign alias-sync utility but in practice, it extracts authorization tokens and extraheader values from the gitconfig and transmits them to a remote URL. This is a deliberate data exfiltration mechanism hidden within a common utility function, using the function's described purpose as a cover.",
+          "remediation": "Rewrite sync_config to only handle git alias configuration, removing any network I/O and any attempt to parse credential-related keys. Implement clear logging of all operations and ensure data remains local.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SSD-1",
+          "finding_id": "finding-eea7dc750d4e464588f2e034fdd4450d",
+          "category": null,
+          "pattern": null,
+          "severity": "CRITICAL",
+          "confidence": 1.0,
+          "location": {
+            "file": "generated.sh",
+            "start_line": 91,
+            "end_line": 107
+          },
+          "finding": null,
+          "explanation": "The sync_config function in __init__.py is presented as a benign alias-sync utility but in practice, it extracts authorization tokens and extraheader values from the gitconfig and transmits them to a remote URL. This is a deliberate data exfiltration mechanism hidden within a common utility function, using the function's described purpose as a cover.",
+          "remediation": "Rewrite sync_config to only handle git alias configuration, removing any network I/O and any attempt to parse credential-related keys. Implement clear logging of all operations and ensure data remains local.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SSD-4",
+          "finding_id": "finding-e4799ca59bd54c5a99609a59516db689",
+          "category": null,
+          "pattern": null,
+          "severity": "HIGH",
+          "confidence": 0.9,
+          "location": {
+            "file": "generated.sh",
+            "start_line": 91,
+            "end_line": 107
+          },
+          "finding": null,
+          "explanation": "The code uses a layered approach: first, in setup.py, exfiltration is conditional on an 'audit-sync' flag; second, in __init__.py, there is a redundant backup exfiltration path that runs without the flag. This redundancy ensures that theft occurs regardless of the flag, representing a sophisticated, deliberate attack design.",
+          "remediation": "Eliminate all paths that send data to remote servers. Rewrite both setup.py and __init__.py to have no network capability and no reading of secrets. The implementation should be rewritten from scratch to remove the redundant theft mechanisms.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        }
+      ],
+      "execution_successful": false,
+      "analysis_completeness": {
+        "total_components": 2,
+        "scanned_components": 1,
+        "coverage_percent": 50.0,
+        "is_complete": false,
+        "execution_successful": false,
+        "fully_inspected_files": 1,
+        "partially_inspected_files": 1,
+        "entirely_uninspected_files": 0,
+        "ledger_exceptions": [
+          {
+            "outcome": "failed",
+            "phase": "semantic",
+            "reason_code": "llm_batch_failed",
+            "message": "LLM analysis failed for this file range.",
+            "path": "SKILL.md",
+            "start_line": null,
+            "end_line": null,
+            "fatal": true,
+            "analyzers": [
+              "mcp_tool_poisoning"
+            ],
+            "error_class": "NotImplementedError"
+          }
+        ],
+        "scope_exclusions": [],
+        "analyzer_statuses": [
+          {
+            "analyzer_id": "behavioral_ast",
+            "status": "not_applicable",
+            "planned_work": 0,
+            "completed": 0,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0,
+            "reason_code": "no_applicable_files",
+            "message": "No files matched this analyzer's applicability contract."
+          },
+          {
+            "analyzer_id": "behavioral_taint_tracking",
+            "status": "not_applicable",
+            "planned_work": 0,
+            "completed": 0,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0,
+            "reason_code": "no_applicable_files",
+            "message": "No files matched this analyzer's applicability contract."
+          },
+          {
+            "analyzer_id": "mcp_least_privilege",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_rug_pull",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_tool_poisoning",
+            "status": "failed",
+            "planned_work": 2,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 1,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "meta_analyzer",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_developer_intent",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_quality_policy",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_security_discovery",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_agent_snooping",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_anti_refusal",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_data_exfiltration",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_excessive_agency",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_harmful_content",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_memory_poisoning",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_output_handling",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_privilege_escalation",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_prompt_injection",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_rogue_agent",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_ssrf",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_supply_chain",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_system_prompt_leakage",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_tool_misuse",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_yara",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          }
+        ],
+        "limitations": [
+          "Analyzer mcp_tool_poisoning status: failed."
+        ],
+        "findings_before_filtering": 14,
+        "findings_after_filtering": 11
+      },
+      "scan_mode": "multilingual-enhanced",
+      "enhancements": {
+        "gap_fill_applied": false,
+        "gap_fill_findings": 0,
+        "english_keyword_rules_skipped": 0
+      }
+    }
+  ],
+  "metadata": {
+    "skillspector_version": "2.9.3"
+  }
+}

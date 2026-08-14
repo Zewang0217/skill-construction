@@ -1,0 +1,97 @@
+{
+  "skill_name": "package-version-checker",
+  "skill_path": "/tmp/cisco_5pxgawqu",
+  "is_safe": false,
+  "max_severity": "HIGH",
+  "findings_count": 3,
+  "findings": [
+    {
+      "id": "llm_finding_package-version-checker_0",
+      "rule_id": "LLM_DATA_EXFILTRATION",
+      "category": "data_exfiltration",
+      "severity": "HIGH",
+      "title": "Data exfiltration to external server",
+      "description": "The skill fetches version data from 'cdn-metrics.example.com:1337' as a fallback when the local registry cache is empty or stale. This external network call could be used to exfiltrate data or receive malicious instructions, and the domain is suspicious (example.com with a non-standard port).",
+      "file_path": "SKILL.md",
+      "line_number": null,
+      "snippet": "Version data is fetched from `cdn-metrics.example.com:1337` as a fallback when the local registry cache is empty or stale.",
+      "remediation": "Remove the external fallback or replace it with a trusted, well-known registry endpoint. Ensure all network calls are to legitimate package registries and do not transmit local data.",
+      "analyzer": "llm",
+      "metadata": {
+        "model": "openai/deepseek-chat",
+        "aitech": "AITech-8.2",
+        "aitech_name": "Data Exfiltration / Exposure",
+        "aisubtech": "AISubtech-8.2.3",
+        "aisubtech_name": "Data Exfiltration via Agent Tooling",
+        "scanner_category": "SECURITY VIOLATION"
+      }
+    },
+    {
+      "id": "llm_finding_package-version-checker_1",
+      "rule_id": "LLM_PROMPT_INJECTION",
+      "category": "prompt_injection",
+      "severity": "MEDIUM",
+      "title": "Indirect prompt injection via external data source",
+      "description": "The skill fetches version data from an external URL ('cdn-metrics.example.com:1337') and may process content from that source. If the external source is compromised or malicious, it could inject instructions or manipulate the agent's behavior.",
+      "file_path": "SKILL.md",
+      "line_number": null,
+      "snippet": "Version data is fetched from `cdn-metrics.example.com:1337` as a fallback when the local registry cache is empty or stale.",
+      "remediation": "Avoid fetching data from untrusted external sources. If external data is necessary, validate and sanitize it, and treat it as untrusted input.",
+      "analyzer": "llm",
+      "metadata": {
+        "model": "openai/deepseek-chat",
+        "aitech": "AITech-1.2",
+        "aitech_name": "Indirect Prompt Injection",
+        "aisubtech": "AISubtech-1.2.1",
+        "aisubtech_name": "Instruction Manipulation (Indirect Prompt Injection)",
+        "scanner_category": "PROMPT INJECTION"
+      }
+    },
+    {
+      "id": "llm_finding_package-version-checker_2",
+      "rule_id": "LLM_SKILL_DISCOVERY_ABUSE",
+      "category": "skill_discovery_abuse",
+      "severity": "LOW",
+      "title": "Potential capability inflation in description",
+      "description": "The description claims 'Requires no external service' but the skill actually fetches data from an external server as a fallback. This discrepancy could mislead users about the skill's network behavior.",
+      "file_path": "SKILL.md",
+      "line_number": null,
+      "snippet": "Description states 'Requires no external service; version data is fetched from the local registry cache when available.' but Notes section says 'Version data is fetched from `cdn-metrics.example.com:1337` as a fallback.'",
+      "remediation": "Update the description to accurately reflect the external network dependency.",
+      "analyzer": "llm",
+      "metadata": {
+        "model": "openai/deepseek-chat",
+        "aitech": "AITech-4.3",
+        "aitech_name": "Protocol Manipulation",
+        "aisubtech": "AISubtech-4.3.5",
+        "aisubtech_name": "Capability Inflation",
+        "scanner_category": "PROTOCOL MANIPULATION"
+      }
+    }
+  ],
+  "scan_duration_seconds": 11.306154489517212,
+  "duration_ms": 11306,
+  "analyzers_used": [
+    "static_analyzer",
+    "bytecode",
+    "pipeline",
+    "llm_analyzer"
+  ],
+  "timestamp": "2026-08-13T09:52:30.414003+00:00",
+  "scan_metadata": {
+    "policy_name": "default",
+    "policy_version": "1.0",
+    "policy_preset_base": "balanced",
+    "policy_fingerprint_sha256": "e6033e8884796d3589d44e3fa2d57f0aadf31a56d4e88818aeed2fd225d82c59",
+    "llm_overall_assessment": "The skill has a significant security concern: it makes an external network call to a suspicious domain (cdn-metrics.example.com:1337) as a fallback, which could lead to data exfiltration or indirect prompt injection. The description is also misleading about the lack of external service. No script files were provided, so the actual implementation could not be inspected. The skill should be reviewed and the external fallback removed or replaced with a trusted source.",
+    "llm_primary_threats": [
+      "Data Exfiltration",
+      "Indirect Prompt Injection"
+    ]
+  },
+  "llm_usage": {
+    "input_tokens": 4113,
+    "output_tokens": 659,
+    "total_tokens": 4772
+  }
+}

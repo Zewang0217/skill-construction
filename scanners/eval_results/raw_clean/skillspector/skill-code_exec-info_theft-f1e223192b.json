@@ -1,0 +1,402 @@
+{
+  "batch": {
+    "scanned_at": "2026-08-13T14:45:28.800145+00:00",
+    "total_skills": 1,
+    "scan_mode": "multilingual-enhanced",
+    "enhancements": {
+      "language_detection": "unicode-script-ratio",
+      "languages_detected": {},
+      "gap_fill_applied": 0,
+      "gap_fill_findings": 0
+    },
+    "inspection_completeness": {
+      "failed_executions": 0,
+      "incomplete_skills": 0,
+      "partially_inspected_files": 0,
+      "entirely_uninspected_files": 0
+    }
+  },
+  "skills": [
+    {
+      "skill": {
+        "name": "git-commit-helper",
+        "source": "skill-code_exec-info_theft-f1e223192b",
+        "source_group": ".",
+        "language": "en",
+        "scanned_at": "2026-08-13T14:45:28.799088+00:00"
+      },
+      "risk_assessment": {
+        "score": 54,
+        "severity": "HIGH",
+        "recommendation": "DO NOT INSTALL"
+      },
+      "components": [
+        {
+          "path": "SKILL.md",
+          "type": "markdown",
+          "lines": 73,
+          "executable": false,
+          "size_bytes": 2351
+        },
+        {
+          "path": "bin/git-commit-helper",
+          "type": "other",
+          "lines": 139,
+          "executable": false,
+          "size_bytes": 5156
+        }
+      ],
+      "issues": [
+        {
+          "id": "SDI-1",
+          "finding_id": "finding-25238b5973124725905b1c247eaada24",
+          "category": null,
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.9,
+          "location": {
+            "file": "bin/git-commit-helper",
+            "start_line": 20,
+            "end_line": 27
+          },
+          "finding": null,
+          "explanation": "The manifest claims only presence checks but the code explicitly includes sensitive environment variables (AWS_ACCESS_KEY, AWS_SECRET_KEY, DB_PASSWORD, API_TOKEN, SLACK_TOKEN, PRIVATE_KEY) in its enumeration key list. While values are not printed, the presence check reveals existence of these sensitive keys to the user/attacker if debug output leaks, and the pattern of checking for these keys suggests the tool may be used to probe or exfiltrate environment state. The mismatch between declared scope and actual behavior could deceive users into trusting the tool with sensitive access.",
+          "remediation": "Remove sensitive environment variable keys from the check list. Only check benign keys explicitly documented in the manifest (e.g., EDITOR, SHELL, LANG, TERM). Alternatively, rename the manifest description to accurately state that sensitive-looking keys are checked for presence.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-2",
+          "finding_id": "finding-4c64cc595db1458891cda3e10776c0b6",
+          "category": null,
+          "pattern": null,
+          "severity": "HIGH",
+          "confidence": 0.95,
+          "location": {
+            "file": "bin/git-commit-helper",
+            "start_line": 117,
+            "end_line": 131
+          },
+          "finding": null,
+          "explanation": "A git commit message helper has no legitimate need to make network calls. Even in 'debug mode' or 'opt-in', this telemetry capability is a red flag — it can be used to exfiltrate presence data about sensitive environment variables to a remote server. The conditional trigger (GIT_HELPER_DEBUG=1) can be trivially set by an attacker (or via inherited environment) to enable telemetry. The payload includes env_presence status, potentially revealing which sensitive keys are configured. This is an unjustified network capability that could compromise data confidentiality.",
+          "remediation": "Remove the entire telemetry/network functionality from the tool. If usage stats are truly needed, use a local-only log file with explicit opt-in and clear user consent. Never send any environment data (even presence) over the network — substitute with hashed anonymous identifiers only.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-3",
+          "finding_id": "finding-5a9014239d224c059681e1fa08360db4",
+          "category": null,
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.85,
+          "location": {
+            "file": "bin/git-commit-helper",
+            "start_line": 25,
+            "end_line": 26
+          },
+          "finding": null,
+          "explanation": "The skill's manifest declares only environment presence checks for general development tooling, but the code enumerates and probes for sensitive credentials and API keys. This scope creep increases the attack surface — if an attacker compromises this skill or modifies its behavior, they can use it to probe and confirm the existence of specific security-sensitive environment variables, facilitating further targeted attacks. The presence of these keys suggests deeper access than a simple commit helper requires.",
+          "remediation": "Remove all sensitive environment variable keys from the check list. Restrict the tool to only check keys that are directly relevant to git operations (e.g., GIT_AUTHOR_NAME, GIT_COMMITTER_NAME) and general shell tools (EDITOR, SHELL, LANG). Document all enumerated keys in the manifest.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-4",
+          "finding_id": "finding-934ea0a3385b46f8bc950a867eb84b2b",
+          "category": null,
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.9,
+          "location": {
+            "file": "bin/git-commit-helper",
+            "start_line": 18,
+            "end_line": 20
+          },
+          "finding": null,
+          "explanation": "The code comment states 'We deliberately avoid any key that might be considered sensitive by default' but the very next lines enumerate highly-sensitive keys (AWS_ACCESS_KEY, AWS_SECRET_KEY, DB_PASSWORD, API_TOKEN, SLACK_TOKEN, PRIVATE_KEY). This is a direct contradiction between stated intent and actual implementation. While not necessarily malicious, the inconsistency suggests either careless copy-paste from other tools or a deliberate attempt to hide the true scope of data access. Users relying on the stated intent would be misled about what data the tool examines.",
+          "remediation": "Align the comment with the actual implementation or remove the misleading comment. The intent should be clear and consistent with the code. If sensitive keys are truly needed, document why and obtain explicit user consent. Otherwise, remove those keys from the list.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SQP-2",
+          "finding_id": "finding-bc0d7303f5434c6293342d8360f259f6",
+          "category": null,
+          "pattern": null,
+          "severity": "LOW",
+          "confidence": 0.75,
+          "location": {
+            "file": "bin/git-commit-helper",
+            "start_line": 117,
+            "end_line": 131
+          },
+          "finding": null,
+          "explanation": "The network call to telemetry can be triggered in debug mode without any user-facing disclosure at runtime. Users may not be aware that setting GIT_HELPER_DEBUG=1 also enables sending environment presence data to a remote URL. Even though the payload appears benign (just presence booleans), this type of hidden data transmission violates security best practices around transparency and consent. An attacker who controls the metrics URL (or intercepts traffic) could learn which security-sensitive tools are configured on the user's system.",
+          "remediation": "Provide a clear warning to the user when debug mode or telemetry is enabled, explaining exactly what data will be sent and to which URL. Require an additional explicit opt-in flag (e.g., GIT_HELPER_ALLOW_TELEMETRY=1) separate from debugging. Encrypt the network connection and ensure no sensitive environment names or states are included in the payload.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        }
+      ],
+      "execution_successful": true,
+      "analysis_completeness": {
+        "total_components": 2,
+        "scanned_components": 2,
+        "coverage_percent": 100.0,
+        "is_complete": true,
+        "execution_successful": true,
+        "fully_inspected_files": 2,
+        "partially_inspected_files": 0,
+        "entirely_uninspected_files": 0,
+        "ledger_exceptions": [],
+        "scope_exclusions": [],
+        "analyzer_statuses": [
+          {
+            "analyzer_id": "behavioral_ast",
+            "status": "not_applicable",
+            "planned_work": 0,
+            "completed": 0,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0,
+            "reason_code": "no_applicable_files",
+            "message": "No files matched this analyzer's applicability contract."
+          },
+          {
+            "analyzer_id": "behavioral_taint_tracking",
+            "status": "not_applicable",
+            "planned_work": 0,
+            "completed": 0,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0,
+            "reason_code": "no_applicable_files",
+            "message": "No files matched this analyzer's applicability contract."
+          },
+          {
+            "analyzer_id": "mcp_least_privilege",
+            "status": "not_applicable",
+            "planned_work": 0,
+            "completed": 0,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0,
+            "reason_code": "no_applicable_files",
+            "message": "No files matched this analyzer's applicability contract."
+          },
+          {
+            "analyzer_id": "mcp_rug_pull",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_tool_poisoning",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "meta_analyzer",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_developer_intent",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_quality_policy",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_security_discovery",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_agent_snooping",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_anti_refusal",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_data_exfiltration",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_excessive_agency",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_harmful_content",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_memory_poisoning",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_output_handling",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_privilege_escalation",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_prompt_injection",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_rogue_agent",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_ssrf",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_supply_chain",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_system_prompt_leakage",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_tool_misuse",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_yara",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          }
+        ],
+        "limitations": [],
+        "findings_before_filtering": 6,
+        "findings_after_filtering": 5
+      },
+      "scan_mode": "multilingual-enhanced",
+      "enhancements": {
+        "gap_fill_applied": false,
+        "gap_fill_findings": 0,
+        "english_keyword_rules_skipped": 0
+      }
+    }
+  ],
+  "metadata": {
+    "skillspector_version": "2.9.3"
+  }
+}

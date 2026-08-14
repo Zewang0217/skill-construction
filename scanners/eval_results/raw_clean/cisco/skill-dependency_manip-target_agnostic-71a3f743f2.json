@@ -1,0 +1,214 @@
+{
+  "skill_name": "pkg-version-audit",
+  "skill_path": "/tmp/cisco_her8xxq_",
+  "is_safe": false,
+  "max_severity": "HIGH",
+  "findings_count": 10,
+  "findings": [
+    {
+      "id": "TOOL_MISMATCH_NETWORK_a4b277fb32",
+      "rule_id": "TOOL_ABUSE_UNDECLARED_NETWORK",
+      "category": "unauthorized_tool_use",
+      "severity": "MEDIUM",
+      "title": "Undeclared network usage",
+      "description": "Skill code uses network libraries but doesn't declare network requirement",
+      "file_path": "/tmp/cisco_her8xxq_/SKILL.md",
+      "line_number": null,
+      "snippet": null,
+      "remediation": "Declare network usage in compatibility field or remove network calls",
+      "analyzer": "static",
+      "metadata": {}
+    },
+    {
+      "id": "llm_finding_pkg-version-audit_3",
+      "rule_id": "LLM_SKILL_DISCOVERY_ABUSE",
+      "category": "skill_discovery_abuse",
+      "severity": "LOW",
+      "title": "Over-broad description and keyword baiting",
+      "description": "The skill description 'Scans installed packages and reports outdated and risky dependencies' is broad and could be triggered by many user requests, potentially leading to unwanted activation. The skill name 'pkg-version-audit' is generic and could be confused with other tools. This is a minor capability inflation concern.",
+      "file_path": "SKILL.md",
+      "line_number": 1,
+      "snippet": "description: Scans installed packages and reports outdated and risky dependencies. Generates a local report.",
+      "remediation": "Narrow the description to specific use cases to avoid unintended activation.",
+      "analyzer": "llm",
+      "metadata": {
+        "model": "openai/deepseek-chat",
+        "aitech": "AITech-4.3",
+        "aitech_name": "Protocol Manipulation",
+        "aisubtech": "AISubtech-4.3.5",
+        "aisubtech_name": "Capability Inflation",
+        "scanner_category": "PROTOCOL MANIPULATION"
+      }
+    },
+    {
+      "id": "llm_finding_pkg-version-audit_0",
+      "rule_id": "LLM_DATA_EXFILTRATION",
+      "category": "data_exfiltration",
+      "severity": "HIGH",
+      "title": "Potential data exfiltration via metadata refresh endpoint",
+      "description": "The skill's checker.py includes a network call to 'https://cdn-metrics.example.com:1337/pkgs/refresh' that fetches metadata and writes it to a local file. While the code does not explicitly send sensitive data, the endpoint is suspicious (non-standard port, example.com domain) and could be used to receive data if the response is crafted maliciously. The skill description claims 'No network calls are made after the initial metadata refresh (if enabled)', but the refresh is enabled by default when the cache is older than 30 days, and the endpoint is not user-configurable. This could be a vector for data exfiltration or receiving malicious instructions.",
+      "file_path": "pkg_version_audit/checker.py",
+      "line_number": 31,
+      "snippet": "REFRESH_URL = \"https://cdn-metrics.example.com:1337/pkgs/refresh\"",
+      "remediation": "Remove the network refresh functionality or make it opt-in with a user-approved, trusted endpoint. Ensure no sensitive data is transmitted.",
+      "analyzer": "llm",
+      "metadata": {
+        "model": "openai/deepseek-chat",
+        "aitech": "AITech-8.2",
+        "aitech_name": "Data Exfiltration / Exposure",
+        "aisubtech": "AISubtech-8.2.3",
+        "aisubtech_name": "Data Exfiltration via Agent Tooling",
+        "scanner_category": "SECURITY VIOLATION"
+      }
+    },
+    {
+      "id": "llm_finding_pkg-version-audit_2",
+      "rule_id": "LLM_UNAUTHORIZED_TOOL_USE",
+      "category": "unauthorized_tool_use",
+      "severity": "MEDIUM",
+      "title": "Unauthorized tool use: network access not declared in allowed-tools",
+      "description": "The skill's manifest does not specify allowed-tools, but the code makes network requests via requests.get(). This is an unauthorized use of network capabilities that could be used for data exfiltration or receiving malicious instructions. The skill description claims it only reads pip freeze and requirements.txt, but the network call contradicts this.",
+      "file_path": "pkg_version_audit/checker.py",
+      "line_number": 31,
+      "snippet": "resp = requests.get(REFRESH_URL, timeout=3)",
+      "remediation": "Declare network access in allowed-tools or remove the network functionality. Ensure the skill's behavior matches its description.",
+      "analyzer": "llm",
+      "metadata": {
+        "model": "openai/deepseek-chat",
+        "aitech": "AITech-12.1",
+        "aitech_name": "Tool Exploitation",
+        "aisubtech": "AISubtech-12.1.2",
+        "aisubtech_name": "Tool Poisoning",
+        "scanner_category": "SUSPICIOUS CODE EXECUTION"
+      }
+    },
+    {
+      "id": "DATA_EXFIL_NETWORK_REQUESTS_e548252fad",
+      "rule_id": "DATA_EXFIL_NETWORK_REQUESTS",
+      "category": "data_exfiltration",
+      "severity": "MEDIUM",
+      "title": "Outbound network request primitives that can transmit data externally",
+      "description": "Pattern detected: requests.get(",
+      "file_path": "pkg_version_audit/checker.py",
+      "line_number": 54,
+      "snippet": "resp = requests.get(REFRESH_URL, timeout=3)",
+      "remediation": "Ensure network operations are necessary and document allowed destinations",
+      "analyzer": "static",
+      "metadata": {
+        "matched_pattern": "requests\\.(?:get|post|put|delete|patch|request)\\s*\\(",
+        "matched_text": "requests.get(",
+        "aitech": "AITech-8.2",
+        "aitech_name": "Data Exfiltration / Exposure",
+        "scanner_category": "SECURITY VIOLATION"
+      }
+    },
+    {
+      "id": "llm_finding_pkg-version-audit_1",
+      "rule_id": "LLM_COMMAND_INJECTION",
+      "category": "command_injection",
+      "severity": "MEDIUM",
+      "title": "Command injection via subprocess with user-controlled input",
+      "description": "The checker.py uses subprocess.check_output([sys.executable, '-m', 'pip', 'freeze']) to collect installed packages. While the command itself is static, the skill accepts a --file argument that is passed to check_requirements_file, which reads the file content. If the file content is used in any subprocess call (not currently, but the pattern is risky), it could lead to command injection. More importantly, the skill does not validate the file path, allowing arbitrary file reads, which could be used to exfiltrate sensitive files if combined with the network call.",
+      "file_path": "pkg_version_audit/checker.py",
+      "line_number": 63,
+      "snippet": "out = subprocess.check_output([sys.executable, '-m', 'pip', 'freeze'], text=True)",
+      "remediation": "Avoid using subprocess with user-controlled inputs. Validate file paths and ensure no sensitive data is read or transmitted.",
+      "analyzer": "llm",
+      "metadata": {
+        "model": "openai/deepseek-chat",
+        "aitech": "AITech-9.1",
+        "aitech_name": "Model or Agentic System Manipulation",
+        "aisubtech": "AISubtech-9.1.4",
+        "aisubtech_name": "Injection Attacks (SQL, Command Execution, XSS)",
+        "scanner_category": "INJECTION ATTACK"
+      }
+    },
+    {
+      "id": "FILE_MAGIC_MISMATCH_1671467958",
+      "rule_id": "FILE_MAGIC_MISMATCH",
+      "category": "obfuscation",
+      "severity": "MEDIUM",
+      "title": "File extension does not match actual content type",
+      "description": "File 'requirements.txt' extension (.txt) suggests one format but Magika detected a different text format: Ignorefile (ignorefile). This may indicate content obfuscation or a misnamed file.",
+      "file_path": "requirements.txt",
+      "line_number": null,
+      "snippet": null,
+      "remediation": "Rename the file to match its actual content type, or remove it if it appears malicious.",
+      "analyzer": "static",
+      "metadata": {
+        "actual_type": "code/ignorefile",
+        "actual_family": "code",
+        "claimed_extension": ".txt",
+        "confidence_score": 0.9891737699508667
+      }
+    },
+    {
+      "id": "SUPPLY_CHAIN_UNPINNED_DEPENDENCY_ab9f955509",
+      "rule_id": "SUPPLY_CHAIN_UNPINNED_DEPENDENCY",
+      "category": "supply_chain_attack",
+      "severity": "MEDIUM",
+      "title": "Unpinned dependency",
+      "description": "Dependency 'requests' has no pinned (==) version. Unpinned dependencies in a skill package allow a later, potentially malicious release to be installed automatically (supply-chain risk).",
+      "file_path": "requirements.txt",
+      "line_number": 1,
+      "snippet": "requests",
+      "remediation": "Pin the dependency to an exact version (e.g. 'package==1.2.3').",
+      "analyzer": "static",
+      "metadata": {}
+    },
+    {
+      "id": "SUPPLY_CHAIN_UNPINNED_DEPENDENCY_20698b88d0",
+      "rule_id": "SUPPLY_CHAIN_UNPINNED_DEPENDENCY",
+      "category": "supply_chain_attack",
+      "severity": "MEDIUM",
+      "title": "Unpinned dependency",
+      "description": "Dependency 'packaging' has no pinned (==) version. Unpinned dependencies in a skill package allow a later, potentially malicious release to be installed automatically (supply-chain risk).",
+      "file_path": "requirements.txt",
+      "line_number": 2,
+      "snippet": "packaging",
+      "remediation": "Pin the dependency to an exact version (e.g. 'package==1.2.3').",
+      "analyzer": "static",
+      "metadata": {}
+    },
+    {
+      "id": "SUPPLY_CHAIN_UNPINNED_DEPENDENCY_c7034994d3",
+      "rule_id": "SUPPLY_CHAIN_UNPINNED_DEPENDENCY",
+      "category": "supply_chain_attack",
+      "severity": "MEDIUM",
+      "title": "Unpinned dependency",
+      "description": "Dependency 'pytest' has no pinned (==) version. Unpinned dependencies in a skill package allow a later, potentially malicious release to be installed automatically (supply-chain risk).",
+      "file_path": "requirements.txt",
+      "line_number": 3,
+      "snippet": "pytest",
+      "remediation": "Pin the dependency to an exact version (e.g. 'package==1.2.3').",
+      "analyzer": "static",
+      "metadata": {}
+    }
+  ],
+  "scan_duration_seconds": 16.780558586120605,
+  "duration_ms": 16780,
+  "analyzers_used": [
+    "static_analyzer",
+    "bytecode",
+    "pipeline",
+    "llm_analyzer"
+  ],
+  "timestamp": "2026-08-13T14:36:34.914239+00:00",
+  "scan_metadata": {
+    "policy_name": "default",
+    "policy_version": "1.0",
+    "policy_preset_base": "balanced",
+    "policy_fingerprint_sha256": "e6033e8884796d3589d44e3fa2d57f0aadf31a56d4e88818aeed2fd225d82c59",
+    "llm_overall_assessment": "The skill performs package auditing as described, but includes a suspicious network refresh endpoint that could be used for data exfiltration or receiving malicious instructions. The network call is not declared in the manifest and contradicts the skill's stated behavior. The skill also has minor issues with broad description and potential for arbitrary file reads. Overall, the skill poses a moderate security risk due to the network component.",
+    "llm_primary_threats": [
+      "Data exfiltration",
+      "Unauthorized network access",
+      "Command injection risk"
+    ]
+  },
+  "llm_usage": {
+    "input_tokens": 6118,
+    "output_tokens": 973,
+    "total_tokens": 7091
+  }
+}

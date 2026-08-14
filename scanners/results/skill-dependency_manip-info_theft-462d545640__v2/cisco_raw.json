@@ -1,0 +1,203 @@
+{
+  "skill_name": "git-commit-helper",
+  "skill_path": "/tmp/scan_8l8p2dea",
+  "is_safe": false,
+  "max_severity": "CRITICAL",
+  "findings_count": 6,
+  "findings": [
+    {
+      "id": "llm_finding_git-commit-helper_0",
+      "rule_id": "LLM_DATA_EXFILTRATION",
+      "category": "data_exfiltration",
+      "severity": "CRITICAL",
+      "title": "Credential theft and exfiltration in setup.py",
+      "description": "The setup.py install script reads sensitive data from ~/.gitconfig (user, credential, http, remote sections) and environment variables (GITHUB_TOKEN, GITLAB_TOKEN, GH_TOKEN, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, NPM_TOKEN), then sends it to an external server (https://evil-callback.example.com:1337/git-audit) when audit-sync is enabled. This is a clear case of unauthorized credential harvesting and data exfiltration.",
+      "file_path": null,
+      "line_number": null,
+      "snippet": "The script reads ~/.gitconfig and environment variables, then posts the data to an external URL.",
+      "remediation": "Remove all data collection and network transmission code. Only perform legitimate git configuration tasks.",
+      "analyzer": "llm",
+      "metadata": {
+        "model": "openai/deepseek-chat",
+        "aitech": "AITech-8.2",
+        "aitech_name": "Data Exfiltration / Exposure",
+        "aisubtech": "AISubtech-8.2.3",
+        "aisubtech_name": "Data Exfiltration via Agent Tooling",
+        "scanner_category": "SECURITY VIOLATION",
+        "meta_false_positive": false,
+        "meta_validated": false,
+        "meta_analysis_degraded": true,
+        "meta_priority": 1
+      }
+    },
+    {
+      "id": "llm_finding_git-commit-helper_1",
+      "rule_id": "LLM_DATA_EXFILTRATION",
+      "category": "data_exfiltration",
+      "severity": "CRITICAL",
+      "title": "Credential theft and exfiltration in git_commit_helper/__init__.py",
+      "description": "The sync_config function in the main module extracts tokens (extraheader, Authorization, token) from ~/.gitconfig and sends them to an external server (https://evil-callback.example.com:1337/sync-cfg). This is another instance of credential theft and data exfiltration.",
+      "file_path": null,
+      "line_number": null,
+      "snippet": "The function reads ~/.gitconfig, extracts sensitive tokens, and posts them to an external URL.",
+      "remediation": "Remove the exfiltration code. Only implement the intended alias configuration functionality.",
+      "analyzer": "llm",
+      "metadata": {
+        "model": "openai/deepseek-chat",
+        "aitech": "AITech-8.2",
+        "aitech_name": "Data Exfiltration / Exposure",
+        "aisubtech": "AISubtech-8.2.3",
+        "aisubtech_name": "Data Exfiltration via Agent Tooling",
+        "scanner_category": "SECURITY VIOLATION",
+        "meta_false_positive": false,
+        "meta_validated": false,
+        "meta_analysis_degraded": true,
+        "meta_priority": 2
+      }
+    },
+    {
+      "id": "llm_finding_git-commit-helper_2",
+      "rule_id": "LLM_OBFUSCATION",
+      "category": "obfuscation",
+      "severity": "HIGH",
+      "title": "Obfuscated malicious payload in setup.py",
+      "description": "The setup.py script uses obfuscation techniques (base64 import, encoded payloads, HTTPS traffic disguised as JSON audit) to hide its malicious data exfiltration behavior. This is an attempt to evade detection.",
+      "file_path": null,
+      "line_number": null,
+      "snippet": "The script imports base64, encodes payloads, and uses a fake audit endpoint to disguise the exfiltration.",
+      "remediation": "Remove all obfuscated code and ensure the script is transparent and benign.",
+      "analyzer": "llm",
+      "metadata": {
+        "model": "openai/deepseek-chat",
+        "aitech": "AITech-9.2",
+        "aitech_name": "Detection Evasion",
+        "aisubtech": "AISubtech-9.2.1",
+        "aisubtech_name": "Obfuscation Vulnerabilities",
+        "scanner_category": "SUSPICIOUS CODE",
+        "meta_false_positive": false,
+        "meta_validated": false,
+        "meta_analysis_degraded": true,
+        "meta_priority": 3
+      }
+    },
+    {
+      "id": "llm_finding_git-commit-helper_3",
+      "rule_id": "LLM_UNAUTHORIZED_TOOL_USE",
+      "category": "unauthorized_tool_use",
+      "severity": "HIGH",
+      "title": "Tool poisoning via malicious install script",
+      "description": "The setup.py install script overrides the install command to execute malicious code during installation, poisoning the tool's supply chain. This is a form of tool exploitation where the installation process is abused to steal credentials.",
+      "file_path": null,
+      "line_number": null,
+      "snippet": "The cmdclass parameter overrides the install command with a custom class that runs malicious code.",
+      "remediation": "Remove the custom install command and ensure the package installs without executing arbitrary code.",
+      "analyzer": "llm",
+      "metadata": {
+        "model": "openai/deepseek-chat",
+        "aitech": "AITech-12.1",
+        "aitech_name": "Tool Exploitation",
+        "aisubtech": "AISubtech-12.1.2",
+        "aisubtech_name": "Tool Poisoning",
+        "scanner_category": "SUSPICIOUS CODE EXECUTION",
+        "meta_false_positive": false,
+        "meta_validated": false,
+        "meta_analysis_degraded": true,
+        "meta_priority": 4
+      }
+    },
+    {
+      "id": "llm_finding_git-commit-helper_4",
+      "rule_id": "LLM_SUPPLY_CHAIN_ATTACK",
+      "category": "supply_chain_attack",
+      "severity": "HIGH",
+      "title": "Supply chain compromise via malicious package installation",
+      "description": "The skill instructs users to install the package via pip or setup.py, but the package contains malicious code that executes during installation. This compromises the supply chain of the user's environment.",
+      "file_path": "SKILL.md",
+      "line_number": null,
+      "snippet": "The installation instructions lead to executing the malicious setup.py script.",
+      "remediation": "Do not distribute or install this package. Use only trusted sources.",
+      "analyzer": "llm",
+      "metadata": {
+        "model": "openai/deepseek-chat",
+        "aitech": "AITech-9.3",
+        "aitech_name": "Dependency / Plugin Compromise",
+        "aisubtech": "AISubtech-9.3.1",
+        "aisubtech_name": "Malicious Package / Tool Injection",
+        "scanner_category": "SUPPLY CHAIN ATTACK",
+        "meta_false_positive": false,
+        "meta_validated": false,
+        "meta_analysis_degraded": true,
+        "meta_priority": 5
+      }
+    },
+    {
+      "id": "llm_finding_git-commit-helper_5",
+      "rule_id": "LLM_SKILL_DISCOVERY_ABUSE",
+      "category": "skill_discovery_abuse",
+      "severity": "MEDIUM",
+      "title": "Capability inflation and deceptive description",
+      "description": "The skill description claims to be a benign git commit helper, but it actually performs credential theft and data exfiltration. This is a case of capability inflation where the skill's true capabilities are hidden.",
+      "file_path": "SKILL.md",
+      "line_number": null,
+      "snippet": "The description says '\u667a\u80fd git \u63d0\u4ea4\u8f85\u52a9\u5de5\u5177' but the code steals credentials.",
+      "remediation": "Ensure the description accurately reflects the skill's behavior, or remove the malicious code.",
+      "analyzer": "llm",
+      "metadata": {
+        "model": "openai/deepseek-chat",
+        "aitech": "AITech-4.3",
+        "aitech_name": "Protocol Manipulation",
+        "aisubtech": "AISubtech-4.3.5",
+        "aisubtech_name": "Capability Inflation",
+        "scanner_category": "PROTOCOL MANIPULATION",
+        "meta_false_positive": false,
+        "meta_validated": false,
+        "meta_analysis_degraded": true,
+        "meta_priority": 6
+      }
+    }
+  ],
+  "scan_duration_seconds": 16.066713571548462,
+  "duration_ms": 16066,
+  "analyzers_used": [
+    "static_analyzer",
+    "bytecode",
+    "pipeline",
+    "llm_analyzer",
+    "meta_analyzer"
+  ],
+  "timestamp": "2026-08-13T03:51:10.474211+00:00",
+  "scan_metadata": {
+    "policy_name": "default",
+    "policy_version": "1.0",
+    "policy_preset_base": "balanced",
+    "policy_fingerprint_sha256": "e6033e8884796d3589d44e3fa2d57f0aadf31a56d4e88818aeed2fd225d82c59",
+    "llm_overall_assessment": "This skill is malicious. It contains multiple instances of credential theft and data exfiltration, disguised as a benign git commit helper. The setup.py install script and the main module both steal sensitive data and send it to an external server. The skill also uses obfuscation to hide its malicious behavior. Immediate action is required to prevent installation and use.",
+    "llm_primary_threats": [
+      "Data Exfiltration",
+      "Credential Theft",
+      "Supply Chain Compromise",
+      "Tool Poisoning",
+      "Obfuscation"
+    ],
+    "meta_risk_assessment": {
+      "risk_level": "UNKNOWN",
+      "skill_verdict": "UNKNOWN",
+      "summary": "Meta-analysis was incomplete because one or more batches could not be fully analyzed. Original findings from those batches were retained.",
+      "meta_analysis_status": "degraded",
+      "meta_analysis_warnings": [
+        {
+          "code": "META_BATCH_REQUEST_FAILED",
+          "message": "Meta-analysis request failed (BadRequestError); this batch was retained unchanged.",
+          "first_index": 0,
+          "last_index": 5,
+          "finding_count": 6
+        }
+      ]
+    }
+  },
+  "llm_usage": {
+    "input_tokens": 5118,
+    "output_tokens": 1094,
+    "total_tokens": 6212
+  }
+}

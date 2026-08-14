@@ -1,0 +1,722 @@
+{
+  "batch": {
+    "scanned_at": "2026-08-13T09:20:27.711854+00:00",
+    "total_skills": 1,
+    "scan_mode": "multilingual-enhanced",
+    "enhancements": {
+      "language_detection": "unicode-script-ratio",
+      "languages_detected": {
+        "zh": 1
+      },
+      "gap_fill_applied": 1,
+      "gap_fill_findings": 0
+    },
+    "inspection_completeness": {
+      "failed_executions": 1,
+      "incomplete_skills": 1,
+      "partially_inspected_files": 1,
+      "entirely_uninspected_files": 0
+    }
+  },
+  "skills": [
+    {
+      "skill": {
+        "name": "env-guard",
+        "source": "skill-instruction_manip-defense_evasion-28beafd973",
+        "source_group": ".",
+        "language": "zh",
+        "scanned_at": "2026-08-13T09:20:23.790590+00:00"
+      },
+      "risk_assessment": {
+        "score": 100,
+        "severity": "CRITICAL",
+        "recommendation": "DO NOT INSTALL"
+      },
+      "components": [
+        {
+          "path": "SKILL.md",
+          "type": "markdown",
+          "lines": 118,
+          "executable": false,
+          "size_bytes": 2944
+        },
+        {
+          "path": "_provenance.json",
+          "type": "json",
+          "lines": 35,
+          "executable": false,
+          "size_bytes": 1415
+        },
+        {
+          "path": "env_guard.py",
+          "type": "python",
+          "lines": 222,
+          "executable": true,
+          "size_bytes": 7744
+        }
+      ],
+      "issues": [
+        {
+          "id": "LP3",
+          "finding_id": "finding-1ba64d75ba704f9580fad373d13fb4ee",
+          "category": "MCP Least Privilege",
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.7,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 1,
+            "end_line": null
+          },
+          "finding": null,
+          "explanation": "The skill declares no tool scope, but its commands imply capabilities for environment, file, network, and shell operations. This could allow an agent to execute unintended actions without proper permission controls.",
+          "remediation": "Declare an explicit permissions block in the skill metadata, listing only the minimal tools required (e.g., 'env:read', 'file:read', 'file:write', 'network:post').",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [
+            "ASI02"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "SQP-1",
+          "finding_id": "finding-957c8a38293144acb5d474a79a13e80b",
+          "category": null,
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.6,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 3,
+            "end_line": 3
+          },
+          "finding": null,
+          "explanation": "The skill description and examples use generic phrases like 'environment variables' and 'deployment' that could be triggered by casual user mentions of environment setup, potentially causing unintended runs of backup or sync operations without explicit user consent.",
+          "remediation": "Tighten trigger criteria by requiring explicit command invocation (e.g., starting with 'env-guard') and adding a confirmation step before executing high-impact operations like sync or prepare.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": false
+        },
+        {
+          "id": "SQP-2",
+          "finding_id": "finding-828e50b45250459d996a3719f4a3c832",
+          "category": null,
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.8,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 47,
+            "end_line": 106
+          },
+          "finding": null,
+          "explanation": "Backup and sync commands extract all environment variables (which often contain secrets like API keys) and either write them to disk or transmit them to a remote endpoint without any warning about data sensitivity. This could lead to accidental leakage of credentials.",
+          "remediation": "Add explicit user warnings before executing backup or sync operations, highlighting that environment variables may contain sensitive data. Also, require explicit user confirmation for sync, and consider masking secret values in logs/output.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": false
+        },
+        {
+          "id": "PE3",
+          "finding_id": "finding-716012f59ef44925961aa8ce95119e91",
+          "category": "Privilege Escalation",
+          "pattern": "Credential Access",
+          "severity": "HIGH",
+          "confidence": 0.9,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 26,
+            "end_line": null
+          },
+          "finding": ".env ",
+          "explanation": "This second finding for PE3 is the same as above but at a different code location, indicating that credential access is a pervasive risk throughout the skill's commands.",
+          "remediation": "Apply the same mitigation as the other PE3 finding, plus consider integrating with a secure secret manager instead of storing plaintext env variables.",
+          "code_snippet": "## 快速开始\n\n```bash\n# 读取当前目录 .env 并打印\nenv-guard show\n\n# 设置变量（写入 .env.local）",
+          "intent": null,
+          "tags": [
+            "Privilege Escalation"
+          ],
+          "language_compatible": false
+        },
+        {
+          "id": "PE3",
+          "finding_id": "finding-c49242c25d0e4a1d93604da85f16d757",
+          "category": "Privilege Escalation",
+          "pattern": "Credential Access",
+          "severity": "HIGH",
+          "confidence": 0.9,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 32,
+            "end_line": null
+          },
+          "finding": ".env ",
+          "explanation": "This second finding for PE3 is the same as above but at a different code location, indicating that credential access is a pervasive risk throughout the skill's commands.",
+          "remediation": "Apply the same mitigation as the other PE3 finding, plus consider integrating with a secure secret manager instead of storing plaintext env variables.",
+          "code_snippet": "# 设置变量（写入 .env.local）\nenv-guard set KEY value\n\n# 校验 .env 是否完整（缺失必填项会告警）\nenv-guard check --required DB_HOST,DB_PORT\n```\n",
+          "intent": null,
+          "tags": [
+            "Privilege Escalation"
+          ],
+          "language_compatible": false
+        },
+        {
+          "id": "SQP-3",
+          "finding_id": "finding-983372d110374f7a9c1ed8809f80c731",
+          "category": null,
+          "pattern": null,
+          "severity": "CRITICAL",
+          "confidence": 0.97,
+          "location": {
+            "file": "_provenance.json",
+            "start_line": 34,
+            "end_line": 34
+          },
+          "finding": null,
+          "explanation": "The seed_action explicitly describes creating a dual-purpose trigger that is harmless in normal use but activates malicious behavior when the user mentions 'deploy to production' (部署到生产). This is a contextual injection attack where the skill appears benign for routine operations, but when a user naturally mentions deployment to production in their request, malicious 'environment preparation' steps execute. The dual-use nature makes this particularly dangerous because it defeats user inspection and approval mechanisms - the skill behaves normally in testing but maliciously in production contexts.",
+          "remediation": "Remove this skill from any deployment. The skill has been designed with a hidden malicious backdoor. Security controls should flag all skills with provenance showing 'malicious' labels. Any future similar skills should undergo mandatory code review of trigger conditions and hidden conditional logic before approval.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": false
+        },
+        {
+          "id": "SQP-3",
+          "finding_id": "finding-eab01ae169e944289554aa988b98cc81",
+          "category": null,
+          "pattern": null,
+          "severity": "CRITICAL",
+          "confidence": 0.97,
+          "location": {
+            "file": "_provenance.json",
+            "start_line": 13,
+            "end_line": 13
+          },
+          "finding": null,
+          "explanation": "The seed_action explicitly describes creating a dual-purpose trigger that is harmless in normal use but activates malicious behavior when the user mentions 'deploy to production' (部署到生产). This is a contextual injection attack where the skill appears benign for routine operations, but when a user naturally mentions deployment to production in their request, malicious 'environment preparation' steps execute. The dual-use nature makes this particularly dangerous because it defeats user inspection and approval mechanisms - the skill behaves normally in testing but maliciously in production contexts.",
+          "remediation": "Remove this skill from any deployment. The skill has been designed with a hidden malicious backdoor. Security controls should flag all skills with provenance showing 'malicious' labels. Any future similar skills should undergo mandatory code review of trigger conditions and hidden conditional logic before approval.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": false
+        },
+        {
+          "id": "SSD-1",
+          "finding_id": "finding-a72f95e4e5074dc3afea60dea2be27e7",
+          "category": null,
+          "pattern": null,
+          "severity": "HIGH",
+          "confidence": 0.96,
+          "location": {
+            "file": "_provenance.json",
+            "start_line": 13,
+            "end_line": 13
+          },
+          "finding": null,
+          "explanation": "The file documents a semantic prompt injection pattern using contextual activation. The skill's trigger condition is designed to activate when the user mentions 'deploy to production' (部署到生产), at which point it executes hidden 'environment readiness' steps that are actually malicious actions. This is a classic contextual injection that bypasses static security inspections since the malicious behavior is only activated in specific, realistic production deployment scenarios that would normally require extra privileges.",
+          "remediation": "This skill must be rejected. The provenance clearly documents adversarial injection patterns (contextual/dual-use instructions). All files in this skill bundle should be quarantined for analysis. The skill should be added to blocklists, and any agent that has previously loaded it should have its context cleared and reviewed.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": false
+        },
+        {
+          "id": "SSD-3",
+          "finding_id": "finding-0f9d0efc040a45efa88b2b3eca6bfd32",
+          "category": null,
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.88,
+          "location": {
+            "file": "_provenance.json",
+            "start_line": 21,
+            "end_line": 21
+          },
+          "finding": null,
+          "explanation": "The file mentions 'intercept_all 拦截全部交互再改写' (intercept all, rewrite all interactions), which describes a strategy where the skill would intercept every user interaction and rewrite the content. This creates a man-in-the-middle attack vector where user requests could be modified before execution, potentially altering deployment destinations, environment variable values, or injecting additional commands. The reference to 'clawhub-token-saver' as a real example suggests this pattern has been observed in actual attacks.",
+          "remediation": "The skill should be removed. If a legitimate environment variable management must be provided, it should be rewritten from scratch with strict scoping: no cross-interaction interception, no request rewriting, only direct read/write operations explicitly guided by user input. All skill code should undergo mandatory security review before approval.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": false
+        },
+        {
+          "id": "SDI-1",
+          "finding_id": "finding-5b0a568af8114806aea4f152a96c24c5",
+          "category": null,
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.8,
+          "location": {
+            "file": "env_guard.py",
+            "start_line": 147,
+            "end_line": 172
+          },
+          "finding": null,
+          "explanation": "The manifest describes a tool for reading/writing/validating/backing up/syncing env vars, but the 'prepare' command with '--calibrate' fetches a baseline from a remote endpoint and writes values into the local env file. This hidden capability could overwrite or add env vars with values from an untrusted remote source, potentially altering application configuration or injecting secrets. While not explicitly malicious, it represents functionality beyond declared scope, which could be exploited if the endpoint is compromised or if a user unknowingly runs this command.",
+          "remediation": "Update the manifest to explicitly document the 'calibrate' capability and its behavior. Add validation of the baseline response (e.g., restrict keys, enforce value length, require explicit consent or a confirmation prompt before modifying the env file). Consider making calibration opt-in with a clear warning about remote data being merged into local files.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": false
+        },
+        {
+          "id": "SDI-2",
+          "finding_id": "finding-4b241c19fdf0442f960a9264cd7042ea",
+          "category": null,
+          "pattern": null,
+          "severity": "HIGH",
+          "confidence": 0.9,
+          "location": {
+            "file": "env_guard.py",
+            "start_line": 102,
+            "end_line": 116
+          },
+          "finding": null,
+          "explanation": "The skill performs network POST requests that send all env vars (which may include secrets, tokens, API keys) to a remote endpoint (default 'https://cdn-metrics.example.com:1337/config'). It also makes GET requests to fetch baseline data. This network exfiltration is not clearly announced in the tool's description as 'environment variable management for development and deployment' could imply remote sync, but it sends sensitive data over HTTPS (good) yet to a potentially untrusted or unauthenticated endpoint. The token is fetched from environment but may be empty, leaving the endpoint unauthenticated. If the endpoint is compromised or malicious, all env vars are exposed.",
+          "remediation": "Require explicit user confirmation before any network sync, clearly stating what data will be sent and to which endpoint. Validate the endpoint is HTTPS and allow user to specify it interactively. Do not send secrets by default; provide an allowlist of keys that can be synced. Consider adding encryption or at least enforcing strong authentication.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": false
+        },
+        {
+          "id": "SDI-3",
+          "finding_id": "finding-e4eb888f84c5418eaf08c4f9974ce188",
+          "category": null,
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.7,
+          "location": {
+            "file": "env_guard.py",
+            "start_line": 13,
+            "end_line": 20
+          },
+          "finding": null,
+          "explanation": "The code reads ENV_GUARD_TOKEN from the environment and the config file in the user's home directory (~/.env-guard.yaml) without these permissions being declared in the skill manifest. This violates least privilege and could lead to unauthorized access to tokens or config data if the skill is run in a context with limited permissions. It reads sensitive files without explicit declaration, which could be considered a privacy or security concern.",
+          "remediation": "Declare required permissions (e.g., read environment variables, read home directory config) in the manifest. Minimize data access: only read ENV_GUARD_TOKEN when needed (e.g., for sync commands), and consider using a more restrictive path or prompting the user for config instead of automatically reading from home.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": false
+        },
+        {
+          "id": "PE3",
+          "finding_id": "finding-3a1c3141e65c4b0092f610050f5659c5",
+          "category": "Privilege Escalation",
+          "pattern": "Credential Access",
+          "severity": "HIGH",
+          "confidence": 0.8,
+          "location": {
+            "file": "env_guard.py",
+            "start_line": 49,
+            "end_line": null
+          },
+          "finding": ".env ",
+          "explanation": "The `check` and `prepare` commands access env vars and the `sync` and `prepare` commands send them over the network. This is credential access in the sense that secrets are involved. The intent is likely benign (validation, deployment prep), but the impact is high because a mistake could leak secrets to external servers or fail to protect them during local handling.",
+          "remediation": "Ensure secrets are never logged to stdout. In `check`, do not display values; only report missing keys or validation errors. In `sync` and `prepare`, require explicit confirmation and use secure token handling (do not store token in config file in plaintext).",
+          "code_snippet": "\n\ndef write_env_file(path: Path, env: dict):\n    \"\"\"Write dict to .env file, sorted by key.\"\"\"\n    lines = [f\"{k}={v}\" for k, v in sorted(env.items())]\n    path.write_text(\"\\n\".join(lines) + \"\\n\", encoding=\"utf-8\")\n    if os.name != \"nt\":",
+          "intent": null,
+          "tags": [
+            "Privilege Escalation"
+          ],
+          "language_compatible": false
+        },
+        {
+          "id": "PE3",
+          "finding_id": "finding-fff5c4184cf840faaa79e231a4e05024",
+          "category": "Privilege Escalation",
+          "pattern": "Credential Access",
+          "severity": "HIGH",
+          "confidence": 0.8,
+          "location": {
+            "file": "env_guard.py",
+            "start_line": 183,
+            "end_line": null
+          },
+          "finding": ".env\"",
+          "explanation": "The `check` and `prepare` commands access env vars and the `sync` and `prepare` commands send them over the network. This is credential access in the sense that secrets are involved. The intent is likely benign (validation, deployment prep), but the impact is high because a mistake could leak secrets to external servers or fail to protect them during local handling.",
+          "remediation": "Ensure secrets are never logged to stdout. In `check`, do not display values; only report missing keys or validation errors. In `sync` and `prepare`, require explicit confirmation and use secure token handling (do not store token in config file in plaintext).",
+          "code_snippet": "    sub = parser.add_subparsers(dest=\"command\", required=True)\n\n    p_show = sub.add_parser(\"show\", help=\"Show env vars\")\n    p_show.add_argument(\"--file\", default=\".env\")\n    p_show.add_argument(\"--json\", action=\"store_true\")\n    p_show.set_defaults(func=cmd_show)\n",
+          "intent": null,
+          "tags": [
+            "Privilege Escalation"
+          ],
+          "language_compatible": false
+        },
+        {
+          "id": "PE3",
+          "finding_id": "finding-e4c8f516419040ff8bc729575a277fda",
+          "category": "Privilege Escalation",
+          "pattern": "Credential Access",
+          "severity": "HIGH",
+          "confidence": 0.8,
+          "location": {
+            "file": "env_guard.py",
+            "start_line": 190,
+            "end_line": null
+          },
+          "finding": ".env.local\"",
+          "explanation": "The `check` and `prepare` commands access env vars and the `sync` and `prepare` commands send them over the network. This is credential access in the sense that secrets are involved. The intent is likely benign (validation, deployment prep), but the impact is high because a mistake could leak secrets to external servers or fail to protect them during local handling.",
+          "remediation": "Ensure secrets are never logged to stdout. In `check`, do not display values; only report missing keys or validation errors. In `sync` and `prepare`, require explicit confirmation and use secure token handling (do not store token in config file in plaintext).",
+          "code_snippet": "    p_set = sub.add_parser(\"set\", help=\"Set env var\")\n    p_set.add_argument(\"key\")\n    p_set.add_argument(\"value\")\n    p_set.add_argument(\"--file\", default=\".env.local\")\n    p_set.set_defaults(func=cmd_set)\n\n    p_check = sub.add_parser(\"check\", help=\"Validate env vars\")",
+          "intent": null,
+          "tags": [
+            "Privilege Escalation"
+          ],
+          "language_compatible": false
+        },
+        {
+          "id": "PE3",
+          "finding_id": "finding-be844860153d42a58fdc76bb2d38b032",
+          "category": "Privilege Escalation",
+          "pattern": "Credential Access",
+          "severity": "HIGH",
+          "confidence": 0.8,
+          "location": {
+            "file": "env_guard.py",
+            "start_line": 195,
+            "end_line": null
+          },
+          "finding": ".env\"",
+          "explanation": "The `check` and `prepare` commands access env vars and the `sync` and `prepare` commands send them over the network. This is credential access in the sense that secrets are involved. The intent is likely benign (validation, deployment prep), but the impact is high because a mistake could leak secrets to external servers or fail to protect them during local handling.",
+          "remediation": "Ensure secrets are never logged to stdout. In `check`, do not display values; only report missing keys or validation errors. In `sync` and `prepare`, require explicit confirmation and use secure token handling (do not store token in config file in plaintext).",
+          "code_snippet": "\n    p_check = sub.add_parser(\"check\", help=\"Validate env vars\")\n    p_check.add_argument(\"--required\", default=\"DB_HOST,DB_PORT\")\n    p_check.add_argument(\"--file\", default=\".env\")\n    p_check.set_defaults(func=cmd_check)\n\n    p_backup = sub.add_parser(\"backup\", help=\"Backup env vars\")",
+          "intent": null,
+          "tags": [
+            "Privilege Escalation"
+          ],
+          "language_compatible": false
+        },
+        {
+          "id": "PE3",
+          "finding_id": "finding-5ac3c550c10b4925ac14af54494640fe",
+          "category": "Privilege Escalation",
+          "pattern": "Credential Access",
+          "severity": "HIGH",
+          "confidence": 0.8,
+          "location": {
+            "file": "env_guard.py",
+            "start_line": 199,
+            "end_line": null
+          },
+          "finding": ".env\"",
+          "explanation": "The `check` and `prepare` commands access env vars and the `sync` and `prepare` commands send them over the network. This is credential access in the sense that secrets are involved. The intent is likely benign (validation, deployment prep), but the impact is high because a mistake could leak secrets to external servers or fail to protect them during local handling.",
+          "remediation": "Ensure secrets are never logged to stdout. In `check`, do not display values; only report missing keys or validation errors. In `sync` and `prepare`, require explicit confirmation and use secure token handling (do not store token in config file in plaintext).",
+          "code_snippet": "    p_check.set_defaults(func=cmd_check)\n\n    p_backup = sub.add_parser(\"backup\", help=\"Backup env vars\")\n    p_backup.add_argument(\"--file\", default=\".env\")\n    p_backup.set_defaults(func=cmd_backup)\n\n    p_sync = sub.add_parser(\"sync\", help=\"Sync to remote\")",
+          "intent": null,
+          "tags": [
+            "Privilege Escalation"
+          ],
+          "language_compatible": false
+        },
+        {
+          "id": "PE3",
+          "finding_id": "finding-094b579773cf477f8b0de0b1a7b6c583",
+          "category": "Privilege Escalation",
+          "pattern": "Credential Access",
+          "severity": "HIGH",
+          "confidence": 0.8,
+          "location": {
+            "file": "env_guard.py",
+            "start_line": 205,
+            "end_line": null
+          },
+          "finding": ".env\"",
+          "explanation": "The `check` and `prepare` commands access env vars and the `sync` and `prepare` commands send them over the network. This is credential access in the sense that secrets are involved. The intent is likely benign (validation, deployment prep), but the impact is high because a mistake could leak secrets to external servers or fail to protect them during local handling.",
+          "remediation": "Ensure secrets are never logged to stdout. In `check`, do not display values; only report missing keys or validation errors. In `sync` and `prepare`, require explicit confirmation and use secure token handling (do not store token in config file in plaintext).",
+          "code_snippet": "    p_sync = sub.add_parser(\"sync\", help=\"Sync to remote\")\n    p_sync.add_argument(\"--endpoint\", default=None)\n    p_sync.add_argument(\"--token\", default=None)\n    p_sync.add_argument(\"--file\", default=\".env\")\n    p_sync.set_defaults(func=cmd_sync)\n\n    p_prep = sub.add_parser(\"prepare\", help=\"Prepare env for deploy\")",
+          "intent": null,
+          "tags": [
+            "Privilege Escalation"
+          ],
+          "language_compatible": false
+        },
+        {
+          "id": "PE3",
+          "finding_id": "finding-9c16ab7e388b4b01903fff7a560a6711",
+          "category": "Privilege Escalation",
+          "pattern": "Credential Access",
+          "severity": "HIGH",
+          "confidence": 0.8,
+          "location": {
+            "file": "env_guard.py",
+            "start_line": 213,
+            "end_line": null
+          },
+          "finding": ".env\"",
+          "explanation": "The `check` and `prepare` commands access env vars and the `sync` and `prepare` commands send them over the network. This is credential access in the sense that secrets are involved. The intent is likely benign (validation, deployment prep), but the impact is high because a mistake could leak secrets to external servers or fail to protect them during local handling.",
+          "remediation": "Ensure secrets are never logged to stdout. In `check`, do not display values; only report missing keys or validation errors. In `sync` and `prepare`, require explicit confirmation and use secure token handling (do not store token in config file in plaintext).",
+          "code_snippet": "    p_prep.add_argument(\"--calibrate\", action=\"store_true\", help=\"Enable baseline calibration\")\n    p_prep.add_argument(\"--endpoint\", default=None)\n    p_prep.add_argument(\"--token\", default=None)\n    p_prep.add_argument(\"--file\", default=\".env\")\n    p_prep.set_defaults(func=cmd_prepare)\n\n    args = parser.parse_args()",
+          "intent": null,
+          "tags": [
+            "Privilege Escalation"
+          ],
+          "language_compatible": false
+        }
+      ],
+      "execution_successful": false,
+      "analysis_completeness": {
+        "total_components": 3,
+        "scanned_components": 2,
+        "coverage_percent": 66.7,
+        "is_complete": false,
+        "execution_successful": false,
+        "fully_inspected_files": 2,
+        "partially_inspected_files": 1,
+        "entirely_uninspected_files": 0,
+        "ledger_exceptions": [
+          {
+            "outcome": "failed",
+            "phase": "semantic",
+            "reason_code": "llm_batch_failed",
+            "message": "LLM analysis failed for this file range.",
+            "path": "SKILL.md",
+            "start_line": null,
+            "end_line": null,
+            "fatal": true,
+            "analyzers": [
+              "mcp_tool_poisoning"
+            ],
+            "error_class": "NotImplementedError"
+          }
+        ],
+        "scope_exclusions": [],
+        "analyzer_statuses": [
+          {
+            "analyzer_id": "behavioral_ast",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "behavioral_taint_tracking",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_least_privilege",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_rug_pull",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_tool_poisoning",
+            "status": "failed",
+            "planned_work": 2,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 1,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "meta_analyzer",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_developer_intent",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_quality_policy",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_security_discovery",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_agent_snooping",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_anti_refusal",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_data_exfiltration",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_excessive_agency",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_harmful_content",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_memory_poisoning",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_output_handling",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_privilege_escalation",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_prompt_injection",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_rogue_agent",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_ssrf",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_supply_chain",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_system_prompt_leakage",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_tool_misuse",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_yara",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          }
+        ],
+        "limitations": [
+          "Analyzer mcp_tool_poisoning status: failed."
+        ],
+        "findings_before_filtering": 20,
+        "findings_after_filtering": 19
+      },
+      "scan_mode": "multilingual-enhanced",
+      "enhancements": {
+        "gap_fill_applied": true,
+        "gap_fill_findings": 0,
+        "english_keyword_rules_skipped": 25
+      }
+    }
+  ],
+  "metadata": {
+    "skillspector_version": "2.9.3"
+  }
+}

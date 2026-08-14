@@ -1,0 +1,31 @@
+# ===== Secrets / API keys =====
+.env
+.env.*
+!.env.example
+!.env.deepseek.example
+
+# ===== Virtual environments =====
+.venv/
+venv/
+skillward-venv/
+scanners/skillward-venv/
+
+# ===== Third-party scanner repos (cloned, not our code) =====
+scanners/SkillWard/
+
+# ===== Python cache =====
+__pycache__/
+*.pyc
+*.pyo
+
+# ===== Eval raw output (large, regeneratable) =====
+scanners/eval_results/sp_raw/
+scanners/eval_results/sp_raw_slots/
+
+# ===== OS / editor =====
+.DS_Store
+Thumbs.db
+*.swp
+*~
+.idea/
+.vscode/

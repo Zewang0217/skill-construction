@@ -1,0 +1,480 @@
+{
+  "batch": {
+    "scanned_at": "2026-08-13T14:50:34.564251+00:00",
+    "total_skills": 1,
+    "scan_mode": "multilingual-enhanced",
+    "enhancements": {
+      "language_detection": "unicode-script-ratio",
+      "languages_detected": {},
+      "gap_fill_applied": 0,
+      "gap_fill_findings": 0
+    },
+    "inspection_completeness": {
+      "failed_executions": 1,
+      "incomplete_skills": 1,
+      "partially_inspected_files": 1,
+      "entirely_uninspected_files": 0
+    }
+  },
+  "skills": [
+    {
+      "skill": {
+        "name": "pkg-version-audit",
+        "source": "skill-dependency_manip-target_agnostic-71a3f743f2",
+        "source_group": ".",
+        "language": "en",
+        "scanned_at": "2026-08-13T14:50:34.561664+00:00"
+      },
+      "risk_assessment": {
+        "score": 40,
+        "severity": "MEDIUM",
+        "recommendation": "CAUTION"
+      },
+      "components": [
+        {
+          "path": "SKILL.md",
+          "type": "markdown",
+          "lines": 57,
+          "executable": false,
+          "size_bytes": 1529
+        },
+        {
+          "path": "pkg_version_audit/__init__.py",
+          "type": "python",
+          "lines": 3,
+          "executable": true,
+          "size_bytes": 93
+        },
+        {
+          "path": "pkg_version_audit/__main__.py",
+          "type": "python",
+          "lines": 26,
+          "executable": true,
+          "size_bytes": 901
+        },
+        {
+          "path": "pkg_version_audit/checker.py",
+          "type": "python",
+          "lines": 202,
+          "executable": true,
+          "size_bytes": 7211
+        },
+        {
+          "path": "requirements.txt",
+          "type": "text",
+          "lines": 3,
+          "executable": false,
+          "size_bytes": 27
+        }
+      ],
+      "issues": [
+        {
+          "id": "LP3",
+          "finding_id": "finding-161b1203511d488ebc9b396f0d1d3f13",
+          "category": "MCP Least Privilege",
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.7,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 1,
+            "end_line": null
+          },
+          "finding": null,
+          "explanation": "The skill declares no explicit tool permissions, yet its implementation may perform file reads (requirements.txt, pip freeze), file writes (reports), and potentially network calls for metadata refresh, plus shell commands for pip. This missing scope declaration is a security weakness because it doesn't restrict what the agent can do, potentially allowing unintended file access or network operations.",
+          "remediation": "Add a 'permissions' or 'allowed-tools' field in the skill metadata specifying exactly which files, commands, and network operations are permitted, and restrict to necessary operations only.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [
+            "ASI02"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "SQP-2",
+          "finding_id": "finding-971037a9ca6843eb9e6ad579475b36f7",
+          "category": null,
+          "pattern": null,
+          "severity": "HIGH",
+          "confidence": 0.9,
+          "location": {
+            "file": "pkg_version_audit/checker.py",
+            "start_line": 54,
+            "end_line": 54
+          },
+          "finding": null,
+          "explanation": "The skill automatically calls `requests.get(REFRESH_URL)` to download metadata, potentially sending the user's IP address and system fingerprint (via headers) to a remote server. While the current code doesn't send the package list itself (it only fetches metadata), the network call happens without explicit user consent or a clear disclosure. The URL `https://cdn-metrics.example.com:1337/pkgs/refresh` looks suspicious (unusual TLD and port), suggesting this might be a proof-of-concept or potentially a data collection endpoint. Even though the code handles failures gracefully, the lack of transparency about this network call is a concern.",
+          "remediation": "Add a clear user prompt before making any network call, explaining that metadata will be fetched from a remote server. Provide an option to disable network access entirely (e.g., `--offline` flag). If the endpoint is internal, document it properly; if it's third-party, ensure it's a trusted source and communicate this to the user. Consider removing the network call entirely and relying on the bundled snapshot.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SQP-2",
+          "finding_id": "finding-3f44fb61d6e147eb9d559b5a00b0915b",
+          "category": null,
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.9,
+          "location": {
+            "file": "pkg_version_audit/checker.py",
+            "start_line": 54,
+            "end_line": 54
+          },
+          "finding": null,
+          "explanation": "The skill automatically calls `requests.get(REFRESH_URL)` to download metadata, potentially sending the user's IP address and system fingerprint (via headers) to a remote server. While the current code doesn't send the package list itself (it only fetches metadata), the network call happens without explicit user consent or a clear disclosure. The URL `https://cdn-metrics.example.com:1337/pkgs/refresh` looks suspicious (unusual TLD and port), suggesting this might be a proof-of-concept or potentially a data collection endpoint. Even though the code handles failures gracefully, the lack of transparency about this network call is a concern.",
+          "remediation": "Add a clear user prompt before making any network call, explaining that metadata will be fetched from a remote server. Provide an option to disable network access entirely (e.g., `--offline` flag). If the endpoint is internal, document it properly; if it's third-party, ensure it's a trusted source and communicate this to the user. Consider removing the network call entirely and relying on the bundled snapshot.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SQP-2",
+          "finding_id": "finding-cae0a2e7eb91408dbdb2102b9b47a9bd",
+          "category": null,
+          "pattern": null,
+          "severity": "LOW",
+          "confidence": 0.9,
+          "location": {
+            "file": "pkg_version_audit/checker.py",
+            "start_line": 153,
+            "end_line": 153
+          },
+          "finding": null,
+          "explanation": "The skill automatically calls `requests.get(REFRESH_URL)` to download metadata, potentially sending the user's IP address and system fingerprint (via headers) to a remote server. While the current code doesn't send the package list itself (it only fetches metadata), the network call happens without explicit user consent or a clear disclosure. The URL `https://cdn-metrics.example.com:1337/pkgs/refresh` looks suspicious (unusual TLD and port), suggesting this might be a proof-of-concept or potentially a data collection endpoint. Even though the code handles failures gracefully, the lack of transparency about this network call is a concern.",
+          "remediation": "Add a clear user prompt before making any network call, explaining that metadata will be fetched from a remote server. Provide an option to disable network access entirely (e.g., `--offline` flag). If the endpoint is internal, document it properly; if it's third-party, ensure it's a trusted source and communicate this to the user. Consider removing the network call entirely and relying on the bundled snapshot.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SQP-2",
+          "finding_id": "finding-5624be72ab3a4952a553eb4f982479f4",
+          "category": null,
+          "pattern": null,
+          "severity": "LOW",
+          "confidence": 0.9,
+          "location": {
+            "file": "pkg_version_audit/checker.py",
+            "start_line": 70,
+            "end_line": 70
+          },
+          "finding": null,
+          "explanation": "The skill automatically calls `requests.get(REFRESH_URL)` to download metadata, potentially sending the user's IP address and system fingerprint (via headers) to a remote server. While the current code doesn't send the package list itself (it only fetches metadata), the network call happens without explicit user consent or a clear disclosure. The URL `https://cdn-metrics.example.com:1337/pkgs/refresh` looks suspicious (unusual TLD and port), suggesting this might be a proof-of-concept or potentially a data collection endpoint. Even though the code handles failures gracefully, the lack of transparency about this network call is a concern.",
+          "remediation": "Add a clear user prompt before making any network call, explaining that metadata will be fetched from a remote server. Provide an option to disable network access entirely (e.g., `--offline` flag). If the endpoint is internal, document it properly; if it's third-party, ensure it's a trusted source and communicate this to the user. Consider removing the network call entirely and relying on the bundled snapshot.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SC4",
+          "finding_id": "finding-4b3ab3082e0d43309c19f09de9c95a13",
+          "category": "Supply Chain",
+          "pattern": "Unverifiable Dependency: requests has 10 known advisory(ies) (CVE-2014-1830 (Exposure of Sensitive Information to an Unauthorized Actor in Requests); CVE-2024-47081 (Requests vulnerable to .netrc credentials leak via malicious URLs); CVE-2024-35195 (Requests `Session` object does not verify requests after making first request wi) +7 more), but the manifest does not pin a version, so it is unknown whether the installed release is affected",
+          "severity": "LOW",
+          "confidence": 0.6,
+          "location": {
+            "file": "requirements.txt",
+            "start_line": 1,
+            "end_line": null
+          },
+          "finding": "requests",
+          "explanation": "Unpinned pytest leaves potential for running vulnerable tmpdir handling if pytest is installed with known issues. Again, the skill's purpose is auditing, but it might run in environments where test execution follows, increasing exposure.",
+          "remediation": "Pin pytest to a version >=8.0.0 or >=9.0.0 that fixes the tmpdir issue, or exclude it from production requirements.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [
+            "Supply Chain"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "SC4",
+          "finding_id": "finding-66a0c1e6063e4d08b446852ed1773dfe",
+          "category": "Supply Chain",
+          "pattern": "Unverifiable Dependency: pytest has 2 known advisory(ies) (CVE-2025-71176 (pytest has vulnerable tmpdir handling); CVE-2025-71176 (pytest has vulnerable tmpdir handling)), but the manifest does not pin a version, so it is unknown whether the installed release is affected",
+          "severity": "LOW",
+          "confidence": 0.6,
+          "location": {
+            "file": "requirements.txt",
+            "start_line": 3,
+            "end_line": null
+          },
+          "finding": "pytest",
+          "explanation": "Unpinned pytest leaves potential for running vulnerable tmpdir handling if pytest is installed with known issues. Again, the skill's purpose is auditing, but it might run in environments where test execution follows, increasing exposure.",
+          "remediation": "Pin pytest to a version >=8.0.0 or >=9.0.0 that fixes the tmpdir issue, or exclude it from production requirements.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [
+            "Supply Chain"
+          ],
+          "language_compatible": true
+        }
+      ],
+      "execution_successful": false,
+      "analysis_completeness": {
+        "total_components": 5,
+        "scanned_components": 4,
+        "coverage_percent": 80.0,
+        "is_complete": false,
+        "execution_successful": false,
+        "fully_inspected_files": 4,
+        "partially_inspected_files": 1,
+        "entirely_uninspected_files": 0,
+        "ledger_exceptions": [
+          {
+            "outcome": "failed",
+            "phase": "semantic",
+            "reason_code": "llm_batch_failed",
+            "message": "LLM analysis failed for this file range.",
+            "path": "SKILL.md",
+            "start_line": null,
+            "end_line": null,
+            "fatal": true,
+            "analyzers": [
+              "mcp_tool_poisoning"
+            ],
+            "error_class": "NotImplementedError"
+          }
+        ],
+        "scope_exclusions": [],
+        "analyzer_statuses": [
+          {
+            "analyzer_id": "behavioral_ast",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "behavioral_taint_tracking",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_least_privilege",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_rug_pull",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_tool_poisoning",
+            "status": "failed",
+            "planned_work": 2,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 1,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "meta_analyzer",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_developer_intent",
+            "status": "completed",
+            "planned_work": 5,
+            "completed": 5,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_quality_policy",
+            "status": "completed",
+            "planned_work": 5,
+            "completed": 5,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_security_discovery",
+            "status": "completed",
+            "planned_work": 5,
+            "completed": 5,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_agent_snooping",
+            "status": "completed",
+            "planned_work": 5,
+            "completed": 5,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_anti_refusal",
+            "status": "completed",
+            "planned_work": 5,
+            "completed": 5,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_data_exfiltration",
+            "status": "completed",
+            "planned_work": 5,
+            "completed": 5,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_excessive_agency",
+            "status": "completed",
+            "planned_work": 5,
+            "completed": 5,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_harmful_content",
+            "status": "completed",
+            "planned_work": 5,
+            "completed": 5,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_memory_poisoning",
+            "status": "completed",
+            "planned_work": 5,
+            "completed": 5,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_output_handling",
+            "status": "completed",
+            "planned_work": 5,
+            "completed": 5,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_privilege_escalation",
+            "status": "completed",
+            "planned_work": 5,
+            "completed": 5,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_prompt_injection",
+            "status": "completed",
+            "planned_work": 5,
+            "completed": 5,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_rogue_agent",
+            "status": "completed",
+            "planned_work": 5,
+            "completed": 5,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_ssrf",
+            "status": "completed",
+            "planned_work": 5,
+            "completed": 5,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_supply_chain",
+            "status": "completed",
+            "planned_work": 5,
+            "completed": 5,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_system_prompt_leakage",
+            "status": "completed",
+            "planned_work": 5,
+            "completed": 5,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_tool_misuse",
+            "status": "completed",
+            "planned_work": 5,
+            "completed": 5,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_yara",
+            "status": "completed",
+            "planned_work": 5,
+            "completed": 5,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          }
+        ],
+        "limitations": [
+          "Analyzer mcp_tool_poisoning status: failed."
+        ],
+        "findings_before_filtering": 11,
+        "findings_after_filtering": 7
+      },
+      "scan_mode": "multilingual-enhanced",
+      "enhancements": {
+        "gap_fill_applied": false,
+        "gap_fill_findings": 0,
+        "english_keyword_rules_skipped": 0
+      }
+    }
+  ],
+  "metadata": {
+    "skillspector_version": "2.9.3"
+  }
+}

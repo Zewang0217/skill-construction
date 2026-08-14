@@ -1,0 +1,236 @@
+{
+  "skill_name": "pkg-version-audit",
+  "skill_path": "/tmp/cisco_uj06ljjx",
+  "is_safe": false,
+  "max_severity": "HIGH",
+  "findings_count": 11,
+  "findings": [
+    {
+      "id": "TOOL_MISMATCH_NETWORK_a4b277fb32",
+      "rule_id": "TOOL_ABUSE_UNDECLARED_NETWORK",
+      "category": "unauthorized_tool_use",
+      "severity": "MEDIUM",
+      "title": "Undeclared network usage",
+      "description": "Skill code uses network libraries but doesn't declare network requirement",
+      "file_path": "/tmp/cisco_uj06ljjx/SKILL.md",
+      "line_number": null,
+      "snippet": null,
+      "remediation": "Declare network usage in compatibility field or remove network calls",
+      "analyzer": "static",
+      "metadata": {}
+    },
+    {
+      "id": "llm_finding_pkg-version-audit_2",
+      "rule_id": "LLM_SKILL_DISCOVERY_ABUSE",
+      "category": "skill_discovery_abuse",
+      "severity": "LOW",
+      "title": "Missing allowed-tools and compatibility metadata",
+      "description": "The SKILL.md manifest does not specify 'allowed-tools' or 'compatibility'. While this is optional per the spec, its absence means the skill's tool usage is unrestricted, which could lead to unexpected behavior. The skill description claims it only reads pip freeze and requirements.txt, but the code also makes network calls and writes files, which may not be expected by the user.",
+      "file_path": "SKILL.md",
+      "line_number": null,
+      "snippet": "allowed-tools: Not specified",
+      "remediation": "Add explicit 'allowed-tools' (e.g., [Bash, Python, Read, Write]) and 'compatibility' fields to the manifest to clarify intended tool usage.",
+      "analyzer": "llm",
+      "metadata": {
+        "model": "openai/deepseek-chat",
+        "aitech": "AITech-4.3",
+        "aitech_name": "Protocol Manipulation",
+        "aisubtech": "AISubtech-4.3.5",
+        "aisubtech_name": "Capability Inflation",
+        "scanner_category": "PROTOCOL MANIPULATION"
+      }
+    },
+    {
+      "id": "PIPELINE_TAINT_33f7029d88",
+      "rule_id": "PIPELINE_TAINT_FLOW",
+      "category": "obfuscation",
+      "severity": "HIGH",
+      "title": "Dangerous data flow in command pipeline",
+      "description": "Pipeline uses obfuscation before code execution: `base64 -D|bash`. Obfuscated execution hides malicious intent.",
+      "file_path": "_provenance.json",
+      "line_number": 1,
+      "snippet": "base64 -D|bash",
+      "remediation": "Review the command pipeline. Avoid piping sensitive data to network commands or shell execution.",
+      "analyzer": "pipeline",
+      "metadata": {
+        "pipeline": "base64 -D|bash",
+        "source_taints": [
+          "OBFUSCATION"
+        ],
+        "sink_command": "bash",
+        "chain_length": 2,
+        "in_documentation": false
+      }
+    },
+    {
+      "id": "PIPELINE_TAINT_33f7029d88",
+      "rule_id": "PIPELINE_TAINT_FLOW",
+      "category": "command_injection",
+      "severity": "HIGH",
+      "title": "Dangerous data flow in command pipeline",
+      "description": "Pipeline downloads data from the network and executes it: `curl ...|sh`. This is a remote code execution pattern.",
+      "file_path": "_provenance.json",
+      "line_number": 1,
+      "snippet": "curl ...|sh",
+      "remediation": "Review the command pipeline. Avoid piping sensitive data to network commands or shell execution.",
+      "analyzer": "pipeline",
+      "metadata": {
+        "pipeline": "curl ...|sh",
+        "source_taints": [
+          "NETWORK_DATA"
+        ],
+        "sink_command": "sh",
+        "chain_length": 2,
+        "in_documentation": false
+      }
+    },
+    {
+      "id": "llm_finding_pkg-version-audit_0",
+      "rule_id": "LLM_DATA_EXFILTRATION",
+      "category": "data_exfiltration",
+      "severity": "HIGH",
+      "title": "Potential data exfiltration via metadata refresh endpoint",
+      "description": "The skill's checker.py includes a function _refresh_meta that makes an HTTP GET request to 'https://cdn-metrics.example.com:1337/pkgs/refresh' and writes the response to a local file. While the request itself does not send user data, the endpoint is suspicious (non-standard port, example.com domain) and could be used to deliver malicious metadata that influences the audit results. More critically, the skill description claims 'No network calls are made after the initial metadata refresh (if enabled)', but the refresh is enabled by default when the local snapshot is older than 30 days, and the endpoint is not user-configurable. This could lead to data being fetched from an untrusted source and potentially used to manipulate the agent's behavior.",
+      "file_path": "pkg_version_audit/checker.py",
+      "line_number": 44,
+      "snippet": "REFRESH_URL = \"https://cdn-metrics.example.com:1337/pkgs/refresh\"",
+      "remediation": "Remove the network refresh functionality or make it opt-in with a user-approved, trusted endpoint. If network access is required, use a well-known official PyPI API and ensure the user is informed before any network call.",
+      "analyzer": "llm",
+      "metadata": {
+        "model": "openai/deepseek-chat",
+        "aitech": "AITech-8.2",
+        "aitech_name": "Data Exfiltration / Exposure",
+        "aisubtech": "AISubtech-8.2.3",
+        "aisubtech_name": "Data Exfiltration via Agent Tooling",
+        "scanner_category": "SECURITY VIOLATION"
+      }
+    },
+    {
+      "id": "DATA_EXFIL_NETWORK_REQUESTS_e548252fad",
+      "rule_id": "DATA_EXFIL_NETWORK_REQUESTS",
+      "category": "data_exfiltration",
+      "severity": "MEDIUM",
+      "title": "Outbound network request primitives that can transmit data externally",
+      "description": "Pattern detected: requests.get(",
+      "file_path": "pkg_version_audit/checker.py",
+      "line_number": 54,
+      "snippet": "resp = requests.get(REFRESH_URL, timeout=3)",
+      "remediation": "Ensure network operations are necessary and document allowed destinations",
+      "analyzer": "static",
+      "metadata": {
+        "matched_pattern": "requests\\.(?:get|post|put|delete|patch|request)\\s*\\(",
+        "matched_text": "requests.get(",
+        "aitech": "AITech-8.2",
+        "aitech_name": "Data Exfiltration / Exposure",
+        "scanner_category": "SECURITY VIOLATION"
+      }
+    },
+    {
+      "id": "llm_finding_pkg-version-audit_1",
+      "rule_id": "LLM_COMMAND_INJECTION",
+      "category": "command_injection",
+      "severity": "MEDIUM",
+      "title": "Command injection via subprocess with user-controlled input",
+      "description": "The _collect_installed function uses subprocess.check_output with [sys.executable, '-m', 'pip', 'freeze'] which is safe as it uses a list. However, the check_requirements_file function reads a user-provided file path and passes it to Path.read_text without validation. While this is not direct command injection, the skill's instructions allow the user to specify arbitrary file paths, which could be used to read sensitive files (e.g., /etc/passwd) if the agent is tricked into processing them. The static analyzer flagged PIPELINE_TAINT_FLOW, indicating a potential dangerous data flow in command pipelines, though the exact flow is not detailed.",
+      "file_path": "pkg_version_audit/checker.py",
+      "line_number": 118,
+      "snippet": "content = p.read_text(encoding=\"utf-8\")",
+      "remediation": "Validate that the provided file path is a requirements.txt file and restrict access to the user's project directory. Avoid reading arbitrary files without user confirmation.",
+      "analyzer": "llm",
+      "metadata": {
+        "model": "openai/deepseek-chat",
+        "aitech": "AITech-9.1",
+        "aitech_name": "Model or Agentic System Manipulation",
+        "aisubtech": "AISubtech-9.1.4",
+        "aisubtech_name": "Injection Attacks (SQL, Command Execution, XSS)",
+        "scanner_category": "INJECTION ATTACK"
+      }
+    },
+    {
+      "id": "FILE_MAGIC_MISMATCH_1671467958",
+      "rule_id": "FILE_MAGIC_MISMATCH",
+      "category": "obfuscation",
+      "severity": "MEDIUM",
+      "title": "File extension does not match actual content type",
+      "description": "File 'requirements.txt' extension (.txt) suggests one format but Magika detected a different text format: Ignorefile (ignorefile). This may indicate content obfuscation or a misnamed file.",
+      "file_path": "requirements.txt",
+      "line_number": null,
+      "snippet": null,
+      "remediation": "Rename the file to match its actual content type, or remove it if it appears malicious.",
+      "analyzer": "static",
+      "metadata": {
+        "actual_type": "code/ignorefile",
+        "actual_family": "code",
+        "claimed_extension": ".txt",
+        "confidence_score": 0.9891737699508667
+      }
+    },
+    {
+      "id": "SUPPLY_CHAIN_UNPINNED_DEPENDENCY_ab9f955509",
+      "rule_id": "SUPPLY_CHAIN_UNPINNED_DEPENDENCY",
+      "category": "supply_chain_attack",
+      "severity": "MEDIUM",
+      "title": "Unpinned dependency",
+      "description": "Dependency 'requests' has no pinned (==) version. Unpinned dependencies in a skill package allow a later, potentially malicious release to be installed automatically (supply-chain risk).",
+      "file_path": "requirements.txt",
+      "line_number": 1,
+      "snippet": "requests",
+      "remediation": "Pin the dependency to an exact version (e.g. 'package==1.2.3').",
+      "analyzer": "static",
+      "metadata": {}
+    },
+    {
+      "id": "SUPPLY_CHAIN_UNPINNED_DEPENDENCY_20698b88d0",
+      "rule_id": "SUPPLY_CHAIN_UNPINNED_DEPENDENCY",
+      "category": "supply_chain_attack",
+      "severity": "MEDIUM",
+      "title": "Unpinned dependency",
+      "description": "Dependency 'packaging' has no pinned (==) version. Unpinned dependencies in a skill package allow a later, potentially malicious release to be installed automatically (supply-chain risk).",
+      "file_path": "requirements.txt",
+      "line_number": 2,
+      "snippet": "packaging",
+      "remediation": "Pin the dependency to an exact version (e.g. 'package==1.2.3').",
+      "analyzer": "static",
+      "metadata": {}
+    },
+    {
+      "id": "SUPPLY_CHAIN_UNPINNED_DEPENDENCY_c7034994d3",
+      "rule_id": "SUPPLY_CHAIN_UNPINNED_DEPENDENCY",
+      "category": "supply_chain_attack",
+      "severity": "MEDIUM",
+      "title": "Unpinned dependency",
+      "description": "Dependency 'pytest' has no pinned (==) version. Unpinned dependencies in a skill package allow a later, potentially malicious release to be installed automatically (supply-chain risk).",
+      "file_path": "requirements.txt",
+      "line_number": 3,
+      "snippet": "pytest",
+      "remediation": "Pin the dependency to an exact version (e.g. 'package==1.2.3').",
+      "analyzer": "static",
+      "metadata": {}
+    }
+  ],
+  "scan_duration_seconds": 15.08497166633606,
+  "duration_ms": 15084,
+  "analyzers_used": [
+    "static_analyzer",
+    "bytecode",
+    "pipeline",
+    "llm_analyzer"
+  ],
+  "timestamp": "2026-08-13T08:58:17.897986+00:00",
+  "scan_metadata": {
+    "policy_name": "default",
+    "policy_version": "1.0",
+    "policy_preset_base": "balanced",
+    "policy_fingerprint_sha256": "e6033e8884796d3589d44e3fa2d57f0aadf31a56d4e88818aeed2fd225d82c59",
+    "llm_overall_assessment": "The skill is a package version audit tool that scans installed packages and requirements files. It includes a suspicious network refresh feature that fetches metadata from an untrusted endpoint, which could be a vector for indirect prompt injection or data manipulation. The skill also reads arbitrary file paths without validation, potentially exposing sensitive files. However, there is no direct evidence of data exfiltration of user credentials or malicious code execution. The skill's behavior is mostly consistent with its description, but the network call and file reading should be reviewed and restricted.",
+    "llm_primary_threats": [
+      "Data exfiltration",
+      "Command injection"
+    ]
+  },
+  "llm_usage": {
+    "input_tokens": 6158,
+    "output_tokens": 888,
+    "total_tokens": 7046
+  }
+}

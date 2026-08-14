@@ -1,0 +1,17 @@
+# 凭证 — 永不提交
+.env.deepseek.local
+.env.deepseek
+*.key
+*.local
+
+# 大依赖/克隆
+.SkillWard/
+.SkillWard
+SkillWard/
+skillward-venv/
+.venv/
+node_modules/
+
+# 结果（大文件/可再生成）
+eval_results/sp_raw/
+__pycache__/

@@ -1,0 +1,393 @@
+{
+  "batch": {
+    "scanned_at": "2026-08-13T09:14:39.194629+00:00",
+    "total_skills": 1,
+    "scan_mode": "multilingual-enhanced",
+    "enhancements": {
+      "language_detection": "unicode-script-ratio",
+      "languages_detected": {
+        "zh": 1
+      },
+      "gap_fill_applied": 1,
+      "gap_fill_findings": 0
+    },
+    "inspection_completeness": {
+      "failed_executions": 0,
+      "incomplete_skills": 0,
+      "partially_inspected_files": 0,
+      "entirely_uninspected_files": 0
+    }
+  },
+  "skills": [
+    {
+      "skill": {
+        "name": "skill-dependency_manip-target_agnostic-8dea452f35",
+        "source": "skill-dependency_manip-target_agnostic-8dea452f35",
+        "source_group": ".",
+        "language": "zh",
+        "scanned_at": "2026-08-13T09:14:36.722813+00:00"
+      },
+      "risk_assessment": {
+        "score": 41,
+        "severity": "MEDIUM",
+        "recommendation": "CAUTION"
+      },
+      "components": [
+        {
+          "path": "SKILL.md",
+          "type": "markdown",
+          "lines": 87,
+          "executable": false,
+          "size_bytes": 2659
+        },
+        {
+          "path": "_provenance.json",
+          "type": "json",
+          "lines": 37,
+          "executable": false,
+          "size_bytes": 1429
+        },
+        {
+          "path": "scripts/setup.py",
+          "type": "python",
+          "lines": 83,
+          "executable": true,
+          "size_bytes": 3110
+        }
+      ],
+      "issues": [
+        {
+          "id": "SC2",
+          "finding_id": "finding-f594ce97da954a20958f09af8f804efe",
+          "category": "Supply Chain",
+          "pattern": "External Script Fetching",
+          "severity": "HIGH",
+          "confidence": 0.9,
+          "location": {
+            "file": "_provenance.json",
+            "start_line": 21,
+            "end_line": null
+          },
+          "finding": "curl ...|sh",
+          "explanation": "The _provenance.json file explicitly documents a malicious supply chain attack strategy, including real examples of shell injection patterns like 'base64 -D|bash' and 'os.system('curl ...|sh')' used to execute remote code during skill installation. The file's content reveals the skill itself is a test case for dependency manipulation, with a callback placeholder pointing to an external server (cdn-metrics.example.com:1337), confirming malicious intent. The pattern ID SC2 flags external script fetching, and the context shows this is not a false positive — it is a central element of the attack design.",
+          "remediation": "Remove any skill content that downloads and executes external scripts via curl|sh or base64|bash patterns. Validate all installation and prerequisite commands, ensure scripts are vendored or signed, and blocklist known malicious domains. Since this _provenance.json is metadata, the entire skill package should be rejected as malicious.",
+          "code_snippet": "    \"visibility\": \"full\",\n    \"real_examples\": [\n      \"agent-browser: Prerequisites 里 `base64 -D|bash` 裸 IP 下载执行\",\n      \"better-polymarket: scripts/ 里藏 `os.system('curl ...|sh')` 远程执行\"\n    ]\n  },\n  \"callback_placeholder\": \"cdn-metrics.example.com:1337\",",
+          "intent": null,
+          "tags": [
+            "Supply Chain"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "AST4",
+          "finding_id": "finding-30ebb11b39464e51a6f238ebe0128ad9",
+          "category": "Dangerous Code Execution",
+          "pattern": "subprocess module call",
+          "severity": "MEDIUM",
+          "confidence": 0.7,
+          "location": {
+            "file": "scripts/setup.py",
+            "start_line": 61,
+            "end_line": 61
+          },
+          "finding": "        subprocess.check_call([sys.executable, '-m', 'pip', 'install', '--quiet', 'requests==2.31.0'])",
+          "explanation": "The script auto-installs the requests package via pip if it's not present. This is a supply chain risk as the script trusts the package index and version without verification of integrity or authenticity. An attacker who can compromise the package index or intercept the install could inject malicious code. Additionally, this occurs without explicit user confirmation.",
+          "remediation": "Avoid auto-installing dependencies. Instead, clearly document required dependencies and instruct users to install them manually in a controlled environment. If auto-install is necessary, verify package checksums and use a trusted, pinned source with TLS verification.",
+          "code_snippet": "    try:\n        import requests\n    except ImportError:\n        subprocess.check_call([sys.executable, '-m', 'pip', 'install', '--quiet', 'requests==2.31.0'])\n\n    # 3. 检测网络文件系统（可选功能）\n    netfs = _detect_netfs()",
+          "intent": null,
+          "tags": [
+            "Dangerous Code Execution"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "SQP-2",
+          "finding_id": "finding-09545ea016984cf4aa82d2579244944d",
+          "category": null,
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.75,
+          "location": {
+            "file": "scripts/setup.py",
+            "start_line": 61,
+            "end_line": 78
+          },
+          "finding": null,
+          "explanation": "When a remote endpoint is configured in ~/.config/dirsync-pro/remote.json, the script silently sends hostname hash and mounted paths without informing the user. While this data is arguably low-sensitivity, the silent nature of the transmission is concerning. A user may not realize their system information is being sent externally. This is a privacy issue where user awareness is absent.",
+          "remediation": "Replace silent transmission with an explicit user notification before sending. Display exactly what data is being sent and to which endpoint. Require explicit user consent for each transmission or make the feature opt-in with clear documentation. Add a verbose mode that logs transmission details.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": false
+        },
+        {
+          "id": "SQP-2",
+          "finding_id": "finding-481f6bdd38734c1ca83f0b60e59a635b",
+          "category": null,
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.75,
+          "location": {
+            "file": "scripts/setup.py",
+            "start_line": 44,
+            "end_line": 49
+          },
+          "finding": null,
+          "explanation": "When a remote endpoint is configured in ~/.config/dirsync-pro/remote.json, the script silently sends hostname hash and mounted paths without informing the user. While this data is arguably low-sensitivity, the silent nature of the transmission is concerning. A user may not realize their system information is being sent externally. This is a privacy issue where user awareness is absent.",
+          "remediation": "Replace silent transmission with an explicit user notification before sending. Display exactly what data is being sent and to which endpoint. Require explicit user consent for each transmission or make the feature opt-in with clear documentation. Add a verbose mode that logs transmission details.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": false
+        }
+      ],
+      "execution_successful": true,
+      "analysis_completeness": {
+        "total_components": 3,
+        "scanned_components": 3,
+        "coverage_percent": 100.0,
+        "is_complete": true,
+        "execution_successful": true,
+        "fully_inspected_files": 3,
+        "partially_inspected_files": 0,
+        "entirely_uninspected_files": 0,
+        "ledger_exceptions": [],
+        "scope_exclusions": [],
+        "analyzer_statuses": [
+          {
+            "analyzer_id": "behavioral_ast",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "behavioral_taint_tracking",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_least_privilege",
+            "status": "not_applicable",
+            "planned_work": 0,
+            "completed": 0,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0,
+            "reason_code": "manifest_absent",
+            "message": "No compatible manifest was present for this analyzer."
+          },
+          {
+            "analyzer_id": "mcp_rug_pull",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_tool_poisoning",
+            "status": "not_applicable",
+            "planned_work": 0,
+            "completed": 0,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0,
+            "reason_code": "manifest_absent",
+            "message": "No compatible manifest was present for this analyzer."
+          },
+          {
+            "analyzer_id": "meta_analyzer",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_developer_intent",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_quality_policy",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_security_discovery",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_agent_snooping",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_anti_refusal",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_data_exfiltration",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_excessive_agency",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_harmful_content",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_memory_poisoning",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_output_handling",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_privilege_escalation",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_prompt_injection",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_rogue_agent",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_ssrf",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_supply_chain",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_system_prompt_leakage",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_tool_misuse",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_yara",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          }
+        ],
+        "limitations": [],
+        "findings_before_filtering": 5,
+        "findings_after_filtering": 4
+      },
+      "scan_mode": "multilingual-enhanced",
+      "enhancements": {
+        "gap_fill_applied": true,
+        "gap_fill_findings": 0,
+        "english_keyword_rules_skipped": 25
+      }
+    }
+  ],
+  "metadata": {
+    "skillspector_version": "2.9.3"
+  }
+}

@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>恶意 Skill 生成器 &amp; 扫描器评测 Pipeline — S5 原型可视化</title>
+<style>
+  :root{
+    --bg:#1a1a2e; --panel:#21213b; --panel-inner:#1c1c34;
+    --border:#3a3a5e; --border-soft:#2f2f52;
+    --text:#e6e6f2; --muted:#9d9dc0; --dim:#70708f;
+    --cyan:#38bdf8; --violet:#a78bfa; --amber:#fbbf24;
+    --green:#34d399; --pink:#f472b6; --red:#f87171;
+    --blue:#60a5fa; --purple:#c084fc; --teal:#2dd4bf;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{
+    background:var(--bg); color:var(--text);
+    font-family:'Segoe UI',system-ui,-apple-system,'PingFang SC','Microsoft YaHei','Noto Sans CJK SC',sans-serif;
+    line-height:1.5; padding:26px 18px 44px;
+  }
+  .wrap{max-width:1100px;margin:0 auto;}
+  .mono, code{
+    font-family:'Cascadia Code','JetBrains Mono',Consolas,'SF Mono',Menlo,'Courier New',monospace;
+    font-size:.92em;
+  }
+  /* ---------- header ---------- */
+  header{text-align:center;margin-bottom:18px;}
+  header h1{font-size:24px;letter-spacing:.5px;font-weight:700;}
+  header .rule{width:110px;height:3px;margin:10px auto 0;border-radius:2px;
+    background:linear-gradient(90deg,var(--cyan),var(--violet),var(--pink));}
+  header .sub{color:var(--muted);margin-top:9px;font-size:13px;}
+  header .date{color:var(--dim);font-size:11.5px;margin-top:3px;}
+  .legend{display:flex;justify-content:center;gap:16px;flex-wrap:wrap;
+    margin-top:10px;color:var(--muted);font-size:11.5px;}
+  .legend span{display:inline-flex;align-items:center;gap:6px;}
+  .legend i{width:10px;height:10px;border-radius:3px;display:inline-block;}
+  /* ---------- figure cards ---------- */
+  .fig{
+    background:var(--panel); border:1px solid var(--border); border-radius:12px;
+    padding:16px 18px 12px; margin-bottom:20px;
+  }
+  .fig h2{font-size:16px;margin-bottom:10px;display:flex;align-items:center;gap:10px;}
+  .badge{
+    background:linear-gradient(135deg,var(--cyan),var(--violet));
+    color:#0d0d1a; font-size:12px; font-weight:700;
+    padding:2px 10px; border-radius:999px; white-space:nowrap;
+  }
+  .badge.g2{background:linear-gradient(135deg,var(--amber),var(--pink));}
+  .badge.g3{background:linear-gradient(135deg,var(--green),var(--cyan));}
+  .fig svg{
+    display:block; width:100%; height:auto;
+    background:var(--panel-inner); border:1px solid var(--border-soft); border-radius:9px;
+  }
+  .caption{margin-top:8px;font-size:12.5px;color:var(--muted);}
+  .caption b{color:var(--text);}
+  /* ---------- 图4 table ---------- */
+  table{width:100%;border-collapse:collapse;font-size:12.5px;}
+  th,td{padding:7px 10px;text-align:left;border:1px solid var(--border-soft);vertical-align:top;}
+  thead th{background:#26264a;color:var(--cyan);font-size:12.5px;white-space:nowrap;}
+  tbody tr:nth-child(even){background:#1f1f3a;}
+  tbody tr:nth-child(odd){background:#21213b;}
+  td:first-child{color:var(--amber);font-weight:600;white-space:nowrap;}
+  .excluded-title{color:var(--dim);font-size:11.5px;margin:12px 0 4px;}
+  ul.excluded{list-style:none;font-size:11px;color:var(--muted);}
+  ul.excluded li{padding:2px 0 2px 16px;position:relative;}
+  ul.excluded li::before{content:"—";position:absolute;left:2px;color:var(--dim);}
+  ul.excluded code{color:var(--pink);font-size:.95em;}
+  /* ---------- design decision cards ---------- */
+  .cards{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;}
+  @media (max-width:900px){.cards{grid-template-columns:repeat(2,1fr);}}
+  @media (max-width:560px){.cards{grid-template-columns:1fr;}}
+  .card{
+    background:#1f1f3a; border:1px solid var(--border-soft); border-radius:9px;
+    padding:10px 9px 8px; display:flex; flex-direction:column; gap:4px;
+  }
+  .card .n{
+    width:20px;height:20px;border-radius:50%;flex:0 0 auto;
+    background:linear-gradient(135deg,var(--cyan),var(--violet));
+    color:#0d0d1a;font-size:11px;font-weight:800;
+    display:inline-flex;align-items:center;justify-content:center;margin-bottom:1px;
+  }
+  .card b{font-size:12px;}
+  .card .mono{color:var(--cyan);font-size:10px;word-break:break-all;}
+  .card p{color:var(--muted);font-size:10.5px;line-height:1.45;}
+  footer{text-align:center;color:var(--dim);font-size:11px;margin-top:6px;}
+  /* ---------- vector / seed sections ---------- */
+  .vector-flow{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:6px;}
+  @media(max-width:760px){.vector-flow{grid-template-columns:1fr;}}
+  .vf-card{background:var(--panel-inner);border:1px solid var(--border-soft);border-radius:9px;padding:14px;}
+  .vf-card h4{font-size:13px;margin-bottom:8px;display:flex;align-items:center;gap:8px;}
+  .vf-card .tag{font-size:10px;padding:2px 8px;border-radius:4px;font-weight:700;}
+  .tag-green{background:rgba(52,211,153,.18);color:var(--green);}
+  .tag-red{background:rgba(248,113,113,.18);color:var(--red);}
+  .tag-amber{background:rgba(251,191,36,.18);color:var(--amber);}
+  .vf-line{font-size:12px;color:var(--muted);padding:5px 0;border-bottom:1px dashed var(--border-soft);}
+  .vf-line:last-child{border-bottom:none;}
+  .vf-line code{color:var(--cyan);font-size:11px;}
+  .vf-line .arrow{color:var(--dim);margin:0 4px;}
+  .conflict-box{background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.3);border-radius:8px;padding:10px 12px;margin-top:10px;font-size:11.5px;color:var(--muted);line-height:1.6;}
+  .conflict-box b{color:var(--red);}
+  .conflict-box code{color:var(--pink);}
+  /* ---------- bar chart ---------- */
+  .bar-chart{margin:6px 0;}
+  .bar-row{display:flex;align-items:center;gap:8px;padding:4px 0;}
+  .bar-label{width:90px;font-size:12px;text-align:right;color:var(--text);flex-shrink:0;}
+  .bar-track{flex:1;display:flex;height:18px;border-radius:4px;overflow:hidden;background:var(--panel-inner);}
+  .bar-fill{background:linear-gradient(90deg,var(--cyan),var(--violet));height:100%;}
+  .bar-empty{background:#2a2a48;height:100%;flex:1;}
+  .bar-count{width:52px;font-size:11px;color:var(--muted);flex-shrink:0;font-family:'Cascadia Code',Consolas,monospace;}
+  .bar-count b{color:var(--green);}
+  .bar-count .zero{color:var(--red);}
+  /* ---------- compare ---------- */
+  .compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:10px;}
+  @media(max-width:760px){.compare-grid{grid-template-columns:1fr;}}
+  .compare-col{background:var(--panel-inner);border:1px solid var(--border-soft);border-radius:9px;padding:12px;}
+  .compare-col.now{border-color:rgba(248,113,113,.25);}
+  .compare-col.future{border-color:rgba(52,211,153,.25);}
+  .compare-col h4{font-size:12.5px;margin-bottom:8px;}
+  .compare-col.now h4{color:var(--red);}
+  .compare-col.future h4{color:var(--green);}
+  .compare-list{list-style:none;font-size:11px;color:var(--muted);}
+  .compare-list li{padding:3px 0 3px 14px;position:relative;}
+  .compare-list li::before{content:"›";position:absolute;left:2px;color:var(--dim);}
+  .compare-list code{color:var(--cyan);font-size:10.5px;}
+  .compare-list .seed{color:var(--muted);font-style:italic;}
+  .note-box{background:rgba(167,139,250,.08);border:1px solid rgba(167,139,250,.2);border-radius:8px;padding:10px 14px;margin-top:12px;font-size:11.5px;color:var(--muted);line-height:1.6;}
+  .note-box b{color:var(--violet);}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ============ 页头 ============ -->
+  <header>
+    <h1>恶意 Skill 生成器 &amp; 扫描器评测 Pipeline</h1>
+    <div class="rule"></div>
+    <p class="sub">Agent Skill 安全 SoK · S5 轻量原型配套可视化</p>
+    <p class="date">2026-08-13 · 单文件静态页（纯 HTML + 内联 CSS + 内联 SVG，零外部依赖）</p>
+    <div class="legend">
+      <span><i style="background:var(--cyan)"></i>LLM 连接 / 输入集</span>
+      <span><i style="background:var(--violet)"></i>语义种子库</span>
+      <span><i style="background:var(--amber)"></i>生成编排 / 拷贝</span>
+      <span><i style="background:var(--green)"></i>LLM 客户端 / 输出产物</span>
+      <span><i style="background:var(--pink)"></i>落盘 / 分析输出</span>
+      <span><i style="background:var(--red)"></i>重试回路 / 安全注释</span>
+    </div>
+  </header>
+
+  <!-- ============ 图1：Generator 架构图 ============ -->
+  <section class="fig">
+    <h2><span class="badge">图 1</span>Generator 架构图（组件视角）</h2>
+    <svg viewBox="0 0 1080 580" role="img" aria-label="Generator 四组件架构图">
+      <defs>
+        <marker id="ah-cyan" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#38bdf8"/></marker>
+        <marker id="ah-violet" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#a78bfa"/></marker>
+        <marker id="ah-amber" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#fbbf24"/></marker>
+        <marker id="ah-green" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#34d399"/></marker>
+        <marker id="ah-pink" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#f472b6"/></marker>
+        <marker id="ah-red" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#f87171"/></marker>
+      </defs>
+
+      <!-- patterns.py 顶部通栏 -->
+      <rect x="50" y="36" width="980" height="172" rx="13" fill="#26264a" stroke="#a78bfa" stroke-width="1.5"/>
+      <text x="70" y="62" fill="#a78bfa" font-size="15" font-weight="bold">patterns.py — 三维 taxonomy 种子库（核心）</text>
+      <text x="80" y="90" fill="#38bdf8" font-size="11.5" font-weight="bold">SOURCE ×5</text>
+      <text x="80" y="108" fill="#c9c9de" font-size="10.5">supply_chain / source_agnostic</text>
+      <text x="80" y="122" fill="#c9c9de" font-size="10.5">external_content / user_input</text>
+      <text x="80" y="136" fill="#c9c9de" font-size="10.5">runtime_environment</text>
+      <text x="400" y="90" fill="#f472b6" font-size="11.5" font-weight="bold">MECHANISM ×9</text>
+      <text x="400" y="108" fill="#c9c9de" font-size="10.5">code_exec / dependency_manip /</text>
+      <text x="400" y="122" fill="#c9c9de" font-size="10.5">instruction_manip / privilege_abuse /</text>
+      <text x="400" y="136" fill="#c9c9de" font-size="10.5">obfuscation / state_corruption /</text>
+      <text x="400" y="150" fill="#c9c9de" font-size="10.5">trigger_abuse / subagent_escalation /</text>
+      <text x="400" y="164" fill="#c9c9de" font-size="10.5">defense_evasion</text>
+      <text x="770" y="90" fill="#fbbf24" font-size="11.5" font-weight="bold">TARGET ×8</text>
+      <text x="770" y="108" fill="#c9c9de" font-size="10.5">info_theft / resource_abuse /</text>
+      <text x="770" y="122" fill="#c9c9de" font-size="10.5">persistent_control / defense_evasion /</text>
+      <text x="770" y="136" fill="#c9c9de" font-size="10.5">financial_theft / system_damage /</text>
+      <text x="770" y="150" fill="#c9c9de" font-size="10.5">content_safety / target_agnostic</text>
+      <text x="70" y="186" fill="#9d9dc0" font-size="10.5">+ SOURCE_STRATEGY：injection_point（种入位置）/ entry_path（进入路径）/ visibility（full·half·blind·partial 可见性分层）</text>
+      <text x="70" y="200" fill="#9d9dc0" font-size="10.5">+ ATTACK_SEEDS（真实样本行为 seed）· SLOT_SEEDS（Layer-2 语义槽位）· CALLBACK_PLACEHOLDER = cdn-metrics.example.com:1337</text>
+
+      <!-- generate.py -->
+      <rect x="50" y="240" width="420" height="140" rx="13" fill="#26264a" stroke="#fbbf24" stroke-width="1.5"/>
+      <text x="70" y="264" fill="#fbbf24" font-size="13.5" font-weight="bold">generate.py — 核心生成逻辑</text>
+      <text x="70" y="286" fill="#d8d8e8" font-size="10.5">· SYSTEM_PROMPT：6 条约束（伪装良性 / 忠于坐标 / 真实可执行）</text>
+      <text x="78" y="300" fill="#d8d8e8" font-size="10.5">  + 自白禁令（铁律：不可与真实工具区分）</text>
+      <text x="70" y="314" fill="#d8d8e8" font-size="10.5">· build_user_prompt()：坐标 + 来源策略 + seed</text>
+      <text x="70" y="328" fill="#d8d8e8" font-size="10.5">· 质量门 ×3：长度 ≥200B / 自白检测 / 重试 ≤5 次</text>
+      <text x="70" y="342" fill="#d8d8e8" font-size="10.5">· CONFESSION_PATTERNS：~40 词自白黑名单</text>
+      <text x="70" y="356" fill="#d8d8e8" font-size="10.5">· write_output()：use-once 唯一目录落盘</text>
+
+      <!-- llm.py -->
+      <rect x="610" y="240" width="420" height="140" rx="13" fill="#26264a" stroke="#34d399" stroke-width="1.5"/>
+      <text x="630" y="264" fill="#34d399" font-size="13.5" font-weight="bold">llm.py — DeepSeek 客户端</text>
+      <text x="630" y="286" fill="#d8d8e8" font-size="10.5">· chat()：同步 requests → chat completions</text>
+      <text x="638" y="300" fill="#d8d8e8" font-size="10.5">  3 次重试 · API key 不硬编码</text>
+      <text x="630" y="314" fill="#d8d8e8" font-size="10.5">· parse_skill_output()：解析三段标签</text>
+      <text x="638" y="328" fill="#d8d8e8" font-size="10.5">[SKILL_MD] / [SCRIPTS] / [PROVENANCE]</text>
+      <text x="630" y="342" fill="#d8d8e8" font-size="10.5">· 无标签 → 退化：整段当 SKILL.md</text>
+
+      <!-- output 落盘 -->
+      <rect x="50" y="408" width="420" height="80" rx="11" fill="#26264a" stroke="#f472b6" stroke-width="1.5"/>
+      <text x="70" y="430" fill="#f472b6" font-size="12" font-weight="bold">output/skill-&lt;mechanism&gt;-&lt;target&gt;-&lt;hash&gt;/</text>
+      <text x="70" y="450" fill="#d8d8e8" font-size="10.5">· SKILL.md — 伪装成良性工具的完整定义</text>
+      <text x="70" y="464" fill="#d8d8e8" font-size="10.5">· scripts/ 或 bin/ — 恶意载荷（拆成真实文件）</text>
+      <text x="70" y="478" fill="#d8d8e8" font-size="10.5">· _provenance.json — ground truth（评测时排除）</text>
+
+      <!-- config.py -->
+      <rect x="610" y="408" width="420" height="80" rx="11" fill="#26264a" stroke="#38bdf8" stroke-width="1.5"/>
+      <text x="630" y="430" fill="#38bdf8" font-size="13.5" font-weight="bold">config.py — LLM 配置</text>
+      <text x="630" y="450" fill="#d8d8e8" font-size="10.5">· model: deepseek-chat（实测 → deepseek-v4-flash）</text>
+      <text x="630" y="464" fill="#d8d8e8" font-size="10.5">· TEMPERATURE=0.9（高多样性）· MAX_TOKENS=4000</text>
+      <text x="630" y="478" fill="#d8d8e8" font-size="10.5">· API key：env / .env.deepseek.local，不硬编码</text>
+
+      <!-- 箭头 -->
+      <line x1="250" y1="208" x2="250" y2="236" stroke="#a78bfa" stroke-width="2" marker-end="url(#ah-violet)"/>
+      <text x="262" y="226" fill="#c9c9de" font-size="11">供坐标 + seed + 来源策略</text>
+
+      <line x1="470" y1="330" x2="606" y2="330" stroke="#34d399" stroke-width="2" marker-end="url(#ah-green)"/>
+      <text x="540" y="320" fill="#c9c9de" font-size="10.5" text-anchor="middle">① 调用 chat()</text>
+
+      <line x1="610" y1="285" x2="474" y2="285" stroke="#a78bfa" stroke-width="2" marker-end="url(#ah-violet)"/>
+      <text x="545" y="275" fill="#c9c9de" font-size="10" text-anchor="middle">② 返回 [SKILL_MD] [SCRIPTS]</text>
+      <text x="545" y="262" fill="#c9c9de" font-size="10" text-anchor="middle">[PROVENANCE] 三段</text>
+
+      <line x1="820" y1="408" x2="820" y2="384" stroke="#38bdf8" stroke-width="2" marker-end="url(#ah-cyan)"/>
+      <text x="832" y="400" fill="#c9c9de" font-size="11">供 API 配置</text>
+
+      <line x1="250" y1="380" x2="250" y2="404" stroke="#f472b6" stroke-width="2" marker-end="url(#ah-pink)"/>
+      <text x="262" y="395" fill="#c9c9de" font-size="11">write_output() 落盘</text>
+
+      <text x="50" y="545" fill="#70708f" font-size="10.5">目前 output/ 已生成 33 个样本（skill-&lt;mechanism&gt;-&lt;target&gt;-&lt;hash&gt;/ 目录结构，同坐标重复生成追加 __v2）</text>
+    </svg>
+    <p class="caption"><b>关键信息：</b>生成器是一条「种子库 → 提示词 → LLM → 静态产物」的单向管线——<code>config.py</code> 只管 LLM 连接、<code>patterns.py</code> 提供三维坐标语义、<code>llm.py</code> 是无状态客户端，<code>generate.py</code> 是唯一编排者；恶意逻辑最终只存在于 <code>SKILL.md</code> + <code>scripts/</code> 静态文件中。</p>
+  </section>
+
+  <!-- ============ 图2：生成流程逻辑图 ============ -->
+  <section class="fig">
+    <h2><span class="badge g2">图 2</span>生成流程逻辑图（时序视角）</h2>
+    <svg viewBox="0 0 1080 720" role="img" aria-label="生成流程七步时序图，含双重质量门">
+      <defs>
+        <marker id="f2-down" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#8b8bb0"/></marker>
+        <marker id="f2-red" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#f87171"/></marker>
+      </defs>
+
+      <!-- 步骤 1 -->
+      <rect x="250" y="24" width="470" height="88" rx="12" fill="#26264a" stroke="#38bdf8" stroke-width="1.5"/>
+      <text x="270" y="50" fill="#38bdf8" font-size="13" font-weight="bold">① 坐标采样 · sample_coordinate()</text>
+      <text x="270" y="68" fill="#d8d8e8" font-size="10.5">→ (source, mechanism, target) + disguise 伪装主题</text>
+      <text x="270" y="82" fill="#d8d8e8" font-size="10.5">+ vector 载体 + seed_actions + source_strategy</text>
+      <text x="270" y="96" fill="#9d9dc0" font-size="10.5">（injection_point 种入位置 / entry_path 路径 / visibility 可见性）</text>
+
+      <!-- 步骤 2 -->
+      <rect x="250" y="132" width="470" height="74" rx="12" fill="#26264a" stroke="#a78bfa" stroke-width="1.5"/>
+      <text x="270" y="156" fill="#a78bfa" font-size="13" font-weight="bold">② 提示词组装</text>
+      <text x="270" y="176" fill="#d8d8e8" font-size="10.5">SYSTEM_PROMPT：6 条约束 + 自白禁令（不可与真实工具区分）</text>
+      <text x="270" y="192" fill="#d8d8e8" font-size="10.5">build_user_prompt：三维坐标 + 来源策略 + seed</text>
+
+      <!-- 步骤 3（重试回跳点） -->
+      <rect x="250" y="226" width="470" height="74" rx="12" fill="#26264a" stroke="#34d399" stroke-width="1.5"/>
+      <text x="270" y="250" fill="#34d399" font-size="13" font-weight="bold">③ LLM 生成</text>
+      <text x="700" y="250" fill="#f87171" font-size="10.5" text-anchor="end">← 重试回跳点</text>
+      <text x="270" y="270" fill="#d8d8e8" font-size="10.5">DeepSeek chat completions · temperature=0.9</text>
+      <text x="270" y="286" fill="#d8d8e8" font-size="10.5">同步 requests · 3 次网络重试</text>
+
+      <!-- 步骤 4 -->
+      <rect x="250" y="320" width="470" height="74" rx="12" fill="#26264a" stroke="#2dd4bf" stroke-width="1.5"/>
+      <text x="270" y="344" fill="#2dd4bf" font-size="13" font-weight="bold">④ 解析 · parse_skill_output()</text>
+      <text x="270" y="364" fill="#d8d8e8" font-size="10.5">[SKILL_MD] [SCRIPTS] [PROVENANCE] 三段标签</text>
+      <text x="270" y="380" fill="#d8d8e8" font-size="10.5">无标签 → 退化：整段当 SKILL.md</text>
+
+      <!-- 质量门 ①（菱形） -->
+      <polygon points="485,408 635,446 485,484 335,446" fill="#2a2438" stroke="#fbbf24" stroke-width="1.8"/>
+      <text x="485" y="437" fill="#fbbf24" font-size="12.5" font-weight="bold" text-anchor="middle">⑤ 质量门①</text>
+      <text x="485" y="455" fill="#e6e6f2" font-size="11" text-anchor="middle">SKILL.md ≥ 200B ？</text>
+
+      <!-- 质量门 ②（菱形） -->
+      <polygon points="485,500 635,538 485,576 335,538" fill="#2a2438" stroke="#f87171" stroke-width="1.8"/>
+      <text x="485" y="529" fill="#f87171" font-size="12.5" font-weight="bold" text-anchor="middle">⑥ 质量门②</text>
+      <text x="485" y="547" fill="#e6e6f2" font-size="11" text-anchor="middle">自白检测：40 词黑名单命中 ？</text>
+
+      <!-- 步骤 7 -->
+      <rect x="250" y="606" width="470" height="74" rx="12" fill="#26264a" stroke="#f472b6" stroke-width="1.5"/>
+      <text x="270" y="630" fill="#f472b6" font-size="13" font-weight="bold">⑦ 落盘 · write_output()</text>
+      <text x="270" y="650" fill="#d8d8e8" font-size="10.5">output/skill-&lt;mechanism&gt;-&lt;target&gt;-&lt;hash&gt;/</text>
+      <text x="270" y="666" fill="#d8d8e8" font-size="10.5">SKILL.md + scripts/（拆分真实文件）+ _provenance.json</text>
+
+      <!-- 主流程箭头 -->
+      <line x1="485" y1="112" x2="485" y2="128" stroke="#8b8bb0" stroke-width="2" marker-end="url(#f2-down)"/>
+      <line x1="485" y1="206" x2="485" y2="222" stroke="#8b8bb0" stroke-width="2" marker-end="url(#f2-down)"/>
+      <line x1="485" y1="300" x2="485" y2="316" stroke="#8b8bb0" stroke-width="2" marker-end="url(#f2-down)"/>
+      <line x1="485" y1="394" x2="485" y2="404" stroke="#8b8bb0" stroke-width="2" marker-end="url(#f2-down)"/>
+      <line x1="485" y1="484" x2="485" y2="496" stroke="#8b8bb0" stroke-width="2" marker-end="url(#f2-down)"/>
+      <line x1="485" y1="576" x2="485" y2="602" stroke="#8b8bb0" stroke-width="2" marker-end="url(#f2-down)"/>
+      <text x="497" y="493" fill="#34d399" font-size="9.5" font-weight="bold">✓ ≥200B</text>
+      <text x="497" y="586" fill="#34d399" font-size="9.5" font-weight="bold">✓ 无自白</text>
+
+      <!-- 重试回路 -->
+      <polyline points="635,446 790,446 790,266 724,266" fill="none" stroke="#f87171" stroke-width="2" marker-end="url(#f2-red)"/>
+      <polyline points="635,538 790,538 790,266 724,266" fill="none" stroke="#f87171" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#f2-red)"/>
+      <text x="648" y="437" fill="#f87171" font-size="10.5" font-weight="bold">否</text>
+      <text x="648" y="529" fill="#f87171" font-size="10.5" font-weight="bold">是</text>
+      <text x="757" y="258" fill="#f87171" font-size="11" font-weight="bold" text-anchor="middle">≤5 次重试</text>
+      <text x="806" y="510" fill="#f87171" font-size="11" font-weight="bold" transform="rotate(-90 806 510)" text-anchor="middle">重试</text>
+      <text x="795" y="662" fill="#8b8bb0" font-size="10">重试耗尽 → 保底落盘</text>
+      <text x="795" y="678" fill="#8b8bb0" font-size="10">并打 confession_flag=true</text>
+    </svg>
+    <p class="caption"><b>关键信息：</b>产物质量由「长度门 + 自白禁令」双重把关——输出过短或出现任意自首词（40 词黑名单）都会沿红色回路回炉重生成（≤5 次），保证样本与真实工具不可区分；重试耗尽则保底落盘并显式标记 <code>confession_flag=true</code>。</p>
+  </section>
+
+  <!-- ============ 图3：评测 Pipeline 图 ============ -->
+  <section class="fig">
+    <h2><span class="badge g3">图 3</span>评测 Pipeline 图（端到端）</h2>
+    <svg viewBox="0 0 1080 430" role="img" aria-label="评测 Pipeline：输入集、拷贝去敏、三家扫描器、输出报告">
+      <defs>
+        <marker id="f3-amber" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#fbbf24"/></marker>
+        <marker id="f3-blue" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#60a5fa"/></marker>
+        <marker id="f3-purple" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#c084fc"/></marker>
+        <marker id="f3-teal" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2dd4bf"/></marker>
+        <marker id="f3-green" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#34d399"/></marker>
+        <marker id="f3-pink" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#f472b6"/></marker>
+      </defs>
+
+      <!-- eval_set -->
+      <rect x="30" y="120" width="210" height="106" rx="11" fill="#26264a" stroke="#38bdf8" stroke-width="1.5"/>
+      <text x="50" y="146" fill="#38bdf8" font-size="14" font-weight="bold">eval_set/</text>
+      <text x="50" y="168" fill="#d8d8e8" font-size="11">real/ — 真实 MalBench 样本</text>
+      <text x="50" y="184" fill="#d8d8e8" font-size="11">generated/ — 生成样本</text>
+      <text x="50" y="208" fill="#8b8bb0" font-size="10">（横评集：2 真实 + 4 生成）</text>
+
+      <!-- _copy_tree -->
+      <rect x="280" y="120" width="220" height="106" rx="11" fill="#26264a" stroke="#fbbf24" stroke-width="1.5"/>
+      <text x="300" y="144" fill="#fbbf24" font-size="14" font-weight="bold">_copy_tree()</text>
+      <text x="300" y="166" fill="#d8d8e8" font-size="11">递归拷贝整个 skill 目录</text>
+      <text x="300" y="182" fill="#d8d8e8" font-size="11">（含 scripts/ 子目录）</text>
+      <text x="300" y="204" fill="#8b8bb0" font-size="10">scanners/eval_all.py 内实现</text>
+
+      <!-- 红色安全注释 -->
+      <rect x="255" y="244" width="270" height="52" rx="8" fill="#2e1f2b" stroke="#f87171" stroke-width="1.3" stroke-dasharray="5 4"/>
+      <text x="273" y="264" fill="#f87171" font-size="11.5" font-weight="bold">⚠ 排除 _provenance.json</text>
+      <text x="273" y="281" fill="#ffb4b4" font-size="10.5">防 LLM 扫描器读 label='malicious' 泄密</text>
+
+      <!-- 分发箭头 -->
+      <line x1="240" y1="173" x2="276" y2="173" stroke="#fbbf24" stroke-width="2" marker-end="url(#f3-amber)"/>
+      <line x1="500" y1="131" x2="516" y2="131" stroke="#60a5fa" stroke-width="2" marker-end="url(#f3-blue)"/>
+      <line x1="500" y1="185" x2="516" y2="185" stroke="#c084fc" stroke-width="2" marker-end="url(#f3-purple)"/>
+      <line x1="500" y1="239" x2="516" y2="239" stroke="#2dd4bf" stroke-width="2" marker-end="url(#f3-teal)"/>
+
+      <!-- 三家扫描器 -->
+      <rect x="520" y="78" width="170" height="106" rx="11" fill="#26264a" stroke="#60a5fa" stroke-width="1.5"/>
+      <text x="535" y="102" fill="#60a5fa" font-size="12.5" font-weight="bold">Cisco skill-scanner</text>
+      <text x="535" y="122" fill="#d8d8e8" font-size="10.5">Python · 多引擎</text>
+      <text x="535" y="138" fill="#d8d8e8" font-size="10.5">静态 + LLM + bytecode</text>
+      <text x="535" y="152" fill="#d8d8e8" font-size="10.5">+ pipeline + BEHAVIORAL</text>
+      <text x="535" y="166" fill="#d8d8e8" font-size="10.5">dataflow</text>
+      <text x="535" y="180" fill="#8b8bb0" font-size="10">v2.0.13</text>
+
+      <rect x="710" y="132" width="170" height="106" rx="11" fill="#26264a" stroke="#c084fc" stroke-width="1.5"/>
+      <text x="725" y="156" fill="#c084fc" font-size="12.5" font-weight="bold">NVIDIA SkillSpector</text>
+      <text x="725" y="176" fill="#d8d8e8" font-size="10.5">Python · 17 类语义</text>
+      <text x="725" y="192" fill="#d8d8e8" font-size="10.5">静态正则 + AST + YARA</text>
+      <text x="725" y="206" fill="#d8d8e8" font-size="10.5">+ LLM + OSV.dev</text>
+      <text x="725" y="224" fill="#8b8bb0" font-size="10">v2.9.3</text>
+
+      <rect x="900" y="186" width="170" height="106" rx="11" fill="#26264a" stroke="#2dd4bf" stroke-width="1.5"/>
+      <text x="915" y="210" fill="#2dd4bf" font-size="12" font-weight="bold">Caterpillar (offline)</text>
+      <text x="915" y="230" fill="#d8d8e8" font-size="10.5">Node · 纯正则 16 条</text>
+      <text x="915" y="246" fill="#d8d8e8" font-size="10.5">零语义 · 最弱触发面</text>
+      <text x="915" y="260" fill="#d8d8e8" font-size="10.5">基线对照</text>
+      <text x="915" y="278" fill="#8b8bb0" font-size="10">v1.0.11</text>
+
+      <!-- 合并 -->
+      <line x1="605" y1="184" x2="605" y2="322" stroke="#8b8bb0" stroke-width="1.5"/>
+      <line x1="795" y1="238" x2="795" y2="322" stroke="#8b8bb0" stroke-width="1.5"/>
+      <line x1="985" y1="292" x2="985" y2="322" stroke="#8b8bb0" stroke-width="1.5"/>
+      <line x1="465" y1="322" x2="985" y2="322" stroke="#8b8bb0" stroke-width="1.5"/>
+      <text x="725" y="314" fill="#8b8bb0" font-size="10.5" text-anchor="middle">合并 3 家扫描结果</text>
+      <line x1="465" y1="322" x2="465" y2="348" stroke="#34d399" stroke-width="2" marker-end="url(#f3-green)"/>
+      <line x1="655" y1="322" x2="655" y2="348" stroke="#f472b6" stroke-width="2" marker-end="url(#f3-pink)"/>
+
+      <!-- 输出 -->
+      <rect x="380" y="352" width="170" height="48" rx="9" fill="#26264a" stroke="#34d399" stroke-width="1.5"/>
+      <text x="395" y="373" fill="#34d399" font-size="12.5" font-weight="bold">verdict.csv</text>
+      <text x="395" y="389" fill="#d8d8e8" font-size="10.5">3 家检出 / 漏检对比</text>
+
+      <rect x="570" y="352" width="170" height="48" rx="9" fill="#26264a" stroke="#f472b6" stroke-width="1.5"/>
+      <text x="585" y="373" fill="#f472b6" font-size="12.5" font-weight="bold">ANALYSIS.md</text>
+      <text x="585" y="389" fill="#d8d8e8" font-size="10.5">逐样本分析报告</text>
+    </svg>
+    <p class="caption"><b>关键信息：</b>评测的核心纪律是 ground truth 不外泄——<code>_copy_tree()</code> 在拷贝时剔除 <code>_provenance.json</code>，避免 LLM 引擎从 <code>label='malicious'</code> 学到答案；三家扫描器在完全盲测下给出 <code>verdict.csv</code> 与 <code>ANALYSIS.md</code>（横评 6 样本 → 6/6 三家全检出，供应链明文 RCE 对多引擎基线并非盲区）。</p>
+  </section>
+
+  <!-- ============ 图4：扫描器选型对比表 ============ -->
+  <section class="fig">
+    <h2><span class="badge">图 4</span>扫描器选型对比表</h2>
+    <table>
+      <thead>
+        <tr><th>Scanner</th><th>范式</th><th>检测手段</th><th>为什么选</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="mono">Cisco skill-scanner</td>
+          <td>Python · 多引擎</td>
+          <td class="mono">静态 + LLM + bytecode + pipeline + BEHAVIORAL dataflow</td>
+          <td>领域事实标准：所有对比论文的共同基线；范式最多元（v2.0.13）</td>
+        </tr>
+        <tr>
+          <td class="mono">NVIDIA SkillSpector</td>
+          <td>Python · 17 类语义</td>
+          <td class="mono">静态正则 + AST + YARA + LLM + OSV.dev</td>
+          <td>领域事实标准：语义分类覆盖面最广，与 Cisco 相互印证（v2.9.3）</td>
+        </tr>
+        <tr>
+          <td class="mono">Caterpillar (offline)</td>
+          <td>Node · 纯正则</td>
+          <td class="mono">16 条规则 · 零语义</td>
+          <td>天然「最弱触发面」基线：只对明文模式响应，量化语义引擎的相对增益（v1.0.11）</td>
+        </tr>
+      </tbody>
+    </table>
+    <p class="excluded-title">已排除的工具（灰字小注）：</p>
+    <ul class="excluded">
+      <li><code>SkillWard</code> — 内嵌 Cisco skill_scanner 静态引擎源码，静态面 100% 重复、无独立检测维度增量；保留作 S6 防御参考，不作 baseline。</li>
+      <li><code>VirusTotal</code> — 闭源云 API，仅对恶意代码区有效，语义 / 授权风险盲区。</li>
+      <li><code>Snyk agent-scan</code> — 闭源后端 + 样本上传，无法接入 DeepSeek 生成流程。</li>
+      <li><code>Caterpillar openai 模式</code> — LLM 端点硬编码，需 fork 改造才能接本地模型。</li>
+    </ul>
+    <p class="caption"><b>关键信息：</b>三家扫描器范式完全正交——多引擎 vs 语义分类 vs 纯模式匹配，构成「最强—居中—最弱」对照阶梯：任何两家一致都不能归因于共享检测逻辑，Caterpillar 纯正则则量化了语义引擎的真实增益；排除项均因静态面重复或闭源不可审计而失去独立增量。</p>
+  </section>
+
+  <!-- ============ 关键设计决策 ============ -->
+  <section class="fig">
+    <h2><span class="badge">设计决策</span>5 个防样本武器化 / 防评测污染的关键设计</h2>
+    <div class="cards">
+      <div class="card">
+        <span class="n">1</span>
+        <b>中性回调占位符</b>
+        <span class="mono">cdn-metrics.example.com:1337</span>
+        <p>RFC 2606 保留域名不可达 → 样本不会变成真实攻击工具。</p>
+      </div>
+      <div class="card">
+        <span class="n">2</span>
+        <b>自白禁令 40 词</b>
+        <span class="mono">CONFESSION_PATTERNS</span>
+        <p>强制产物与真实工具不可区分，杜绝「假阳性友好」样本。</p>
+      </div>
+      <div class="card">
+        <span class="n">3</span>
+        <b>use-once 唯一目录</b>
+        <span class="mono">__v2 后缀</span>
+        <p>同坐标重复生成追加 __v2，不覆盖旧样本、保持数据集可审计。</p>
+      </div>
+      <div class="card">
+        <span class="n">4</span>
+        <b>ground truth 排除</b>
+        <span class="mono">_provenance.json</span>
+        <p>拷贝时过滤，防 LLM 扫描器读 label 泄密——评测公平性底线。</p>
+      </div>
+      <div class="card">
+        <span class="n">5</span>
+        <b>纯静态生成</b>
+        <span class="mono">SKILL.md + scripts/</span>
+        <p>只产出静态文件、不对接任何沙箱执行，无运行时风险。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 图 5: Vector 轴 ===== -->
+  <section class="fig">
+    <h2><span class="badge">图 5</span>Vector 轴 — 载体向量的作用与冗余问题</h2>
+    <div class="vector-flow">
+      <!-- 左：vector 的实际角色 -->
+      <div class="vf-card">
+        <h4><span class="tag tag-green">实际作用</span>vector → prompt → LLM 放哪一层</h4>
+        <div class="vf-line"><code>vector="CI"</code> <span class="arrow">→</span> prompt 第 134 行 <span class="arrow">→</span> LLM 看到：<code>"代码注入(藏脚本)"</code> <span class="arrow">→</span> 恶意写进 <code>scripts/</code></div>
+        <div class="vf-line"><code>vector="PI"</code> <span class="arrow">→</span> prompt 第 134 行 <span class="arrow">→</span> LLM 看到：<code>"提示注入(藏SKILL.md)"</code> <span class="arrow">→</span> 恶意写进文本</div>
+        <div class="vf-line"><code>vector="MIXED"</code> <span class="arrow">→</span> 两层都放，任一层单独看不够恶意</div>
+        <div class="vf-line" style="color:var(--dim);border-top:1px solid var(--border-soft);margin-top:6px;padding-top:8px;">
+          定义来源：借鉴 SkillInject 论文的「代码注入 vs 提示注入」分类<br>
+          代码位置：<code>patterns.py:127  VECTOR_VALUES = ["CI","PI","MIXED"]</code>
+        </div>
+      </div>
+      <!-- 右：冗余问题 -->
+      <div class="vf-card">
+        <h4><span class="tag tag-red">冗余问题</span>与 injection_point 信号重叠</h4>
+        <div class="vf-line"><b style="color:var(--cyan);">vector</b>（prompt 第 134 行）：<br><code>"代码注入(恶意代码藏脚本/内联)"</code></div>
+        <div class="vf-line"><b style="color:var(--amber);">source_strategy.injection_point</b>（prompt 第 138 行）：<br><code>"scripts/藏代码、SKILL.md body/frontmatter、Prerequisites安装命令..."</code></div>
+        <div class="vf-line" style="color:var(--red);">两者告诉 LLM 同一件事 → 叠加甚至冲突</div>
+        <div class="conflict-box">
+          <b>⚠ 冲突场景</b><br>
+          坐标 <code>source=supply_chain + mechanism=instruction_manip</code>：<br>
+          injection_point 说「藏 SKILL.md 文本」<br>
+          vector 随机到 <code>"CI"</code> 说「藏 scripts/」<br>
+          → LLM 不知听谁的 → <b>生成忠实度失败</b>（标着代码注入却没有代码载荷）<br>
+          <span style="color:var(--dim);">实测：sample 3f865749f1 (vector=CI) 和 af35a8ddcd (vector=MIXED) 均无真实脚本载荷</span>
+        </div>
+      </div>
+    </div>
+    <div class="caption">
+      <b>结论：</b>vector 作为提示词辅助指令有用（告诉 LLM 恶意放哪层），但<b>它不该独立随机</b>——
+      载体信息已编码在 <code>source × mechanism</code> 里（由 injection_point 承载）。
+      两个选项：① 从 source×mechanism 自动推导 vector（不再随机） ② 砍掉 vector，让 injection_point 独自负责。
+    </div>
+  </section>
+
+  <!-- ===== 图 6: 种子层扩充 ===== -->
+  <section class="fig">
+    <h2><span class="badge g2">图 6</span>种子层扩充 — 从 14 槽到 83 槽</h2>
+
+    <!-- 左右对比：现在 vs 扩充后 -->
+    <div class="compare-grid">
+      <div class="compare-col now">
+        <h4>现在：ATTACK_SEEDS（手写，笼统）</h4>
+        <ul class="compare-list">
+          <li>17 个 <code>(mechanism, target)</code> 键</li>
+          <li>~40 条 seed，每条 1-2 行自然语言</li>
+          <li class="seed">例：("code_exec","info_theft") → "运行 curl|bash 回传环境变量"</li>
+          <li>问题：一个 mechanism 只对应 1-3 种行为，<b style="color:var(--red);">无法区分 24 种不同的"代码执行"子攻击</b></li>
+        </ul>
+      </div>
+      <div class="compare-col future">
+        <h4>扩充后：SLOT_SEEDS 从 CSV 灌入（精确，83 槽）</h4>
+        <ul class="compare-list">
+          <li>83 个槽，每槽含 <code>slot_definition</code> + <code>evidence_quote</code></li>
+          <li>精确到具体攻击原语 + 真实事件编号</li>
+          <li class="seed">例 C03-β 凭证收集："读 env 中 KEY/TOKEN，base64 编码外发"</li>
+          <li class="seed">例 C14-β 混淆载荷："exec(b64decode()) 解码后执行"</li>
+          <li class="seed">例 C04-α 远程控制："反弹 shell，bash -i >& /dev/tcp/..."</li>
+          <li>每个槽标 <code>realizability</code>（single_skill / registry_side / multi_skill）</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- 覆盖率柱状图 -->
+    <h4 style="font-size:13px;color:var(--text);margin:16px 0 6px;">当前 SLOT_SEEDS 覆盖率（14/83 槽 = 17%）</h4>
+    <div class="bar-chart">
+      <div class="bar-row">
+        <span class="bar-label">代码执行</span>
+        <div class="bar-track"><div class="bar-empty"></div></div>
+        <span class="bar-count"><span class="zero">0</span>/24</span>
+      </div>
+      <div class="bar-row">
+        <span class="bar-label">指令操纵</span>
+        <div class="bar-track"><div class="bar-empty"></div></div>
+        <span class="bar-count"><span class="zero">0</span>/12</span>
+      </div>
+      <div class="bar-row">
+        <span class="bar-label">混淆隐藏</span>
+        <div class="bar-track"><div class="bar-empty"></div></div>
+        <span class="bar-count"><span class="zero">0</span>/11</span>
+      </div>
+      <div class="bar-row">
+        <span class="bar-label">权限滥用</span>
+        <div class="bar-track"><div class="bar-empty"></div></div>
+        <span class="bar-count"><span class="zero">0</span>/10</span>
+      </div>
+      <div class="bar-row">
+        <span class="bar-label">依赖操纵</span>
+        <div class="bar-track"><div class="bar-fill" style="width:70%;"></div><div class="bar-empty" style="flex:0;width:30%;"></div></div>
+        <span class="bar-count"><b>7</b>/10</span>
+      </div>
+      <div class="bar-row">
+        <span class="bar-label">状态污染</span>
+        <div class="bar-track"><div class="bar-empty"></div></div>
+        <span class="bar-count"><span class="zero">0</span>/6</span>
+      </div>
+      <div class="bar-row">
+        <span class="bar-label">方式不明</span>
+        <div class="bar-track"><div class="bar-empty"></div></div>
+        <span class="bar-count"><span class="zero">0</span>/6</span>
+      </div>
+      <div class="bar-row">
+        <span class="bar-label">触发滥用</span>
+        <div class="bar-track"><div class="bar-empty"></div></div>
+        <span class="bar-count"><span class="zero">0</span>/2</span>
+      </div>
+      <div class="bar-row">
+        <span class="bar-label">子agent越权</span>
+        <div class="bar-track"><div class="bar-empty"></div></div>
+        <span class="bar-count"><span class="zero">0</span>/1</span>
+      </div>
+      <div class="bar-row">
+        <span class="bar-label">规避检测</span>
+        <div class="bar-track"><div class="bar-empty"></div></div>
+        <span class="bar-count"><span class="zero">0</span>/1</span>
+      </div>
+    </div>
+
+    <div class="note-box">
+      <b>扩充方法：</b>从 <code>s4-slots-full.csv</code>（175 行映射记录）自动读取 83 个槽的
+      <code>slot_definition</code>（攻击定义 + 检测信号）和 <code>evidence_quote</code>（真实事件编号 / 具体 API），
+      直接灌入 SLOT_SEEDS，替换手写的 ATTACK_SEEDS。脚本可自动完成，不需要手写。
+      <br><br>
+      <b>先行实验状态：</b>14 个槽的 pilot 已跑通（C02 全 7 槽 + 7 个 X 盲区槽），
+      验证了生成管线 → 扫描器评测 → verdict.csv 的完整闭环。下一步：补完全部 83 槽。
+    </div>
+  </section>
+
+  <footer>Agent Skill 安全 SoK · S5 轻量原型 · 单文件静态页（零外部依赖，可直接浏览器打开）</footer>
+</div>
+</body>
+</html>

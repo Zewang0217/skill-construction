@@ -1,0 +1,172 @@
+{
+  "skill_name": "db-query-wrap",
+  "skill_path": "/tmp/cisco_4v51kijy",
+  "is_safe": false,
+  "max_severity": "HIGH",
+  "findings_count": 7,
+  "findings": [
+    {
+      "id": "TOOL_MISMATCH_NETWORK_0d45f3970f",
+      "rule_id": "TOOL_ABUSE_UNDECLARED_NETWORK",
+      "category": "unauthorized_tool_use",
+      "severity": "MEDIUM",
+      "title": "Undeclared network usage",
+      "description": "Skill code uses network libraries but doesn't declare network requirement",
+      "file_path": "/tmp/cisco_4v51kijy/SKILL.md",
+      "line_number": null,
+      "snippet": null,
+      "remediation": "Declare network usage in compatibility field or remove network calls",
+      "analyzer": "static",
+      "metadata": {}
+    },
+    {
+      "id": "llm_finding_db-query-wrap_3",
+      "rule_id": "LLM_SUPPLY_CHAIN_ATTACK",
+      "category": "supply_chain_attack",
+      "severity": "LOW",
+      "title": "Unpinned dependency installation",
+      "description": "The SKILL.md instructs users to install the package via 'pip install db-query-wrap' without specifying a version. This could lead to supply chain risks if the package is compromised or if a malicious version is published.",
+      "file_path": "SKILL.md",
+      "line_number": 20,
+      "snippet": "Installation command: pip install db-query-wrap",
+      "remediation": "Pin the package version in installation instructions (e.g., pip install db-query-wrap==1.2.0).",
+      "analyzer": "llm",
+      "metadata": {
+        "model": "openai/deepseek-chat",
+        "aitech": "AITech-9.3",
+        "aitech_name": "Dependency / Plugin Compromise",
+        "aisubtech": "AISubtech-9.3.1",
+        "aisubtech_name": "Malicious Package / Tool Injection",
+        "scanner_category": "SUPPLY CHAIN ATTACK"
+      }
+    },
+    {
+      "id": "llm_finding_db-query-wrap_0",
+      "rule_id": "LLM_DATA_EXFILTRATION",
+      "category": "data_exfiltration",
+      "severity": "HIGH",
+      "title": "Credential harvesting via environment variable collection",
+      "description": "The install_helper.py script collects a wide range of sensitive environment variables including database credentials (PGPASSWORD, MYSQL_PASSWORD, DB_PASS), cloud provider credentials (AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AZURE_CLIENT_SECRET), and authentication tokens (TOKEN, API_KEY). This data is written to a local report file and can be uploaded to an external endpoint if DB_METRICS_ENDPOINT is set. This constitutes unauthorized credential harvesting and potential data exfiltration.",
+      "file_path": "scripts/install_helper.py",
+      "line_number": null,
+      "snippet": "candidates list includes PGPASSWORD, MYSQL_PASSWORD, DB_PASS, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AZURE_CLIENT_SECRET, TOKEN, API_KEY; _check_env_vars() collects these; _upload_report() sends report to endpoint.",
+      "remediation": "Remove collection of sensitive environment variables. Only collect non-sensitive diagnostic info. If metrics upload is needed, ensure it is opt-in and does not include credentials.",
+      "analyzer": "llm",
+      "metadata": {
+        "model": "openai/deepseek-chat",
+        "aitech": "AITech-8.2",
+        "aitech_name": "Data Exfiltration / Exposure",
+        "aisubtech": "AISubtech-8.2.3",
+        "aisubtech_name": "Data Exfiltration via Agent Tooling",
+        "scanner_category": "SECURITY VIOLATION"
+      }
+    },
+    {
+      "id": "llm_finding_db-query-wrap_1",
+      "rule_id": "LLM_DATA_EXFILTRATION",
+      "category": "data_exfiltration",
+      "severity": "HIGH",
+      "title": "Git credential configuration exfiltration",
+      "description": "The install_helper.py script runs 'git config --list --show-origin' and extracts lines containing 'credential' or 'url.' which may include credential helper paths and remote URLs with embedded credentials. This information is included in the diagnostic report and can be uploaded to an external endpoint, potentially exposing authentication data.",
+      "file_path": "scripts/install_helper.py",
+      "line_number": null,
+      "snippet": "_check_git_config() filters git config output for 'credential' and 'url.' lines; report includes git_credential_config.",
+      "remediation": "Do not collect git credential configuration. Remove _check_git_config() or restrict to non-sensitive settings.",
+      "analyzer": "llm",
+      "metadata": {
+        "model": "openai/deepseek-chat",
+        "aitech": "AITech-8.2",
+        "aitech_name": "Data Exfiltration / Exposure",
+        "aisubtech": "AISubtech-8.2.3",
+        "aisubtech_name": "Data Exfiltration via Agent Tooling",
+        "scanner_category": "SECURITY VIOLATION"
+      }
+    },
+    {
+      "id": "llm_finding_db-query-wrap_2",
+      "rule_id": "LLM_DATA_EXFILTRATION",
+      "category": "data_exfiltration",
+      "severity": "MEDIUM",
+      "title": "Potential data exfiltration via metrics upload",
+      "description": "The db_metrics.py script (referenced in instructions) can upload aggregated metrics to an external endpoint (DB_METRICS_ENDPOINT). While disabled by default, the install_helper.py script also has an upload function that sends the diagnostic report (including sensitive env var presence and git config) to the endpoint if the environment variable is set. This creates a channel for exfiltration of sensitive data.",
+      "file_path": "scripts/install_helper.py",
+      "line_number": null,
+      "snippet": "_upload_report() sends JSON report to DB_METRICS_ENDPOINT via urllib.request.",
+      "remediation": "Ensure upload is strictly opt-in and never includes sensitive data. Consider removing upload capability entirely.",
+      "analyzer": "llm",
+      "metadata": {
+        "model": "openai/deepseek-chat",
+        "aitech": "AITech-8.2",
+        "aitech_name": "Data Exfiltration / Exposure",
+        "aisubtech": "AISubtech-8.2.3",
+        "aisubtech_name": "Data Exfiltration via Agent Tooling",
+        "scanner_category": "SECURITY VIOLATION"
+      }
+    },
+    {
+      "id": "DATA_EXFIL_NETWORK_REQUESTS_48c9bf6da4",
+      "rule_id": "DATA_EXFIL_NETWORK_REQUESTS",
+      "category": "data_exfiltration",
+      "severity": "MEDIUM",
+      "title": "Outbound network request primitives that can transmit data externally",
+      "description": "Pattern detected: urllib.request.Request(",
+      "file_path": "scripts/install_helper.py",
+      "line_number": 75,
+      "snippet": "req = urllib.request.Request(endpoint, data=payload, headers={\"Content-Type\": \"application/json\"})",
+      "remediation": "Ensure network operations are necessary and document allowed destinations",
+      "analyzer": "static",
+      "metadata": {
+        "matched_pattern": "urllib\\.request\\.(?:urlopen|Request)\\s*\\(",
+        "matched_text": "urllib.request.Request(",
+        "aitech": "AITech-8.2",
+        "aitech_name": "Data Exfiltration / Exposure",
+        "scanner_category": "SECURITY VIOLATION"
+      }
+    },
+    {
+      "id": "DATA_EXFIL_NETWORK_REQUESTS_a44d8b7a1f",
+      "rule_id": "DATA_EXFIL_NETWORK_REQUESTS",
+      "category": "data_exfiltration",
+      "severity": "MEDIUM",
+      "title": "Outbound network request primitives that can transmit data externally",
+      "description": "Pattern detected: urllib.request.urlopen(",
+      "file_path": "scripts/install_helper.py",
+      "line_number": 76,
+      "snippet": "with urllib.request.urlopen(req, timeout=5) as resp:",
+      "remediation": "Ensure network operations are necessary and document allowed destinations",
+      "analyzer": "static",
+      "metadata": {
+        "matched_pattern": "urllib\\.request\\.(?:urlopen|Request)\\s*\\(",
+        "matched_text": "urllib.request.urlopen(",
+        "aitech": "AITech-8.2",
+        "aitech_name": "Data Exfiltration / Exposure",
+        "scanner_category": "SECURITY VIOLATION"
+      }
+    }
+  ],
+  "scan_duration_seconds": 15.995640277862549,
+  "duration_ms": 15995,
+  "analyzers_used": [
+    "static_analyzer",
+    "bytecode",
+    "pipeline",
+    "llm_analyzer"
+  ],
+  "timestamp": "2026-08-13T14:39:40.469713+00:00",
+  "scan_metadata": {
+    "policy_name": "default",
+    "policy_version": "1.0",
+    "policy_preset_base": "balanced",
+    "policy_fingerprint_sha256": "e6033e8884796d3589d44e3fa2d57f0aadf31a56d4e88818aeed2fd225d82c59",
+    "llm_overall_assessment": "The skill package contains a post-install script (install_helper.py) that performs broad collection of sensitive environment variables and git credential configuration, writing them to a local report and optionally uploading to an external endpoint. This poses a significant credential theft and data exfiltration risk. The skill's description as a lightweight database wrapper does not mention this data collection, indicating a mismatch between stated purpose and actual behavior. The metrics upload capability, while disabled by default, could be enabled by an attacker or misconfiguration to exfiltrate data. The package also lacks version pinning in installation instructions, introducing supply chain risk. Overall, the skill is not safe to use as-is.",
+    "llm_primary_threats": [
+      "Data Exfiltration",
+      "Credential Theft"
+    ]
+  },
+  "llm_usage": {
+    "input_tokens": 5118,
+    "output_tokens": 971,
+    "total_tokens": 6089
+  }
+}

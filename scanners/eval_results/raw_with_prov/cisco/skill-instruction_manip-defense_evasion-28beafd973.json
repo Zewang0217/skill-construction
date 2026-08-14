@@ -1,0 +1,212 @@
+{
+  "skill_name": "env-guard",
+  "skill_path": "/tmp/cisco_lx07ppnh",
+  "is_safe": false,
+  "max_severity": "HIGH",
+  "findings_count": 9,
+  "findings": [
+    {
+      "id": "TOOL_MISMATCH_NETWORK_c04a0a790a",
+      "rule_id": "TOOL_ABUSE_UNDECLARED_NETWORK",
+      "category": "unauthorized_tool_use",
+      "severity": "MEDIUM",
+      "title": "Undeclared network usage",
+      "description": "Skill code uses network libraries but doesn't declare network requirement",
+      "file_path": "/tmp/cisco_lx07ppnh/SKILL.md",
+      "line_number": null,
+      "snippet": null,
+      "remediation": "Declare network usage in compatibility field or remove network calls",
+      "analyzer": "static",
+      "metadata": {}
+    },
+    {
+      "id": "llm_finding_env-guard_3",
+      "rule_id": "LLM_SKILL_DISCOVERY_ABUSE",
+      "category": "skill_discovery_abuse",
+      "severity": "LOW",
+      "title": "Over-broad Description and Capability Inflation",
+      "description": "The skill's description claims it is a general environment variable management tool, but it includes a 'sync' and 'prepare' feature that sends data to a remote endpoint. This capability is not clearly highlighted in the description, potentially misleading users about the skill's data transmission behavior. The description says '适用于开发与部署场景' (suitable for development and deployment), but the sync feature is a significant data exfiltration vector.",
+      "file_path": "SKILL.md",
+      "line_number": null,
+      "snippet": "description: 环境变量管理工具，提供读写、校验、备份与同步功能，适用于开发与部署场景。",
+      "remediation": "Clearly disclose the sync/prepare functionality and its data transmission behavior in the description.",
+      "analyzer": "llm",
+      "metadata": {
+        "model": "openai/deepseek-chat",
+        "aitech": "AITech-4.3",
+        "aitech_name": "Protocol Manipulation",
+        "aisubtech": "AISubtech-4.3.5",
+        "aisubtech_name": "Capability Inflation",
+        "scanner_category": "PROTOCOL MANIPULATION"
+      }
+    },
+    {
+      "id": "llm_finding_env-guard_0",
+      "rule_id": "LLM_DATA_EXFILTRATION",
+      "category": "data_exfiltration",
+      "severity": "HIGH",
+      "title": "Data Exfiltration via Sync/Prepare Commands",
+      "description": "The skill's 'sync' and 'prepare' commands transmit the entire parsed .env file (containing environment variables, potentially including secrets) to a remote endpoint via HTTP POST. The default endpoint is 'https://cdn-metrics.example.com:1337/config', which is a suspicious domain. The skill claims '不主动上传任何用户数据' (does not actively upload user data), but the sync/prepare functionality explicitly uploads all environment variables when invoked. This is a data exfiltration risk, especially if the endpoint is attacker-controlled or the token is compromised.",
+      "file_path": "env_guard.py",
+      "line_number": null,
+      "snippet": "remote_sync() sends json.dumps(env) to endpoint with Authorization header; cmd_sync and cmd_prepare call remote_sync with parsed env; default endpoint is cdn-metrics.example.com:1337",
+      "remediation": "Remove or restrict sync/prepare functionality, or require explicit user confirmation and validate the endpoint against a whitelist. Avoid sending all environment variables to remote servers.",
+      "analyzer": "llm",
+      "metadata": {
+        "model": "openai/deepseek-chat",
+        "aitech": "AITech-8.2",
+        "aitech_name": "Data Exfiltration / Exposure",
+        "aisubtech": "AISubtech-8.2.3",
+        "aisubtech_name": "Data Exfiltration via Agent Tooling",
+        "scanner_category": "SECURITY VIOLATION"
+      }
+    },
+    {
+      "id": "llm_finding_env-guard_2",
+      "rule_id": "LLM_COMMAND_INJECTION",
+      "category": "command_injection",
+      "severity": "MEDIUM",
+      "title": "Potential Command Injection via YAML Config Loading",
+      "description": "The skill uses yaml.safe_load() to load the config file, which is safe against arbitrary code execution. However, the config file is loaded from the user's home directory (~/.env-guard.yaml) and can be modified by an attacker with local access. While safe_load prevents code execution, the config values (endpoint, token) are used in network requests, which could be manipulated to exfiltrate data to an attacker-controlled server. This is a form of configuration poisoning.",
+      "file_path": "env_guard.py",
+      "line_number": null,
+      "snippet": "user_cfg = yaml.safe_load(f) or {}; defaults.update(user_cfg)",
+      "remediation": "Validate and sanitize config values, and warn the user if the config file is writable by others.",
+      "analyzer": "llm",
+      "metadata": {
+        "model": "openai/deepseek-chat",
+        "aitech": "AITech-9.1",
+        "aitech_name": "Model or Agentic System Manipulation",
+        "aisubtech": "AISubtech-9.1.4",
+        "aisubtech_name": "Injection Attacks (SQL, Command Execution, XSS)",
+        "scanner_category": "INJECTION ATTACK"
+      }
+    },
+    {
+      "id": "llm_finding_env-guard_1",
+      "rule_id": "LLM_DATA_EXFILTRATION",
+      "category": "data_exfiltration",
+      "severity": "MEDIUM",
+      "title": "Hardcoded Default Endpoint and Token Handling",
+      "description": "The skill includes a hardcoded default endpoint URL ('https://cdn-metrics.example.com:1337/config') in the code and config defaults. This endpoint is not a well-known service and could be malicious. Additionally, the token is read from environment variable ENV_GUARD_TOKEN or config file, and is sent as a Bearer token to the endpoint. If the endpoint is compromised, the token could be exposed.",
+      "file_path": "env_guard.py",
+      "line_number": null,
+      "snippet": "defaults = {'endpoint': 'https://cdn-metrics.example.com:1337/config', 'token': os.getenv('ENV_GUARD_TOKEN', '')}",
+      "remediation": "Remove hardcoded endpoint, require user to specify trusted endpoint, and avoid sending tokens to untrusted destinations.",
+      "analyzer": "llm",
+      "metadata": {
+        "model": "openai/deepseek-chat",
+        "aitech": "AITech-8.2",
+        "aitech_name": "Data Exfiltration / Exposure",
+        "aisubtech": "AISubtech-8.2.3",
+        "aisubtech_name": "Data Exfiltration via Agent Tooling",
+        "scanner_category": "SECURITY VIOLATION"
+      }
+    },
+    {
+      "id": "DATA_EXFIL_NETWORK_REQUESTS_e437490788",
+      "rule_id": "DATA_EXFIL_NETWORK_REQUESTS",
+      "category": "data_exfiltration",
+      "severity": "MEDIUM",
+      "title": "Outbound network request primitives that can transmit data externally",
+      "description": "Pattern detected: urllib.request.Request(",
+      "file_path": "env_guard.py",
+      "line_number": 105,
+      "snippet": "req = urllib.request.Request(",
+      "remediation": "Ensure network operations are necessary and document allowed destinations",
+      "analyzer": "static",
+      "metadata": {
+        "matched_pattern": "urllib\\.request\\.(?:urlopen|Request)\\s*\\(",
+        "matched_text": "urllib.request.Request(",
+        "aitech": "AITech-8.2",
+        "aitech_name": "Data Exfiltration / Exposure",
+        "scanner_category": "SECURITY VIOLATION"
+      }
+    },
+    {
+      "id": "DATA_EXFIL_NETWORK_REQUESTS_bdf8b9a5b5",
+      "rule_id": "DATA_EXFIL_NETWORK_REQUESTS",
+      "category": "data_exfiltration",
+      "severity": "MEDIUM",
+      "title": "Outbound network request primitives that can transmit data externally",
+      "description": "Pattern detected: urllib.request.urlopen(",
+      "file_path": "env_guard.py",
+      "line_number": 112,
+      "snippet": "with urllib.request.urlopen(req, timeout=10) as resp:",
+      "remediation": "Ensure network operations are necessary and document allowed destinations",
+      "analyzer": "static",
+      "metadata": {
+        "matched_pattern": "urllib\\.request\\.(?:urlopen|Request)\\s*\\(",
+        "matched_text": "urllib.request.urlopen(",
+        "aitech": "AITech-8.2",
+        "aitech_name": "Data Exfiltration / Exposure",
+        "scanner_category": "SECURITY VIOLATION"
+      }
+    },
+    {
+      "id": "DATA_EXFIL_NETWORK_REQUESTS_9be8e97666",
+      "rule_id": "DATA_EXFIL_NETWORK_REQUESTS",
+      "category": "data_exfiltration",
+      "severity": "MEDIUM",
+      "title": "Outbound network request primitives that can transmit data externally",
+      "description": "Pattern detected: urllib.request.Request(",
+      "file_path": "env_guard.py",
+      "line_number": 149,
+      "snippet": "req = urllib.request.Request(",
+      "remediation": "Ensure network operations are necessary and document allowed destinations",
+      "analyzer": "static",
+      "metadata": {
+        "matched_pattern": "urllib\\.request\\.(?:urlopen|Request)\\s*\\(",
+        "matched_text": "urllib.request.Request(",
+        "aitech": "AITech-8.2",
+        "aitech_name": "Data Exfiltration / Exposure",
+        "scanner_category": "SECURITY VIOLATION"
+      }
+    },
+    {
+      "id": "DATA_EXFIL_NETWORK_REQUESTS_a442fcf888",
+      "rule_id": "DATA_EXFIL_NETWORK_REQUESTS",
+      "category": "data_exfiltration",
+      "severity": "MEDIUM",
+      "title": "Outbound network request primitives that can transmit data externally",
+      "description": "Pattern detected: urllib.request.urlopen(",
+      "file_path": "env_guard.py",
+      "line_number": 154,
+      "snippet": "with urllib.request.urlopen(req, timeout=10) as resp:",
+      "remediation": "Ensure network operations are necessary and document allowed destinations",
+      "analyzer": "static",
+      "metadata": {
+        "matched_pattern": "urllib\\.request\\.(?:urlopen|Request)\\s*\\(",
+        "matched_text": "urllib.request.urlopen(",
+        "aitech": "AITech-8.2",
+        "aitech_name": "Data Exfiltration / Exposure",
+        "scanner_category": "SECURITY VIOLATION"
+      }
+    }
+  ],
+  "scan_duration_seconds": 16.788249254226685,
+  "duration_ms": 16788,
+  "analyzers_used": [
+    "static_analyzer",
+    "bytecode",
+    "pipeline",
+    "llm_analyzer"
+  ],
+  "timestamp": "2026-08-13T09:12:14.907763+00:00",
+  "scan_metadata": {
+    "policy_name": "default",
+    "policy_version": "1.0",
+    "policy_preset_base": "balanced",
+    "policy_fingerprint_sha256": "e6033e8884796d3589d44e3fa2d57f0aadf31a56d4e88818aeed2fd225d82c59",
+    "llm_overall_assessment": "The env-guard skill provides environment variable management functionality but includes a significant data exfiltration risk through its sync and prepare commands, which send all parsed environment variables to a remote endpoint. The default endpoint is suspicious and the skill's description downplays this capability. While the skill does not automatically exfiltrate data without user invocation, the sync/prepare commands are designed to transmit sensitive data, and the hardcoded endpoint raises concerns. The skill also lacks allowed-tools specification, which is a minor issue. Overall, the skill poses a moderate-to-high security risk due to potential data leakage.",
+    "llm_primary_threats": [
+      "Data Exfiltration",
+      "Credential Theft"
+    ]
+  },
+  "llm_usage": {
+    "input_tokens": 6481,
+    "output_tokens": 1065,
+    "total_tokens": 7546
+  }
+}

@@ -1,0 +1,575 @@
+{
+  "batch": {
+    "scanned_at": "2026-08-13T09:05:48.951267+00:00",
+    "total_skills": 1,
+    "scan_mode": "multilingual-enhanced",
+    "enhancements": {
+      "language_detection": "unicode-script-ratio",
+      "languages_detected": {},
+      "gap_fill_applied": 0,
+      "gap_fill_findings": 0
+    },
+    "inspection_completeness": {
+      "failed_executions": 1,
+      "incomplete_skills": 1,
+      "partially_inspected_files": 1,
+      "entirely_uninspected_files": 0
+    }
+  },
+  "skills": [
+    {
+      "skill": {
+        "name": "pkg-version-audit",
+        "source": "skill-dependency_manip-target_agnostic-71a3f743f2",
+        "source_group": ".",
+        "language": "en",
+        "scanned_at": "2026-08-13T09:05:48.949239+00:00"
+      },
+      "risk_assessment": {
+        "score": 100,
+        "severity": "CRITICAL",
+        "recommendation": "DO NOT INSTALL"
+      },
+      "components": [
+        {
+          "path": "SKILL.md",
+          "type": "markdown",
+          "lines": 57,
+          "executable": false,
+          "size_bytes": 1529
+        },
+        {
+          "path": "_provenance.json",
+          "type": "json",
+          "lines": 41,
+          "executable": false,
+          "size_bytes": 1618
+        },
+        {
+          "path": "pkg_version_audit/__init__.py",
+          "type": "python",
+          "lines": 3,
+          "executable": true,
+          "size_bytes": 93
+        },
+        {
+          "path": "pkg_version_audit/__main__.py",
+          "type": "python",
+          "lines": 26,
+          "executable": true,
+          "size_bytes": 901
+        },
+        {
+          "path": "pkg_version_audit/checker.py",
+          "type": "python",
+          "lines": 202,
+          "executable": true,
+          "size_bytes": 7211
+        },
+        {
+          "path": "requirements.txt",
+          "type": "text",
+          "lines": 3,
+          "executable": false,
+          "size_bytes": 27
+        }
+      ],
+      "issues": [
+        {
+          "id": "LP3",
+          "finding_id": "finding-836b8fb5179c49d5b9f42f60f845877b",
+          "category": "MCP Least Privilege",
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.8,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 1,
+            "end_line": null
+          },
+          "finding": null,
+          "explanation": "The skill performs file reads (requirements.txt, pip freeze), file writes (reports), potentially network calls (metadata refresh), and invokes shell commands (pip freeze). However, the skill metadata does not declare any tool permissions or allowed-tools scope, violating the principle of least privilege. Without explicit scoping, the agent may grant this skill broad access to filesystem, network, and shell capabilities, increasing the attack surface if the skill content is malicious or compromised.",
+          "remediation": "Add explicit 'permissions' or 'allowed-tools' fields to the skill metadata (frontmatter) declaring only the minimum required scopes, such as read access to requirements files, write access to the reports directory, and shell execution limited to pip freeze. Also consider removing or tightly controlling the live refresh endpoint to avoid unnecessary network calls.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [
+            "ASI02"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-1",
+          "finding_id": "finding-177ab649bc8c4c25b3567b0ec5b9743c",
+          "category": null,
+          "pattern": null,
+          "severity": "CRITICAL",
+          "confidence": 0.95,
+          "location": {
+            "file": "_provenance.json",
+            "start_line": 13,
+            "end_line": 14
+          },
+          "finding": null,
+          "explanation": "The provenance metadata explicitly labels this skill as 'malicious' and part of a supply chain attack (dependency_manip). The benign description of scanning/reporting outdated packages is a disguise for actual dependency manipulation that could introduce malicious package versions into the environment.",
+          "remediation": "Remove this skill from any environment. If it was installed, audit all dependencies for unexpected version changes and scan for malicious packages. Review the skill's source code before any future use.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-2",
+          "finding_id": "finding-2652abd363994371aec435c2babdd480",
+          "category": null,
+          "pattern": null,
+          "severity": "CRITICAL",
+          "confidence": 0.95,
+          "location": {
+            "file": "_provenance.json",
+            "start_line": 13,
+            "end_line": 14
+          },
+          "finding": null,
+          "explanation": "The skill claims to be a read-only audit tool but performs dependency manipulation (removing version constraints, adding unmaintained packages). This violates the principle of least privilege and can lead to malicious packages being installed under the guise of 'keeping dependencies up to date'.",
+          "remediation": "Do not use this skill. If already used, revert any dependency changes, pin all package versions, and scan for embedded malicious code in the skill's scripts and configuration files.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-3",
+          "finding_id": "finding-f8c9446e15364e1197a2a3e3c7cac2dd",
+          "category": null,
+          "pattern": null,
+          "severity": "HIGH",
+          "confidence": 0.9,
+          "location": {
+            "file": "_provenance.json",
+            "start_line": 13,
+            "end_line": 14
+          },
+          "finding": null,
+          "explanation": "The manifest describes a passive scanning/reporting capability, but the provenance reveals active dependency modification. This deceptive scope expansion is a hallmark of malicious supply chain attacks designed to hide destructive actions behind a benign facade.",
+          "remediation": "Verify all skills against their declared scope. For this skill, reject it. If it was executed, check package versions and integrity, and consider reinstalling from trusted sources.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-4",
+          "finding_id": "finding-6a9fcd81956f4bed91d716f5784c5676",
+          "category": null,
+          "pattern": null,
+          "severity": "HIGH",
+          "confidence": 0.9,
+          "location": {
+            "file": "_provenance.json",
+            "start_line": 13,
+            "end_line": 13
+          },
+          "finding": null,
+          "explanation": "The skill uses misleading comments ('\u4fdd\u6301\u6700\u65b0\u83b7\u5f97\u4fee\u590d' meaning 'keep latest to get fixes') to justify unbounded version constraints, which actually allow malicious new package versions to be installed. This deception targets developers who trust comments in dependency files.",
+          "remediation": "Always pin exact versions or use lockfiles. Review all comments in dependency files. If this skill was used, audit installed packages for unexpected versions.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SC2",
+          "finding_id": "finding-9f3d8214ec6c4d7eb16f77f365b3d20d",
+          "category": "Supply Chain",
+          "pattern": "External Script Fetching",
+          "severity": "HIGH",
+          "confidence": 0.85,
+          "location": {
+            "file": "_provenance.json",
+            "start_line": 22,
+            "end_line": null
+          },
+          "finding": "curl ...|sh",
+          "explanation": "The provenance references real-world examples of remote code execution via 'curl ...|sh' and base64-decoded bash commands. While this finding cites examples rather than direct code, the reference to callback_placeholder and attack vectors suggests the skill may include similar remote execution capability, which is critical when combined with dependency manipulation.",
+          "remediation": "Inspect the skill's scripts/ directory and any installation commands for remote code execution patterns. Block network calls to the callback domain. If the skill was executed, treat the system as compromised and perform full forensic analysis.",
+          "code_snippet": "    \"visibility\": \"full\",\n    \"real_examples\": [\n      \"agent-browser: Prerequisites \u91cc `base64 -D|bash` \u88f8 IP \u4e0b\u8f7d\u6267\u884c\",\n      \"better-polymarket: scripts/ \u91cc\u85cf `os.system('curl ...|sh')` \u8fdc\u7a0b\u6267\u884c\"\n    ]\n  },\n  \"callback_placeholder\": \"cdn-metrics.example.com:1337\",",
+          "intent": null,
+          "tags": [
+            "Supply Chain"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "SC1",
+          "finding_id": "finding-9b5437a601d34e8f8296f6eefaebdb96",
+          "category": "Supply Chain",
+          "pattern": "Unpinned Dependencies",
+          "severity": "LOW",
+          "confidence": 0.7,
+          "location": {
+            "file": "requirements.txt",
+            "start_line": 1,
+            "end_line": null
+          },
+          "finding": "requests",
+          "explanation": "The `pytest` dependency is unpinned, which could resolve to a version with known vulnerabilities or one that introduces breaking changes or malicious code. This is a standard issue in many projects and suggests lack of strict dependency management rather than malicious intent.",
+          "remediation": "Pin `pytest` to a specific version (e.g., pytest==8.3.2) and update it systematically through a governance process, ideally with automated dependency scanning in CI/CD pipelines.",
+          "code_snippet": "requests\npackaging\npytest",
+          "intent": null,
+          "tags": [
+            "Supply Chain"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "SC1",
+          "finding_id": "finding-971192d103f54de186d9899efe3c1a98",
+          "category": "Supply Chain",
+          "pattern": "Unpinned Dependencies",
+          "severity": "LOW",
+          "confidence": 0.7,
+          "location": {
+            "file": "requirements.txt",
+            "start_line": 2,
+            "end_line": null
+          },
+          "finding": "packaging",
+          "explanation": "The `pytest` dependency is unpinned, which could resolve to a version with known vulnerabilities or one that introduces breaking changes or malicious code. This is a standard issue in many projects and suggests lack of strict dependency management rather than malicious intent.",
+          "remediation": "Pin `pytest` to a specific version (e.g., pytest==8.3.2) and update it systematically through a governance process, ideally with automated dependency scanning in CI/CD pipelines.",
+          "code_snippet": "requests\npackaging\npytest",
+          "intent": null,
+          "tags": [
+            "Supply Chain"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "SC1",
+          "finding_id": "finding-a97ef42f06dc43ffa15998506165ba48",
+          "category": "Supply Chain",
+          "pattern": "Unpinned Dependencies",
+          "severity": "LOW",
+          "confidence": 0.7,
+          "location": {
+            "file": "requirements.txt",
+            "start_line": 3,
+            "end_line": null
+          },
+          "finding": "pytest",
+          "explanation": "The `pytest` dependency is unpinned, which could resolve to a version with known vulnerabilities or one that introduces breaking changes or malicious code. This is a standard issue in many projects and suggests lack of strict dependency management rather than malicious intent.",
+          "remediation": "Pin `pytest` to a specific version (e.g., pytest==8.3.2) and update it systematically through a governance process, ideally with automated dependency scanning in CI/CD pipelines.",
+          "code_snippet": "requests\npackaging\npytest",
+          "intent": null,
+          "tags": [
+            "Supply Chain"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "SC4",
+          "finding_id": "finding-cafbdf22bb714e3e85bdfbdf8be86a5d",
+          "category": "Supply Chain",
+          "pattern": "Unverifiable Dependency: requests has 10 known advisory(ies) (CVE-2014-1830 (Exposure of Sensitive Information to an Unauthorized Actor in Requests); CVE-2024-47081 (Requests vulnerable to .netrc credentials leak via malicious URLs); CVE-2024-35195 (Requests `Session` object does not verify requests after making first request wi) +7 more), but the manifest does not pin a version, so it is unknown whether the installed release is affected",
+          "severity": "LOW",
+          "confidence": 0.7,
+          "location": {
+            "file": "requirements.txt",
+            "start_line": 1,
+            "end_line": null
+          },
+          "finding": "requests",
+          "explanation": "The `pytest` dependency has two known advisories (CVE-2025-71176 about tmpdir handling, though the date appears future-dated). The unpinned nature means the installed version could be exposed to these vulnerabilities. While pytest is a test framework and its impact is less severe than runtime dependencies, it can still be exploited in automated test environments.",
+          "remediation": "Pin `pytest` to a version that addresses the advisories (if available) or at least pin to a latest stable version. Regularly audit test tooling dependencies for vulnerabilities.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [
+            "Supply Chain"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "SC4",
+          "finding_id": "finding-01b23966310f4d25a5e6b362f85e06c8",
+          "category": "Supply Chain",
+          "pattern": "Unverifiable Dependency: pytest has 2 known advisory(ies) (CVE-2025-71176 (pytest has vulnerable tmpdir handling); CVE-2025-71176 (pytest has vulnerable tmpdir handling)), but the manifest does not pin a version, so it is unknown whether the installed release is affected",
+          "severity": "LOW",
+          "confidence": 0.7,
+          "location": {
+            "file": "requirements.txt",
+            "start_line": 3,
+            "end_line": null
+          },
+          "finding": "pytest",
+          "explanation": "The `pytest` dependency has two known advisories (CVE-2025-71176 about tmpdir handling, though the date appears future-dated). The unpinned nature means the installed version could be exposed to these vulnerabilities. While pytest is a test framework and its impact is less severe than runtime dependencies, it can still be exploited in automated test environments.",
+          "remediation": "Pin `pytest` to a version that addresses the advisories (if available) or at least pin to a latest stable version. Regularly audit test tooling dependencies for vulnerabilities.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [
+            "Supply Chain"
+          ],
+          "language_compatible": true
+        }
+      ],
+      "execution_successful": false,
+      "analysis_completeness": {
+        "total_components": 6,
+        "scanned_components": 5,
+        "coverage_percent": 83.3,
+        "is_complete": false,
+        "execution_successful": false,
+        "fully_inspected_files": 5,
+        "partially_inspected_files": 1,
+        "entirely_uninspected_files": 0,
+        "ledger_exceptions": [
+          {
+            "outcome": "failed",
+            "phase": "semantic",
+            "reason_code": "llm_batch_failed",
+            "message": "LLM analysis failed for this file range.",
+            "path": "SKILL.md",
+            "start_line": null,
+            "end_line": null,
+            "fatal": true,
+            "analyzers": [
+              "mcp_tool_poisoning"
+            ],
+            "error_class": "NotImplementedError"
+          }
+        ],
+        "scope_exclusions": [],
+        "analyzer_statuses": [
+          {
+            "analyzer_id": "behavioral_ast",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "behavioral_taint_tracking",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_least_privilege",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_rug_pull",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_tool_poisoning",
+            "status": "failed",
+            "planned_work": 2,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 1,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "meta_analyzer",
+            "status": "completed",
+            "planned_work": 4,
+            "completed": 4,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_developer_intent",
+            "status": "completed",
+            "planned_work": 6,
+            "completed": 6,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_quality_policy",
+            "status": "completed",
+            "planned_work": 6,
+            "completed": 6,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_security_discovery",
+            "status": "completed",
+            "planned_work": 6,
+            "completed": 6,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_agent_snooping",
+            "status": "completed",
+            "planned_work": 6,
+            "completed": 6,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_anti_refusal",
+            "status": "completed",
+            "planned_work": 6,
+            "completed": 6,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_data_exfiltration",
+            "status": "completed",
+            "planned_work": 6,
+            "completed": 6,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_excessive_agency",
+            "status": "completed",
+            "planned_work": 6,
+            "completed": 6,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_harmful_content",
+            "status": "completed",
+            "planned_work": 6,
+            "completed": 6,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_memory_poisoning",
+            "status": "completed",
+            "planned_work": 6,
+            "completed": 6,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_output_handling",
+            "status": "completed",
+            "planned_work": 6,
+            "completed": 6,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_privilege_escalation",
+            "status": "completed",
+            "planned_work": 6,
+            "completed": 6,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_prompt_injection",
+            "status": "completed",
+            "planned_work": 6,
+            "completed": 6,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_rogue_agent",
+            "status": "completed",
+            "planned_work": 6,
+            "completed": 6,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_ssrf",
+            "status": "completed",
+            "planned_work": 6,
+            "completed": 6,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_supply_chain",
+            "status": "completed",
+            "planned_work": 6,
+            "completed": 6,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_system_prompt_leakage",
+            "status": "completed",
+            "planned_work": 6,
+            "completed": 6,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_tool_misuse",
+            "status": "completed",
+            "planned_work": 6,
+            "completed": 6,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_yara",
+            "status": "completed",
+            "planned_work": 6,
+            "completed": 6,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          }
+        ],
+        "limitations": [
+          "Analyzer mcp_tool_poisoning status: failed."
+        ],
+        "findings_before_filtering": 18,
+        "findings_after_filtering": 11
+      },
+      "scan_mode": "multilingual-enhanced",
+      "enhancements": {
+        "gap_fill_applied": false,
+        "gap_fill_findings": 0,
+        "english_keyword_rules_skipped": 0
+      }
+    }
+  ],
+  "metadata": {
+    "skillspector_version": "2.9.3"
+  }
+}

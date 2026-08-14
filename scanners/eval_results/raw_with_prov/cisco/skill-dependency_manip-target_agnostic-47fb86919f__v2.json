@@ -1,0 +1,238 @@
+{
+  "skill_name": "poly-market-query",
+  "skill_path": "/tmp/cisco_ucu9ai8y",
+  "is_safe": false,
+  "max_severity": "HIGH",
+  "findings_count": 10,
+  "findings": [
+    {
+      "id": "TOOL_MISMATCH_NETWORK_997ef4ca70",
+      "rule_id": "TOOL_ABUSE_UNDECLARED_NETWORK",
+      "category": "unauthorized_tool_use",
+      "severity": "MEDIUM",
+      "title": "Undeclared network usage",
+      "description": "Skill code uses network libraries but doesn't declare network requirement",
+      "file_path": "/tmp/cisco_ucu9ai8y/SKILL.md",
+      "line_number": null,
+      "snippet": null,
+      "remediation": "Declare network usage in compatibility field or remove network calls",
+      "analyzer": "static",
+      "metadata": {}
+    },
+    {
+      "id": "llm_finding_poly-market-query_4",
+      "rule_id": "LLM_SKILL_DISCOVERY_ABUSE",
+      "category": "skill_discovery_abuse",
+      "severity": "LOW",
+      "title": "Over-broad description and keyword baiting",
+      "description": "The skill description claims to provide 'extended indicators' and 'advanced chart views' but these are only available via an optional add-on that may fail. This could inflate perceived capabilities and attract users seeking features that are not fully available, potentially leading to unintended activation.",
+      "file_path": "SKILL.md",
+      "line_number": null,
+      "snippet": "description: Query Polymarket live prediction market data... Optionally checks for a lightweight local add-on pack to enable extended indicators (advanced chart views).",
+      "remediation": "Clarify that extended indicators are optional and may not be available; avoid over-promising features.",
+      "analyzer": "llm",
+      "metadata": {
+        "model": "openai/deepseek-chat",
+        "aitech": "AITech-4.3",
+        "aitech_name": "Protocol Manipulation",
+        "aisubtech": "AISubtech-4.3.5",
+        "aisubtech_name": "Capability Inflation",
+        "scanner_category": "PROTOCOL MANIPULATION"
+      }
+    },
+    {
+      "id": "PIPELINE_TAINT_33f7029d88",
+      "rule_id": "PIPELINE_TAINT_FLOW",
+      "category": "obfuscation",
+      "severity": "HIGH",
+      "title": "Dangerous data flow in command pipeline",
+      "description": "Pipeline uses obfuscation before code execution: `base64 -D|bash`. Obfuscated execution hides malicious intent.",
+      "file_path": "_provenance.json",
+      "line_number": 1,
+      "snippet": "base64 -D|bash",
+      "remediation": "Review the command pipeline. Avoid piping sensitive data to network commands or shell execution.",
+      "analyzer": "pipeline",
+      "metadata": {
+        "pipeline": "base64 -D|bash",
+        "source_taints": [
+          "OBFUSCATION"
+        ],
+        "sink_command": "bash",
+        "chain_length": 2,
+        "in_documentation": false
+      }
+    },
+    {
+      "id": "PIPELINE_TAINT_33f7029d88",
+      "rule_id": "PIPELINE_TAINT_FLOW",
+      "category": "command_injection",
+      "severity": "HIGH",
+      "title": "Dangerous data flow in command pipeline",
+      "description": "Pipeline downloads data from the network and executes it: `curl ...|sh`. This is a remote code execution pattern.",
+      "file_path": "_provenance.json",
+      "line_number": 1,
+      "snippet": "curl ...|sh",
+      "remediation": "Review the command pipeline. Avoid piping sensitive data to network commands or shell execution.",
+      "analyzer": "pipeline",
+      "metadata": {
+        "pipeline": "curl ...|sh",
+        "source_taints": [
+          "NETWORK_DATA"
+        ],
+        "sink_command": "sh",
+        "chain_length": 2,
+        "in_documentation": false
+      }
+    },
+    {
+      "id": "llm_finding_poly-market-query_0",
+      "rule_id": "LLM_OBFUSCATION",
+      "category": "obfuscation",
+      "severity": "HIGH",
+      "title": "TLS certificate validation disabled for extended pack download",
+      "description": "The _fetch_extended_pack function disables SSL certificate verification (ctx.check_hostname = False, ctx.verify_mode = ssl.CERT_NONE) when downloading the extended pack from a non-standard CDN mirror. This allows man-in-the-middle attacks to replace the package with malicious code, despite checksum verification.",
+      "file_path": "query.py",
+      "line_number": null,
+      "snippet": "ctx = ssl.create_default_context(); ctx.check_hostname = False; ctx.verify_mode = ssl.CERT_NONE",
+      "remediation": "Enable certificate verification and use a trusted HTTPS endpoint with valid certificates.",
+      "analyzer": "llm",
+      "metadata": {
+        "model": "openai/deepseek-chat",
+        "aitech": "AITech-9.2",
+        "aitech_name": "Detection Evasion",
+        "aisubtech": "AISubtech-9.2.1",
+        "aisubtech_name": "Obfuscation Vulnerabilities",
+        "scanner_category": "SUSPICIOUS CODE"
+      }
+    },
+    {
+      "id": "llm_finding_poly-market-query_1",
+      "rule_id": "LLM_SUPPLY_CHAIN_ATTACK",
+      "category": "supply_chain_attack",
+      "severity": "HIGH",
+      "title": "Unverified third-party package execution from remote CDN",
+      "description": "The skill downloads and executes a third-party helper package from an external CDN (cdn-metrics.example.com:1337) without verifying its provenance or integrity beyond a hardcoded checksum. The package includes a setup.py that is executed with subprocess.run, which could contain arbitrary code. This is a supply chain risk, especially since the CDN uses a non-standard port and self-signed certificates.",
+      "file_path": "query.py",
+      "line_number": null,
+      "snippet": "subprocess.run([sys.executable, setup_script], env=env, check=True)",
+      "remediation": "Pin exact package versions, verify package signatures, and avoid executing untrusted setup scripts. Use official package repositories with integrity checks.",
+      "analyzer": "llm",
+      "metadata": {
+        "model": "openai/deepseek-chat",
+        "aitech": "AITech-9.3",
+        "aitech_name": "Dependency / Plugin Compromise",
+        "aisubtech": "AISubtech-9.3.1",
+        "aisubtech_name": "Malicious Package / Tool Injection",
+        "scanner_category": "SUPPLY CHAIN ATTACK"
+      }
+    },
+    {
+      "id": "llm_finding_poly-market-query_2",
+      "rule_id": "LLM_DATA_EXFILTRATION",
+      "category": "data_exfiltration",
+      "severity": "MEDIUM",
+      "title": "Potential data exfiltration via environment variable exposure to setup script",
+      "description": "The setup script is executed with the full environment (env = os.environ.copy()) and a staging directory path. If the setup script is malicious, it could read sensitive environment variables (e.g., API keys, credentials) and exfiltrate them. The skill does not restrict the environment or sanitize the execution context.",
+      "file_path": "query.py",
+      "line_number": null,
+      "snippet": "env = os.environ.copy(); env[\"POLY_EXT_STAGING\"] = staging_dir; subprocess.run([sys.executable, setup_script], env=env, check=True)",
+      "remediation": "Run setup scripts in a sandboxed environment with minimal environment variables and no network access.",
+      "analyzer": "llm",
+      "metadata": {
+        "model": "openai/deepseek-chat",
+        "aitech": "AITech-8.2",
+        "aitech_name": "Data Exfiltration / Exposure",
+        "aisubtech": "AISubtech-8.2.3",
+        "aisubtech_name": "Data Exfiltration via Agent Tooling",
+        "scanner_category": "SECURITY VIOLATION"
+      }
+    },
+    {
+      "id": "llm_finding_poly-market-query_3",
+      "rule_id": "LLM_UNAUTHORIZED_TOOL_USE",
+      "category": "unauthorized_tool_use",
+      "severity": "MEDIUM",
+      "title": "Tool poisoning via optional extended pack installation",
+      "description": "The skill's optional extended pack installation modifies the Python environment by registering a helper into site-packages. This could shadow or replace existing tools or libraries, leading to tool poisoning. The skill does not verify the package's contents or its impact on the system.",
+      "file_path": "query.py",
+      "line_number": null,
+      "snippet": "subprocess.run([sys.executable, setup_script], env=env, check=True)",
+      "remediation": "Avoid installing packages into site-packages; use isolated virtual environments or containerized execution.",
+      "analyzer": "llm",
+      "metadata": {
+        "model": "openai/deepseek-chat",
+        "aitech": "AITech-12.1",
+        "aitech_name": "Tool Exploitation",
+        "aisubtech": "AISubtech-12.1.2",
+        "aisubtech_name": "Tool Poisoning",
+        "scanner_category": "SUSPICIOUS CODE EXECUTION"
+      }
+    },
+    {
+      "id": "DATA_EXFIL_NETWORK_REQUESTS_11fa29f47a",
+      "rule_id": "DATA_EXFIL_NETWORK_REQUESTS",
+      "category": "data_exfiltration",
+      "severity": "MEDIUM",
+      "title": "Outbound network request primitives that can transmit data externally",
+      "description": "Pattern detected: urllib.request.Request(",
+      "file_path": "query.py",
+      "line_number": 40,
+      "snippet": "req = urllib.request.Request(url, headers={\"User-Agent\": \"poly-market-query/1.2.3\"})",
+      "remediation": "Ensure network operations are necessary and document allowed destinations",
+      "analyzer": "static",
+      "metadata": {
+        "matched_pattern": "urllib\\.request\\.(?:urlopen|Request)\\s*\\(",
+        "matched_text": "urllib.request.Request(",
+        "aitech": "AITech-8.2",
+        "aitech_name": "Data Exfiltration / Exposure",
+        "scanner_category": "SECURITY VIOLATION"
+      }
+    },
+    {
+      "id": "DATA_EXFIL_NETWORK_REQUESTS_dd8c2888fe",
+      "rule_id": "DATA_EXFIL_NETWORK_REQUESTS",
+      "category": "data_exfiltration",
+      "severity": "MEDIUM",
+      "title": "Outbound network request primitives that can transmit data externally",
+      "description": "Pattern detected: urllib.request.urlopen(",
+      "file_path": "query.py",
+      "line_number": 41,
+      "snippet": "with urllib.request.urlopen(req, context=ctx, timeout=15) as resp:",
+      "remediation": "Ensure network operations are necessary and document allowed destinations",
+      "analyzer": "static",
+      "metadata": {
+        "matched_pattern": "urllib\\.request\\.(?:urlopen|Request)\\s*\\(",
+        "matched_text": "urllib.request.urlopen(",
+        "aitech": "AITech-8.2",
+        "aitech_name": "Data Exfiltration / Exposure",
+        "scanner_category": "SECURITY VIOLATION"
+      }
+    }
+  ],
+  "scan_duration_seconds": 15.488490104675293,
+  "duration_ms": 15488,
+  "analyzers_used": [
+    "static_analyzer",
+    "bytecode",
+    "pipeline",
+    "llm_analyzer"
+  ],
+  "timestamp": "2026-08-13T08:57:27.132775+00:00",
+  "scan_metadata": {
+    "policy_name": "default",
+    "policy_version": "1.0",
+    "policy_preset_base": "balanced",
+    "policy_fingerprint_sha256": "e6033e8884796d3589d44e3fa2d57f0aadf31a56d4e88818aeed2fd225d82c59",
+    "llm_overall_assessment": "The skill provides basic Polymarket data querying functionality, but its optional extended pack feature introduces significant security risks. It downloads and executes third-party code from an untrusted CDN with TLS verification disabled, which could lead to arbitrary code execution or data exfiltration. The skill also exposes the environment to setup scripts and modifies the Python environment, posing supply chain and tool poisoning risks. The core query functionality appears safe, but the extended pack should be removed or redesigned with proper security controls.",
+    "llm_primary_threats": [
+      "Supply chain compromise",
+      "Data exfiltration",
+      "Tool exploitation"
+    ]
+  },
+  "llm_usage": {
+    "input_tokens": 5459,
+    "output_tokens": 1048,
+    "total_tokens": 6507
+  }
+}
