@@ -14,7 +14,7 @@
 | 3 | `csv-summarizer` | Trail of Bits | CSV 汇总工具 | 8000 空行后藏 `os.environ.items()` dump | supply_chain | code_exec + obfuscation | info_theft |
 | 4 | `aicash-miner` | MalSkillBench | 加密货币挖矿 | 挖矿 + systemd 持久化 + 6 实例并行 | supply_chain | code_exec | resource_abuse + persistent_control |
 | 5 | `apify-keys` | MalSkillBench | API key 管理器 | 连攻击者 MySQL 偷 API key 池 | supply_chain | code_exec | info_theft |
-| 6 | `token-saver-pro` | MalSkillBench | Token 节省器 | `autorun:true` + `intercept_all:true` 拦截全部请求 | supply_chain | trigger_abuse + instruction_manip | persistent_control |
+| 6 | `token-saver-pro` | MalSkillBench | Token 节省器 | `autorun:true` + `intercept_all:true` 拦截全部请求 | supply_chain | trigger_abuse + instruction_manip | persistent_control（目标劫持，D1 扩大定义覆盖）|
 | 7 | `polymarket-arb-bot` | MalSkillBench | 自动交易机器人 | Kelly 仓位自动下注 + Telegram 通知（69 个 .py 文件） | supply_chain | code_exec | financial_theft |
 | 8 | `auto-updater` | MalSkillBench | 自动更新器 | Prerequisites 引导安装 `openclaw-agent`（恶意 zip，macOS 用短链） | supply_chain | trigger_abuse + code_exec | system_damage |
 | 9 | `boot-persistence` | MalSkillBench | 启动持久化工具 | systemd/cron/bashrc 持久化 | supply_chain | code_exec + state_corruption | persistent_control |
@@ -111,6 +111,25 @@ external_content    1 个 (#14 context-loader)
 ### 对论文的意义
 - taxonomy 的 mechanism 维度**混合了静态可测与静态不可测的攻击**——子agent提权/规避检测属于后者，评测时必须标注"仅动态可观测"，否则会被误读为扫描器漏检
 - 权限滥用的高槽位数（19）与 wild 低观测形成反差，说明**映射方法比 taxonomy 更可能是瓶颈**——需要双人盲审时统一"声明面 vs 载荷面"的判定标准
+
+## taxonomy 决策记录（2026-08-14）
+
+### D1：persistent_control 扩大定义，覆盖目标劫持（已拍板）
+
+**决策**：不新增 `goal_hijacking` target 值，而是**扩大 `persistent_control` 定义**，使其包含"agent 被劫持、不再为用户目标服务"的语义。
+
+**动机**：token-saver-pro（`autorun:true` + `intercept_all:true` 拦截全部用户请求）的行为是"劫持 agent 使其不再服务用户目标"，原 8 个 target 值塞不下。拍板用扩大定义而非新增值——避免 target 维度碎片化。
+
+**影响**：`persistent_control` 语义从"系统级持久控制（后门/systemd）"扩展为"**对 agent 的持续控制**，含系统持久化与目标劫持两类"。
+
+### D2：mechanism 缺"恶意分发/社工引导"（记录为缺口，待决策）
+
+**证据**：auto-updater——SKILL.md 用 "Prerequisites" 引导用户从仿官方仓库下载恶意 zip（macOS 用短链），恶意载荷**不在 skill 包内**，全靠文本引导用户自行安装外部恶意软件。
+
+**问题**：现有 9 个 mechanism 值无法准确表达"skill 引导用户去不可信来源安装恶意软件"。最接近的是 `dependency_manip`（skill 依赖不可信来源），但 auto-updater 不是依赖，是**引导用户执行外部下载**。
+
+**待决策**：新增 `malicious_distribution`（恶意分发）机制值，还是用 `trigger_abuse + instruction_manip` 多值勉强表达。
+
 
 ## taxonomy 完备性分析：source 维度
 
