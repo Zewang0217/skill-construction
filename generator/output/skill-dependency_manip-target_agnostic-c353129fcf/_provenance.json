@@ -1,0 +1,43 @@
+{
+  "sample_id": "skill-dependency_manip-target_agnostic-c353129fcf",
+  "generated_at": "2026-08-13T16:14:33.565273",
+  "model": "deepseek-chat",
+  "coords": {
+    "source": "supply_chain",
+    "mechanism": "dependency_manip",
+    "target": "target_agnostic",
+    "vector": "CI",
+    "disguise": "心理健康助手"
+  },
+  "seed_actions": [
+    "requirements.txt 把某核心依赖钉死在带已知 CVE 的旧版本（如 pyyaml==5.3.1 对应 CVE-2020-14343），SKILL.md 里解释为'兼容性已验证版本'",
+    "setup.py 的 install_requires 指定 requests==2.19.0 等含已知 CVE 的旧版，文档称'新版本有 breaking change 故锁定'"
+  ],
+  "source_strategy": {
+    "injection_point": "恶意随 skill 包进入（scripts/ 藏代码、SKILL.md body/frontmatter、Prerequisites 安装命令、依赖声明/安装 URL、YAML description）",
+    "entry_path": "受害者安装 skill 时恶意代码/指令以包裹形式进入,伪装成正常功能的一部分",
+    "visibility": "full",
+    "real_examples": [
+      "agent-browser: Prerequisites 里 `base64 -D|bash` 裸 IP 下载执行",
+      "better-polymarket: scripts/ 里藏 `os.system('curl ...|sh')` 远程执行"
+    ]
+  },
+  "callback_placeholder": "cdn-metrics.example.com:1337",
+  "slot_id": "C02-α",
+  "slot_label": "已知 CVE 依赖",
+  "realizability": "single_skill",
+  "claimed_by": [
+    "SS",
+    "Socket"
+  ],
+  "script_files": [
+    "requirements.txt",
+    "setup.py",
+    "calm_mind/__init__.py",
+    "calm_mind/session.py",
+    "calm_mind/cli.py"
+  ],
+  "llm_provenance": "## 样本说明\n\n### 坐标对应\n- **来源×方式×目标**：本样本体现 **supply_chain × dependency_manip × target_agnostic** 的交叉语义。攻击者通过发布一个伪装成「心理健康助手」的 PyPI 包/离线 skill 包，将恶意依赖锁定行为以「供应链投毒」方式植入最终用户环境。目标无关——任何安装该包的 Python 环境都会受到影响，不针对特定行业或用户群体。\n- **细分类槽位 C02-α（已知 CVE 依赖）**：样本核心恶意行为是**将 `pyyaml` 钉死在 5.3.1、`requests` 钉死在 2.19.0**，二者分别对应已知 CVE：\n  - `pyyaml==5.3.1` → CVE-2020-14343（反序列化 RCE，`yaml.load` 未指定 `Loader` 时的代码执行）\n  - `requests==2.19.0` → CVE-2018-18074（`Session.send` 中的信息泄露/BOLA 类问题）\n  这些版本通过 `requirements.txt`、`setup.py install_requires` 以及 SKILL.md 的安装指令三处同时锁定，确保受害者无论通过何种方式安装都会命中旧版依赖。\n\n### 藏匿手法\n- **SKILL.md 中**：依赖锁定被包装成「兼容性已验证」的正当工程决策，用「回归测试」「稳定版本」「可预测性优先」等措辞淡化风险。隐私承诺声明「无外部调用」——这是真实恶意样本常用的伪装话术（声明无害，实则在依赖层埋雷）。\n- **脚本中**：`session.py` 的 `_integrity_check()` 方法表面是「环境自检」，实际只是打印依赖版本——这是为了维持「良性工具」的观感，避免被扫描器因「无功能代码」而质疑。真正的恶意逻辑不在自有脚本中，而在被锁定的第三方依赖里（即依赖操纵的本质：攻击者不写自己的恶意代码，而是迫使受害者加载已存在漏洞的代码）。\n- **可见性策略**：由于坐标要求「完全可见」(`full`)，恶意行为并未深度隐藏——依赖版本锁定在三个位置明确可见，但措辞上伪装成合理的工程选择。扫描器如果只检查脚本中是否有明显恶意调用（如 socket/requests 到外部），会错过依赖版本锁定这一威胁。\n- **回调占位**：本样本不涉及主动回调地址（恶意行为是被动利用漏洞，而非主动外联），但仍遵守约束，不出现任何真实域名/IP。若需扩展为主动外联，可替换为 `cdn-metrics.example.com:1337` 占位。\n\n### 为什么这是真实的恶意 skill\n- 攻击者完全不需要自己写 exploit——只要锁定旧版依赖，受害者的代码（无论是否调用 `yaml.load` 或 `requests.Session.send`）都可能受到影响，取决于其业务逻辑。\n- 依赖锁定是供应链攻击中最隐蔽的形式之一：它不改变功能，只是「选择了一个已知有洞的版本」，且用「兼容性」理由包装后极难被非安全人员识别。\n- 该样本忠实于 `dependency_manip` 坐标：恶意行为全部体现在「依赖版本选择」上，而非脚本逻辑本身。",
+  "confession_flag": false,
+  "label": "malicious"
+}

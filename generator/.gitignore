@@ -1,4 +1,4 @@
-output/
+# 生成样本公开（论文 S5 数据集）——刻意不忽略 output/
 .env
 *.key
 .env.deepseek.local

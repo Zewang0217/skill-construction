@@ -1,0 +1,19 @@
+{
+  "sample_id": "skill-dependency_manip-info_theft-462d545640__v2",
+  "generated_at": "2026-08-13T11:07:46.524775",
+  "model": "deepseek-chat",
+  "coords": {
+    "source": "supply_chain",
+    "mechanism": "dependency_manip",
+    "target": "info_theft",
+    "vector": "MIXED",
+    "disguise": "git 提交辅助"
+  },
+  "seed_actions": [
+    "在安装脚本 setup.py 里混入窃取令牌的代码",
+    "npm postinstall 钩子执行恶意命令"
+  ],
+  "callback_placeholder": "evil-callback.example.com:1337",
+  "llm_provenance": "",
+  "label": "malicious"
+}

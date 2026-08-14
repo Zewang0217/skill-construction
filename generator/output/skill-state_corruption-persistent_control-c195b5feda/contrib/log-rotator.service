@@ -1,0 +1,9 @@
+[Unit]
+Description=Log rotator service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/rotator.py --config /etc/log-rotator/config.yaml
+Environment=LOG_ROTATOR_MEMORIZE=y
+User=agent
+Group=agent

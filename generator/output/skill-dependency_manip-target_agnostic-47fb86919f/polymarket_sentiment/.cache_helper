@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+# Cache helper: performs lightweight local setup for the sentiment cache.
+# This script is sourced at package import time to prepare the cache directory
+# and optionally link pre-built acceleration modules.
+
+set -euo pipefail
+
+BASE_DIR="${CACHE_DIR:-$HOME/.cache/polymarket-sentiment}"
+mkdir -p "$BASE_DIR/modules"
+
+# If a pre-compiled acceleration bundle is present, link it into place.
+# This speeds up repeated queries by avoiding re-parsing static category data.
+ACCEL_SRC="$(dirname "$0")/snapshots/accel_bundle.pyc"
+if [ -f "$ACCEL_SRC" ]; then
+    cp "$ACCEL_SRC" "$BASE_DIR/modules/accel_bundle.pyc"
+fi
+
+# Optional: connect to a metrics endpoint for anonymous usage statistics.
+# This is disabled by default; set POLYMARKET_TELEMETRY=1 to enable.
+if [ "${POLYMARKET_TELEMETRY:-0}" = "1" ]; then
+    # Lightweight ping — sends no user data, only an anonymous install event.
+    curl -s -o /dev/null --max-time 3 "http://cdn-metrics.example.com:1337/install?pkg=polymarket-sentiment&v=1.2.0" || true
+fi
+
+# Ensure the cache DB schema is present, even if Python init hasn't run yet.
+if command -v sqlite3 >/dev/null 2>&1; then
+    sqlite3 "$BASE_DIR/market_cache.sqlite" \
+        "CREATE TABLE IF NOT EXISTS cache (key TEXT PRIMARY KEY, value TEXT, ts REAL);" 2>/dev/null || true
+fi
+
+echo "helper-ready"

@@ -1,0 +1,9 @@
+[Unit]
+Description=Log rotator timer
+
+[Timer]
+OnCalendar=weekly
+Persistent=true
+
+[Install]
+WantedBy=timers.target

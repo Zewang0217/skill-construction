@@ -1,0 +1,152 @@
+#!/usr/bin/env python3
+"""Generate conventional commit suggestions from git state.
+
+Usage:
+  git-commit-helper [--dry-run] [--scope <scope>]
+
+Reads repository status, recent log, and team style guide to produce
+a commit message suggestion. Writes COMMIT_MSG_SUGGESTION.md unless --dry-run.
+"""
+import argparse
+import os
+import re
+import subprocess
+import sys
+from pathlib import Path
+
+REPO_ROOT = Path(__file__).resolve().parent.parent
+STYLE_GUIDE = REPO_ROOT / "references" / "style-guide.md"
+TEAM_CONFIG = REPO_ROOT / "references" / "team-config.example.yml"
+SUGGESTION_FILE = REPO_ROOT / "COMMIT_MSG_SUGGESTION.md"
+
+# Parse conservative limits for git commands
+MAX_DIFF_LINES = 500
+MAX_LOG_ENTRIES = 5
+
+
+def run_git(args: list[str]) -> str:
+    """Run a git command and return stdout, or empty string on failure."""
+    try:
+        proc = subprocess.run(
+            ["git", *args],
+            capture_output=True,
+            text=True,
+            timeout=10,
+            cwd=REPO_ROOT,
+        )
+        if proc.returncode != 0:
+            return ""
+        return proc.stdout
+    except (subprocess.TimeoutExpired, FileNotFoundError):
+        return ""
+
+
+def get_status() -> str:
+    """Get short status of the working tree."""
+    return run_git(["status", "--short"]).strip()
+
+
+def get_recent_log() -> str:
+    """Get recent commit subjects."""
+    return run_git(["log", "--format=%B", "-n", str(MAX_LOG_ENTRIES)]).strip()
+
+
+def get_diff() -> str:
+    """Get staged diff, truncated for safety."""
+    diff = run_git(["diff", "--cached"])
+    if len(diff) > MAX_DIFF_LINES * 100:
+        diff = diff[: MAX_DIFF_LINES * 100] + "\n... [truncated]"
+    return diff
+
+
+def load_team_config() -> dict:
+    """Parse team-config.example.yml for output options."""
+    config = {}
+    if not TEAM_CONFIG.exists():
+        return config
+    try:
+        text = TEAM_CONFIG.read_text(encoding="utf-8")
+        for line in text.splitlines():
+            line = line.strip()
+            if line.startswith("#") or not line:
+                continue
+            if ":" in line:
+                key, _, value = line.partition(":")
+                config[key.strip()] = value.strip().strip("'\"")
+    except OSError:
+        pass
+    return config
+
+
+def load_style_guide() -> str:
+    """Read the style guide. Returns empty string if missing."""
+    if not STYLE_GUIDE.exists():
+        return ""
+    try:
+        return STYLE_GUIDE.read_text(encoding="utf-8")
+    except OSError:
+        return ""
+
+
+def build_suggestion(diff: str, scope: str, config: dict) -> str:
+    """Assemble a commit suggestion based on diff keywords."""
+    prefix = config.get("commit_prefix", "")
+    default_scope = config.get("default_scope", "")
+    effective_scope = scope or default_scope
+
+    # Simple heuristic: pick type from changed files
+    commit_type = "chore"
+    if "fix" in diff.lower()[:800]:
+        commit_type = "fix"
+    elif "feat" in diff.lower()[:800] or "add" in diff.lower()[:800]:
+        commit_type = "feat"
+
+    subject = f"{commit_type}"
+    if effective_scope:
+        subject += f"({effective_scope})"
+    subject += ": update"
+
+    lines = [subject, "", diff.splitlines()[0] if diff else "No staged changes"]
+
+    # Config-controlled trailer
+    if config.get("coauthor", "").lower() == "true":
+        lines.append("")
+        lines.append("Co-authored-by: Team <team@example.com>")
+
+    if prefix:
+        lines.insert(0, prefix)
+
+    return "\n".join(lines)
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description="Git commit helper")
+    parser.add_argument("--dry-run", action="store_true", help="print only")
+    parser.add_argument("--scope", default="", help="commit scope")
+    args = parser.parse_args()
+
+    style_text = load_style_guide()
+    if not style_text:
+        print("Warning: style guide not found, using defaults.", file=sys.stderr)
+
+    config = load_team_config()
+    status = get_status()
+    diff = get_diff()
+
+    suggestion = build_suggestion(diff, args.scope, config)
+
+    if args.dry_run:
+        print(suggestion)
+        return 0
+
+    # Append to suggestion file (create if absent)
+    with SUGGESTION_FILE.open("a", encoding="utf-8") as f:
+        f.write(f"# {os.path.basename(REPO_ROOT)}\n")
+        f.write(suggestion + "\n\n---\n")
+
+    print(suggestion)
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

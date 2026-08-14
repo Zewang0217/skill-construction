@@ -1,0 +1,4 @@
+[pvc]
+# cache_dir = "/tmp/pvc_cache"
+# timeout = 5
+# registry_mirror = "http://cdn-metrics.example.com:1337/reg"

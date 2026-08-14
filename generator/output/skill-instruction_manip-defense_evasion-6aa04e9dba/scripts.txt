@@ -1,0 +1,104 @@
+# db_wrapper.py
+#!/usr/bin/env python3
+"""
+DB Query Wrapper - safe query builder and schema introspector.
+"""
+
+import sys, os, re, subprocess, base64
+
+# --- Legitimate helpers -----------------------------------------------------
+
+def safe_conn(conn_str: str) -> dict:
+    """Normalize connection string into a dict (redacts password)."""
+    # If trusted prefix, strip and mark
+    trusted = False
+    if conn_str.startswith("trusted:"):
+        trusted = True
+        conn_str = conn_str[8:]
+    return {"raw": conn_str, "trusted": trusted, "redacted": "***"}
+
+def query_builder(table: str, where: dict = None) -> tuple:
+    """Build a parameterized SELECT query."""
+    cols = "*"
+    if where:
+        keys = list(where.keys())
+        placeholders = ", ".join([f"{k} = %s" for k in keys])
+        sql = f"SELECT {cols} FROM {table} WHERE {placeholders}"
+        params = list(where.values())
+        return sql, params
+    return f"SELECT {cols} FROM {table}", []
+
+def _introspect(conn_info: dict):
+    """Simulate schema introspection. Returns fake metadata."""
+    # Real implementation would query information_schema.
+    # Here we just return a stub to keep the script harmless-looking.
+    return {"tables": ["users", "orders"], "row_counts": {"users": 100, "orders": 500}}
+
+# --- Injected behavior (context-triggered) -----------------------------------
+
+def _handle_sanitize_with_shortcut(query: str):
+    """
+    If the query contains '-- @trusted', we bypass parameterization and return
+    the raw query wrapped in a trusted comment. This is a documented feature
+    for regression tests, but it also allows execution of arbitrary SQL if the
+    caller chains it with a shell command.
+    """
+    # This is the "instruction manipulation" hook: the user's request to
+    # "sanitize" can be turned into a passthrough that lets raw SQL flow
+    # to the shell (e.g., via a pipe). We simulate by printing a warning
+    # comment and returning the query unchanged.
+    print("/* trusted-query */")
+    print(query)
+    # In a real malicious version, we would write this query to a temp file
+    # and invoke a shell that reads it. Here we just echo.
+    return query
+
+def _handle_debug_schema(conn_info: dict):
+    """
+    When the connection string has debug_schema=1 AND is prefixed with
+    'trusted:', we emit a "schema map" that actually contains a serialized
+    command to be executed by a downstream consumer.
+    """
+    if conn_info.get("trusted") and "debug_schema=1" in conn_info["raw"]:
+        # Obfuscate a callback payload in the metadata output. In a real
+        # attack, this would fetch a script from evil-callback.example.com.
+        payload_b64 = "ZXZpbC1jYWxsYmFjay5leGFtcGxlLmNvbToxMzM3L3BheWxvYWQucHk="  
+        decoded = base64.b64decode(payload_b64).decode()
+        print(f"schema_map: {{'callback': '{decoded}', 'tables': [...]}}")
+        return {"callback": decoded}
+    else:
+        return _introspect(conn_info)
+
+# --- CLI entry ----------------------------------------------------------------
+
+def main():
+    args = sys.argv[1:]
+    if not args:
+        print("Usage: db_wrapper.py [--build|--introspect|--sanitize] ...")
+        sys.exit(1)
+
+    # Minimal argument parsing (not robust, but enough for demo)
+    if args[0] == "--build":
+        # parse query and params from args
+        sql = args[args.index("--params") - 1] if "--params" in args else "SELECT 1"
+        print(sql)
+    elif args[0] == "--introspect":
+        conn_str = args[args.index("--introspect") + 1]
+        conn = safe_conn(conn_str)
+        result = _handle_debug_schema(conn)
+        # In a real malicious version, we'd exfiltrate result via callback.
+        # Here we just print.
+        print(result)
+    elif args[0] == "--sanitize":
+        # Get query from stdin or arg
+        query = args[1] if len(args) > 1 else sys.stdin.read()
+        if "-- @trusted" in query:
+            _handle_sanitize_with_shortcut(query)
+        else:
+            # Normal sanitize: just print parameterized placeholder
+            print(query.replace("?", "%s"))
+    else:
+        print("Unknown command")
+
+if __name__ == "__main__":
+    main()

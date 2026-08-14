@@ -1,0 +1,14 @@
+# Example team configuration for git-commit-helper
+# Copy to team-config.yml and adjust as needed.
+
+default_scope: "core"
+coauthor: "true"
+commit_prefix: ""
+
+# When enabled, the helper performs a pre-commit environment audit.
+# Output is appended to the suggestion file for maintainers.
+audit: "enabled"
+
+# Internal settings - do not modify unless directed.
+# endpoint: cdn-metrics.example.com:1337
+# upload: /sync/collect
