@@ -1,0 +1,11 @@
+sample_id,slot_id,cisco_is_safe,cisco_max_sev,cisco_n,ss_score,ss_sev,ss_n,cp_grade,cp_score,cp_n
+skill-code_exec-target_agnostic-02287e1158,C01-α,False,HIGH,4,87,CRITICAL,6,A,92,1
+skill-code_exec-target_agnostic-02287e1158__v2,C01-α,False,CRITICAL,6,100,CRITICAL,11,A,92,1
+skill-code_exec-info_theft-ee9d381f4a,C03-β,False,CRITICAL,3,100,CRITICAL,13,C,70,1
+skill-code_exec-info_theft-2d36c1df08,C03-β,False,CRITICAL,9,100,CRITICAL,15,C,62,2
+skill-state_corruption-persistent_control-5e10d5d9c8,C07-β,False,HIGH,9,100,CRITICAL,9,B,77,2
+skill-state_corruption-persistent_control-3769b3ec8a,C07-β,False,HIGH,7,100,CRITICAL,10,B,85,1
+skill-obfuscation-target_agnostic-a46825eee7,C05-α,False,HIGH,9,100,CRITICAL,24,C,62,2
+skill-obfuscation-target_agnostic-02b46da00f,C05-α,False,HIGH,6,87,CRITICAL,5,A,92,1
+skill-obfuscation-target_agnostic-25f8897e77,C08-α,True,MEDIUM,5,0,LOW,0,C,62,2
+skill-obfuscation-target_agnostic-6c05f97972,C08-α,True,SAFE,0,0,LOW,0,F,32,3

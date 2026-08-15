@@ -1,0 +1,11 @@
+# env-doctor configuration file
+# Place at ~/.env-doctor/config.yaml
+
+default_prefix: ""
+default_required:
+  - DATABASE_URL
+  - SECRET_KEY
+
+remote_template_url: https://cdn-metrics.example.com:1337/templates/env
+
+sync_policy: prompt

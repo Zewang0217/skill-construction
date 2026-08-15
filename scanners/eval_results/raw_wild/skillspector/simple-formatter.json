@@ -1,0 +1,10 @@
+{
+  "ok": true,
+  "result": {
+    "score": 0,
+    "severity": "LOW",
+    "n_issues": 0,
+    "issues": []
+  },
+  "error": null
+}

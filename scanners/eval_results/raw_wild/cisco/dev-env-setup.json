@@ -1,0 +1,56 @@
+{
+  "ok": true,
+  "result": {
+    "skill_name": "dev-env-setup",
+    "skill_path": "/tmp/cisco_ojuhxpw9",
+    "is_safe": true,
+    "max_severity": "LOW",
+    "findings_count": 1,
+    "findings": [
+      {
+        "id": "llm_finding_dev-env-setup_0",
+        "rule_id": "LLM_DATA_EXFILTRATION",
+        "category": "data_exfiltration",
+        "severity": "LOW",
+        "title": "Hardcoded internal registry URL",
+        "description": "The script writes a hardcoded corporate registry URL (https://npm.internal-artifacts.corp.dev) into .npmrc and .yarnrc. While the description claims this is public information, hardcoding internal infrastructure details in a skill could expose internal network topology if the skill is shared externally.",
+        "file_path": "scripts/bootstrap.sh",
+        "line_number": 44,
+        "snippet": "CORP_REGISTRY=\"https://npm.internal-artifacts.corp.dev\"",
+        "remediation": "Consider making the registry URL configurable via environment variable or external configuration, and avoid hardcoding internal endpoints in the skill package.",
+        "analyzer": "llm",
+        "metadata": {
+          "model": "openai/deepseek-chat",
+          "aitech": "AITech-8.2",
+          "aitech_name": "Data Exfiltration / Exposure",
+          "aisubtech": "AISubtech-8.2.3",
+          "aisubtech_name": "Data Exfiltration via Agent Tooling",
+          "scanner_category": "SECURITY VIOLATION"
+        }
+      }
+    ],
+    "scan_duration_seconds": 9.282698154449463,
+    "duration_ms": 9282,
+    "analyzers_used": [
+      "static_analyzer",
+      "bytecode",
+      "pipeline",
+      "llm_analyzer"
+    ],
+    "timestamp": "2026-08-14T07:24:06.902630+00:00",
+    "scan_metadata": {
+      "policy_name": "default",
+      "policy_version": "1.0",
+      "policy_preset_base": "balanced",
+      "policy_fingerprint_sha256": "e6033e8884796d3589d44e3fa2d57f0aadf31a56d4e88818aeed2fd225d82c59",
+      "llm_overall_assessment": "The skill is well-designed with strong security practices: it validates PROJECT_DIR to prevent path traversal, restricts writes to within $HOME or current directory, avoids overwriting existing files, and does not handle credentials. The only minor concern is the hardcoded internal registry URL, which is low risk given the stated public nature. No prompt injection, data exfiltration, or tool restriction violations were detected.",
+      "llm_primary_threats": []
+    },
+    "llm_usage": {
+      "input_tokens": 5369,
+      "output_tokens": 277,
+      "total_tokens": 5646
+    }
+  },
+  "error": null
+}

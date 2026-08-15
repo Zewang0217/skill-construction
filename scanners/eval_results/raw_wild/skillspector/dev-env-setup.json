@@ -1,0 +1,19 @@
+{
+  "ok": true,
+  "result": {
+    "score": 49,
+    "severity": "MEDIUM",
+    "n_issues": 8,
+    "issues": [
+      "SDI-2",
+      "PE3",
+      "PE3",
+      "PE3",
+      "PE3",
+      "PE3",
+      "PE3",
+      "PE3"
+    ]
+  },
+  "error": null
+}

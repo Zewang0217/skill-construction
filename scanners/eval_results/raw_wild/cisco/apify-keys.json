@@ -1,0 +1,192 @@
+{
+  "ok": true,
+  "result": {
+    "skill_name": "apify-keys",
+    "skill_path": "/tmp/cisco_ru2571l1",
+    "is_safe": false,
+    "max_severity": "CRITICAL",
+    "findings_count": 8,
+    "findings": [
+      {
+        "id": "TOOL_MISMATCH_NETWORK_68319ec693",
+        "rule_id": "TOOL_ABUSE_UNDECLARED_NETWORK",
+        "category": "unauthorized_tool_use",
+        "severity": "MEDIUM",
+        "title": "Undeclared network usage",
+        "description": "Skill code uses network libraries but doesn't declare network requirement",
+        "file_path": "/tmp/cisco_ru2571l1/SKILL.md",
+        "line_number": null,
+        "snippet": null,
+        "remediation": "Declare network usage in compatibility field or remove network calls",
+        "analyzer": "static",
+        "metadata": {}
+      },
+      {
+        "id": "llm_finding_apify-keys_4",
+        "rule_id": "LLM_SKILL_DISCOVERY_ABUSE",
+        "category": "skill_discovery_abuse",
+        "severity": "LOW",
+        "title": "Over-broad description and keyword baiting",
+        "description": "The skill description claims to be a 'Rotating Apify API key manager' and instructs to 'Use before any Apify API call to get a fresh key'. This could lead to over-activation of the skill in contexts where it is not needed, potentially exposing sensitive keys unintentionally.",
+        "file_path": "SKILL.md",
+        "line_number": null,
+        "snippet": "description: Rotating Apify API key manager. Returns the least-recently-used active Apify key from the ColdCore database. Use before any Apify API call to get a fresh key with available credits.",
+        "remediation": "Narrow the description to specific use cases and avoid broad activation triggers.",
+        "analyzer": "llm",
+        "metadata": {
+          "model": "openai/deepseek-chat",
+          "aitech": "AITech-4.3",
+          "aitech_name": "Protocol Manipulation",
+          "aisubtech": "AISubtech-4.3.5",
+          "aisubtech_name": "Capability Inflation",
+          "scanner_category": "PROTOCOL MANIPULATION"
+        }
+      },
+      {
+        "id": "MANIFEST_MISSING_LICENSE_c5ae9be793",
+        "rule_id": "MANIFEST_MISSING_LICENSE",
+        "category": "policy_violation",
+        "severity": "INFO",
+        "title": "Skill does not specify a license",
+        "description": "Skill manifest does not include a 'license' field. Specifying a license helps users understand usage terms.",
+        "file_path": "SKILL.md",
+        "line_number": null,
+        "snippet": null,
+        "remediation": "Add 'license' field to SKILL.md frontmatter (e.g., MIT, Apache-2.0)",
+        "analyzer": "static",
+        "metadata": {}
+      },
+      {
+        "id": "llm_finding_apify-keys_0",
+        "rule_id": "LLM_DATA_EXFILTRATION",
+        "category": "data_exfiltration",
+        "severity": "CRITICAL",
+        "title": "Hardcoded database credentials in source code",
+        "description": "The script contains hardcoded MySQL credentials (host: 208.87.131.78, user: avnadmin, password: lRHS2T8XagsA5z4u3ZYd) as fallback defaults. This exposes sensitive credentials to anyone with access to the skill files, enabling unauthorized database access and potential data exfiltration.",
+        "file_path": "scripts/get_key.py",
+        "line_number": null,
+        "snippet": "password=os.environ.get(\"COLDCORE_PASS\", \"lRHS2T8XagsA5z4u3ZYd\")",
+        "remediation": "Remove hardcoded credentials and require secure environment variable injection. Rotate the exposed credentials immediately.",
+        "analyzer": "llm",
+        "metadata": {
+          "model": "openai/deepseek-chat",
+          "aitech": "AITech-8.2",
+          "aitech_name": "Data Exfiltration / Exposure",
+          "aisubtech": "AISubtech-8.2.3",
+          "aisubtech_name": "Data Exfiltration via Agent Tooling",
+          "scanner_category": "SECURITY VIOLATION"
+        }
+      },
+      {
+        "id": "llm_finding_apify-keys_1",
+        "rule_id": "LLM_DATA_EXFILTRATION",
+        "category": "data_exfiltration",
+        "severity": "HIGH",
+        "title": "Exposure of Apify API keys and account data",
+        "description": "The skill retrieves and outputs Apify API keys, associated emails, and balances from a database. This data is sensitive and could be exposed if the skill is used maliciously or if output is logged. The skill also allows listing all keys and checking balances, increasing the attack surface.",
+        "file_path": "scripts/get_key.py",
+        "line_number": null,
+        "snippet": "SELECT id, api_key, email, label, balance, last_used FROM scrape_sm_accounts ...",
+        "remediation": "Restrict access to the skill and its outputs. Implement least-privilege database access and consider masking API keys in outputs.",
+        "analyzer": "llm",
+        "metadata": {
+          "model": "openai/deepseek-chat",
+          "aitech": "AITech-8.2",
+          "aitech_name": "Data Exfiltration / Exposure",
+          "aisubtech": "AISubtech-8.2.3",
+          "aisubtech_name": "Data Exfiltration via Agent Tooling",
+          "scanner_category": "SECURITY VIOLATION"
+        }
+      },
+      {
+        "id": "llm_finding_apify-keys_2",
+        "rule_id": "LLM_SUPPLY_CHAIN_ATTACK",
+        "category": "supply_chain_attack",
+        "severity": "MEDIUM",
+        "title": "Unpinned dependency installation with --break-system-packages",
+        "description": "The script automatically installs mysql-connector-python and requests using pip with the --break-system-packages flag and without version pins. This could lead to supply chain compromise if a malicious package version is installed, and it modifies the system Python environment.",
+        "file_path": "scripts/get_key.py",
+        "line_number": null,
+        "snippet": "subprocess.check_call([sys.executable, \"-m\", \"pip\", \"install\", \"--break-system-packages\", \"-q\", \"mysql-connector-python\"])",
+        "remediation": "Pin exact versions of dependencies and avoid using --break-system-packages. Use a virtual environment or declare dependencies in a requirements file.",
+        "analyzer": "llm",
+        "metadata": {
+          "model": "openai/deepseek-chat",
+          "aitech": "AITech-9.3",
+          "aitech_name": "Dependency / Plugin Compromise",
+          "aisubtech": "AISubtech-9.3.1",
+          "aisubtech_name": "Malicious Package / Tool Injection",
+          "scanner_category": "SUPPLY CHAIN ATTACK"
+        }
+      },
+      {
+        "id": "llm_finding_apify-keys_3",
+        "rule_id": "LLM_UNAUTHORIZED_TOOL_USE",
+        "category": "unauthorized_tool_use",
+        "severity": "MEDIUM",
+        "title": "Unauthorized tool use: automatic package installation",
+        "description": "The script executes pip install commands without user confirmation, which is an unauthorized use of the system's package manager. This violates the principle of least privilege and could install unintended software.",
+        "file_path": "scripts/get_key.py",
+        "line_number": null,
+        "snippet": "subprocess.check_call([sys.executable, \"-m\", \"pip\", \"install\", ...])",
+        "remediation": "Do not auto-install packages. Instead, check for dependencies and instruct the user to install them manually or use a controlled environment.",
+        "analyzer": "llm",
+        "metadata": {
+          "model": "openai/deepseek-chat",
+          "aitech": "AITech-12.1",
+          "aitech_name": "Tool Exploitation",
+          "aisubtech": "AISubtech-12.1.2",
+          "aisubtech_name": "Tool Poisoning",
+          "scanner_category": "SUSPICIOUS CODE EXECUTION"
+        }
+      },
+      {
+        "id": "DATA_EXFIL_NETWORK_REQUESTS_b32f69fdb7",
+        "rule_id": "DATA_EXFIL_NETWORK_REQUESTS",
+        "category": "data_exfiltration",
+        "severity": "MEDIUM",
+        "title": "Outbound network request primitives that can transmit data externally",
+        "description": "Pattern detected: requests.get(",
+        "file_path": "scripts/get_key.py",
+        "line_number": 88,
+        "snippet": "resp = requests.get(",
+        "remediation": "Ensure network operations are necessary and document allowed destinations",
+        "analyzer": "static",
+        "metadata": {
+          "matched_pattern": "requests\\.(?:get|post|put|delete|patch|request)\\s*\\(",
+          "matched_text": "requests.get(",
+          "aitech": "AITech-8.2",
+          "aitech_name": "Data Exfiltration / Exposure",
+          "scanner_category": "SECURITY VIOLATION"
+        }
+      }
+    ],
+    "scan_duration_seconds": 14.058298587799072,
+    "duration_ms": 14058,
+    "analyzers_used": [
+      "static_analyzer",
+      "bytecode",
+      "pipeline",
+      "llm_analyzer"
+    ],
+    "timestamp": "2026-08-14T07:11:15.927258+00:00",
+    "scan_metadata": {
+      "policy_name": "default",
+      "policy_version": "1.0",
+      "policy_preset_base": "balanced",
+      "policy_fingerprint_sha256": "e6033e8884796d3589d44e3fa2d57f0aadf31a56d4e88818aeed2fd225d82c59",
+      "llm_overall_assessment": "The skill provides a functional API key rotation mechanism but contains critical security issues: hardcoded database credentials, exposure of sensitive API keys, and unsafe dependency installation practices. The skill also lacks proper access controls and could be abused to exfiltrate data. Immediate remediation is required.",
+      "llm_primary_threats": [
+        "Data Exfiltration / Exposure",
+        "Supply Chain Compromise",
+        "Tool Exploitation"
+      ]
+    },
+    "llm_usage": {
+      "input_tokens": 5746,
+      "output_tokens": 1024,
+      "total_tokens": 6770
+    }
+  },
+  "error": null
+}

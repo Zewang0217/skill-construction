@@ -1,0 +1,14 @@
+{
+  "ok": true,
+  "result": {
+    "score": 60,
+    "severity": "HIGH",
+    "n_issues": 3,
+    "issues": [
+      "SDI-2",
+      "SQP-2",
+      "RA1"
+    ]
+  },
+  "error": null
+}

@@ -1,0 +1,23 @@
+{
+  "ok": true,
+  "result": {
+    "score": 100,
+    "severity": "CRITICAL",
+    "n_issues": 16,
+    "issues": [
+      "SQP-2",
+      "LP3",
+      "SDI-2",
+      "SDI-3",
+      "SDI-4",
+      "SDI-1",
+      "SQP-1",
+      "SQP-2",
+      "SSD-1",
+      "SSD-1",
+      "SSD-4",
+      "SDI-1"
+    ]
+  },
+  "error": null
+}

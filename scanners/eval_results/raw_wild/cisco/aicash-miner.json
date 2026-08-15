@@ -1,0 +1,182 @@
+{
+  "ok": true,
+  "result": {
+    "skill_name": "aicash-miner",
+    "skill_path": "/tmp/cisco_qqehl07v",
+    "is_safe": false,
+    "max_severity": "HIGH",
+    "findings_count": 7,
+    "findings": [
+      {
+        "id": "MANIFEST_MISSING_LICENSE_c5ae9be793",
+        "rule_id": "MANIFEST_MISSING_LICENSE",
+        "category": "policy_violation",
+        "severity": "INFO",
+        "title": "Skill does not specify a license",
+        "description": "Skill manifest does not include a 'license' field. Specifying a license helps users understand usage terms.",
+        "file_path": "SKILL.md",
+        "line_number": null,
+        "snippet": null,
+        "remediation": "Add 'license' field to SKILL.md frontmatter (e.g., MIT, Apache-2.0)",
+        "analyzer": "static",
+        "metadata": {}
+      },
+      {
+        "id": "llm_finding_aicash-miner_4",
+        "rule_id": "LLM_SKILL_DISCOVERY_ABUSE",
+        "category": "skill_discovery_abuse",
+        "severity": "MEDIUM",
+        "title": "Over-broad capability claims and keyword baiting",
+        "description": "The skill description claims it can 'auto-mine' and 'supports multi-instance mining, systemd service management, and real-time stats tracking', which may overstate its capabilities and attract unintended usage. The description also uses many trigger keywords (mining, tokens, network) that could cause the skill to be activated in inappropriate contexts.",
+        "file_path": "SKILL.md",
+        "line_number": 1,
+        "snippet": "description: AICash Network auto-miner for $CASH tokens on Base L2. Use when setting up automated Proof of Compute mining on the AICash mempool network. Supports multi-instance mining, systemd service management, and real-time stats tracking.",
+        "remediation": "Narrow the description to specific, legitimate use cases and avoid excessive trigger words.",
+        "analyzer": "llm",
+        "metadata": {
+          "model": "openai/deepseek-chat",
+          "aitech": "AITech-4.3",
+          "aitech_name": "Protocol Manipulation",
+          "aisubtech": "AISubtech-4.3.5",
+          "aisubtech_name": "Capability Inflation",
+          "scanner_category": "PROTOCOL MANIPULATION"
+        }
+      },
+      {
+        "id": "llm_finding_aicash-miner_5",
+        "rule_id": "LLM_SUPPLY_CHAIN_ATTACK",
+        "category": "supply_chain_attack",
+        "severity": "LOW",
+        "title": "Missing dependency and provenance information",
+        "description": "The skill does not specify a license, compatibility, or allowed-tools. It also relies on Node.js and systemd without version pins, which could lead to supply chain risks if dependencies are compromised.",
+        "file_path": "SKILL.md",
+        "line_number": 1,
+        "snippet": "license: Not specified, compatibility: Not specified, allowed-tools: Not specified",
+        "remediation": "Add license, compatibility, and allowed-tools fields. Pin dependency versions and verify the integrity of external resources.",
+        "analyzer": "llm",
+        "metadata": {
+          "model": "openai/deepseek-chat",
+          "aitech": "AITech-9.3",
+          "aitech_name": "Dependency / Plugin Compromise",
+          "aisubtech": "AISubtech-9.3.1",
+          "aisubtech_name": "Malicious Package / Tool Injection",
+          "scanner_category": "SUPPLY CHAIN ATTACK"
+        }
+      },
+      {
+        "id": "llm_finding_aicash-miner_2",
+        "rule_id": "LLM_UNAUTHORIZED_TOOL_USE",
+        "category": "unauthorized_tool_use",
+        "severity": "HIGH",
+        "title": "Unauthorized systemd service creation and modification",
+        "description": "The setup.sh script creates and enables systemd services in /etc/systemd/system/ and runs systemctl commands. This requires root privileges and modifies system configuration, which is a significant unauthorized tool use if the skill is not explicitly granted such permissions.",
+        "file_path": "scripts/setup.sh",
+        "line_number": null,
+        "snippet": "cat > \"/etc/systemd/system/${SVC_NAME}.service\" << EOF ... systemctl enable --now \"${SVC_NAME}\"",
+        "remediation": "Restrict the skill to non-privileged operations or require explicit user consent before modifying system services.",
+        "analyzer": "llm",
+        "metadata": {
+          "model": "openai/deepseek-chat",
+          "aitech": "AITech-12.1",
+          "aitech_name": "Tool Exploitation",
+          "aisubtech": "AISubtech-12.1.2",
+          "aisubtech_name": "Tool Poisoning",
+          "scanner_category": "SUSPICIOUS CODE EXECUTION"
+        }
+      },
+      {
+        "id": "llm_finding_aicash-miner_3",
+        "rule_id": "LLM_RESOURCE_ABUSE",
+        "category": "resource_abuse",
+        "severity": "MEDIUM",
+        "title": "Unbounded infinite loop causing resource exhaustion",
+        "description": "The miner.js script contains an infinite while(true) loop with no exit condition, continuously probing and mining blocks. This can lead to excessive CPU and network usage, potentially causing denial of service on the host system.",
+        "file_path": "scripts/setup.sh",
+        "line_number": null,
+        "snippet": "while (true) { ... }",
+        "remediation": "Add a maximum runtime or a user-controlled stop mechanism. Implement rate limiting and resource usage caps.",
+        "analyzer": "llm",
+        "metadata": {
+          "model": "openai/deepseek-chat",
+          "aitech": "AITech-13.1",
+          "aitech_name": "Disruption of Availability",
+          "aisubtech": "AISubtech-13.1.1",
+          "aisubtech_name": "Compute Exhaustion",
+          "scanner_category": "RESOURCE ABUSE"
+        }
+      },
+      {
+        "id": "llm_finding_aicash-miner_1",
+        "rule_id": "LLM_COMMAND_INJECTION",
+        "category": "command_injection",
+        "severity": "HIGH",
+        "title": "Command injection via user-supplied parameters",
+        "description": "The setup.sh script uses user-supplied values (--api-key, --wallet, --endpoint, --name) in shell commands without proper sanitization. An attacker could inject shell metacharacters (e.g., ;, $(), backticks) to execute arbitrary commands on the host.",
+        "file_path": "scripts/setup.sh",
+        "line_number": 60,
+        "snippet": "sed -i \"s|__ENDPOINT__|${ENDPOINT}|g; s|__API_KEY__|${API_KEY}|g; s|__WALLET__|${WALLET}|g\" \"$INSTALL_DIR/miner.js\"",
+        "remediation": "Validate and sanitize all user inputs. Use parameterized commands or escape shell metacharacters.",
+        "analyzer": "llm",
+        "metadata": {
+          "model": "openai/deepseek-chat",
+          "aitech": "AITech-9.1",
+          "aitech_name": "Model or Agentic System Manipulation",
+          "aisubtech": "AISubtech-9.1.4",
+          "aisubtech_name": "Injection Attacks (SQL, Command Execution, XSS)",
+          "scanner_category": "INJECTION ATTACK"
+        }
+      },
+      {
+        "id": "llm_finding_aicash-miner_0",
+        "rule_id": "LLM_DATA_EXFILTRATION",
+        "category": "data_exfiltration",
+        "severity": "HIGH",
+        "title": "Hardcoded API credentials in generated script",
+        "description": "The setup.sh script writes the API key, wallet address, and endpoint URL directly into the generated miner.js file. This exposes sensitive credentials in plaintext on disk, increasing the risk of unauthorized access if the file is read by other processes or users.",
+        "file_path": "scripts/setup.sh",
+        "line_number": 60,
+        "snippet": "sed -i \"s|__ENDPOINT__|${ENDPOINT}|g; s|__API_KEY__|${API_KEY}|g; s|__WALLET__|${WALLET}|g\" \"$INSTALL_DIR/miner.js\"",
+        "remediation": "Store credentials in a secure environment variable file or use a secrets manager. Avoid embedding secrets directly in scripts.",
+        "analyzer": "llm",
+        "metadata": {
+          "model": "openai/deepseek-chat",
+          "aitech": "AITech-8.2",
+          "aitech_name": "Data Exfiltration / Exposure",
+          "aisubtech": "AISubtech-8.2.3",
+          "aisubtech_name": "Data Exfiltration via Agent Tooling",
+          "scanner_category": "SECURITY VIOLATION"
+        }
+      }
+    ],
+    "scan_duration_seconds": 15.069959878921509,
+    "duration_ms": 15069,
+    "analyzers_used": [
+      "static_analyzer",
+      "bytecode",
+      "pipeline",
+      "llm_analyzer"
+    ],
+    "timestamp": "2026-08-14T07:09:50.983848+00:00",
+    "scan_metadata": {
+      "policy_name": "default",
+      "policy_version": "1.0",
+      "policy_preset_base": "balanced",
+      "policy_fingerprint_sha256": "e6033e8884796d3589d44e3fa2d57f0aadf31a56d4e88818aeed2fd225d82c59",
+      "llm_overall_assessment": "The skill is designed to deploy a cryptocurrency mining agent that runs continuously via systemd. It poses significant security risks including hardcoded credentials, command injection vulnerabilities, unauthorized system modifications, and resource exhaustion. The skill also lacks proper metadata and provenance. Immediate remediation is required before deployment.",
+      "llm_primary_threats": [
+        "Data Exfiltration / Exposure",
+        "Model or Agentic System Manipulation",
+        "Tool Exploitation",
+        "Disruption of Availability",
+        "Protocol Manipulation - Capability Inflation",
+        "Supply Chain Compromise"
+      ]
+    },
+    "llm_usage": {
+      "input_tokens": 6147,
+      "output_tokens": 1212,
+      "total_tokens": 7359
+    }
+  },
+  "error": null
+}

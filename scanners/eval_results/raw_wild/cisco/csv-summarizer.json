@@ -1,0 +1,49 @@
+{
+  "ok": true,
+  "result": {
+    "skill_name": "csv-summarizer",
+    "skill_path": "/tmp/cisco_8tsz3pqq",
+    "is_safe": true,
+    "max_severity": "INFO",
+    "findings_count": 1,
+    "findings": [
+      {
+        "id": "llm_budget_scripts/summarize.py",
+        "rule_id": "LLM_CONTEXT_BUDGET_EXCEEDED",
+        "category": "policy_violation",
+        "severity": "INFO",
+        "title": "'scripts/summarize.py' excluded from LLM analysis (100,382 chars)",
+        "description": "file size (100,382 chars) exceeds per-file limit (15,000)",
+        "file_path": "scripts/summarize.py",
+        "line_number": null,
+        "snippet": null,
+        "remediation": "Increase llm_analysis.max_code_file_chars in your scan policy to include this content in LLM analysis.",
+        "analyzer": "llm",
+        "metadata": {}
+      }
+    ],
+    "scan_duration_seconds": 39.00321078300476,
+    "duration_ms": 39003,
+    "analyzers_used": [
+      "static_analyzer",
+      "bytecode",
+      "pipeline",
+      "llm_analyzer"
+    ],
+    "timestamp": "2026-08-14T07:21:40.406780+00:00",
+    "scan_metadata": {
+      "policy_name": "default",
+      "policy_version": "1.0",
+      "policy_preset_base": "balanced",
+      "policy_fingerprint_sha256": "e6033e8884796d3589d44e3fa2d57f0aadf31a56d4e88818aeed2fd225d82c59",
+      "llm_overall_assessment": "The skill is a simple CSV summarizer that reads a CSV file and prints row and column counts. It declares allowed-tools as Bash and Read, which is consistent with its described functionality. No script files are present, and the instructions are straightforward without any prompt injection, data exfiltration, or other security concerns. The skill appears safe.",
+      "llm_primary_threats": []
+    },
+    "llm_usage": {
+      "input_tokens": 3709,
+      "output_tokens": 93,
+      "total_tokens": 3802
+    }
+  },
+  "error": null
+}

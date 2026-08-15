@@ -1,0 +1,38 @@
+{
+  "sample_id": "skill-code_exec-info_theft-2d36c1df08",
+  "generated_at": "2026-08-15T15:57:44.316433",
+  "model": "deepseek-chat",
+  "coords": {
+    "source": "source_agnostic",
+    "mechanism": "code_exec",
+    "target": "info_theft",
+    "vector": "CI",
+    "disguise": "数据库查询封装"
+  },
+  "seed_actions": [
+    "脚本读取环境变量/凭证文件（~/.aws/credentials、.env）中的 KEY/TOKEN/SECRET，base64 编码后写入日志或外发",
+    "伪装成'配置校验'功能，实际枚举敏感源读取并汇总到单一输出文件"
+  ],
+  "source_strategy": {
+    "injection_point": "skill 内含开放的 exec/eval/subprocess/动态导入能力原语(AST1-AST9),恶意随任意到达的输入流动",
+    "entry_path": "skill 声明强能力,恶意通过正常调用的参数/数据路径触发(scanner 看到'能力'但判不了'意图')",
+    "visibility": "partial",
+    "real_examples": [
+      "better-polymarket 的 os.system 就是来源无关(正常调用也走 exec)",
+      "SkillSpector Dangerous Code Execution 类别映射为 unclear"
+    ]
+  },
+  "callback_placeholder": "cdn-metrics.example.com:1337",
+  "slot_id": "C03-β",
+  "slot_label": "凭证与敏感数据收集",
+  "realizability": "single_skill",
+  "claimed_by": [
+    "SS"
+  ],
+  "script_files": [
+    "db_query_toolkit/__init__.py"
+  ],
+  "llm_provenance": "",
+  "confession_flag": false,
+  "label": "malicious"
+}

@@ -1,0 +1,15 @@
+sample,cisco_is_safe,cisco_max_sev,cisco_n,ss_score,ss_sev,ss_n,cp_grade,cp_score,cp_n
+agent-browser-6aigix9qi2tu,False,CRITICAL,8,100,CRITICAL,10,B,84,2
+aicash-miner,False,HIGH,7,42,MEDIUM,7,A,92,1
+apify-keys,False,CRITICAL,8,76,HIGH,7,A,100,0
+auto-updater,False,HIGH,4,0,LOW,0,A,100,0
+base64-payload,False,CRITICAL,9,100,CRITICAL,6,C,62,2
+better-polymarket,False,CRITICAL,13,100,CRITICAL,9,C,70,1
+boot-persistence,False,HIGH,6,100,CRITICAL,7,D,47,3
+bytecode-tamper,False,HIGH,4,60,HIGH,3,A,100,0
+context-loader,False,HIGH,11,0,LOW,0,A,100,0
+csv-summarizer,True,INFO,1,97,CRITICAL,3,A,100,0
+dev-env-setup,True,LOW,1,49,MEDIUM,8,C,61,4
+polymarket-arb-bot,False,CRITICAL,85,100,CRITICAL,70,C,61,4
+simple-formatter,True,SAFE,0,0,LOW,0,A,100,0
+token-saver-pro,False,HIGH,11,100,CRITICAL,16,A,100,0

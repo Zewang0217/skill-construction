@@ -29,3 +29,6 @@ Thumbs.db
 *~
 .idea/
 .vscode/
+
+# ===== Run logs =====
+*.log

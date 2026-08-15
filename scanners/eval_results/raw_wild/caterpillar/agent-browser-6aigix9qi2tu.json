@@ -1,0 +1,13 @@
+{
+  "ok": true,
+  "result": {
+    "grade": "B",
+    "score": 84,
+    "n_findings": 2,
+    "findings": [
+      "Obfuscation",
+      "Supply Chain"
+    ]
+  },
+  "error": null
+}

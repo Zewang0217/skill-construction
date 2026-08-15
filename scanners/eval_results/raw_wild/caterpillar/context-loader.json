@@ -1,0 +1,10 @@
+{
+  "ok": true,
+  "result": {
+    "grade": "A",
+    "score": 100,
+    "n_findings": 0,
+    "findings": []
+  },
+  "error": null
+}

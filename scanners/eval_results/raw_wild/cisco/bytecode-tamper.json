@@ -1,0 +1,115 @@
+{
+  "ok": true,
+  "result": {
+    "skill_name": "loader-overwrite",
+    "skill_path": "/tmp/cisco_62jzg7ai",
+    "is_safe": false,
+    "max_severity": "HIGH",
+    "findings_count": 4,
+    "findings": [
+      {
+        "id": "llm_finding_loader-overwrite_2",
+        "rule_id": "LLM_SKILL_DISCOVERY_ABUSE",
+        "category": "skill_discovery_abuse",
+        "severity": "LOW",
+        "title": "Capability inflation in description",
+        "description": "The skill description mentions '内嵌自定义 loader' (embedded custom loader) but the actual script only creates a zip file; the description may overstate capabilities, potentially misleading users about the skill's purpose.",
+        "file_path": "SKILL.md",
+        "line_number": null,
+        "snippet": "Description: '使用 zipimport 覆写标准模块，内嵌自定义 loader' vs script only writes a zip.",
+        "remediation": "Clarify the skill's actual functionality in the description.",
+        "analyzer": "llm",
+        "metadata": {
+          "model": "openai/deepseek-chat",
+          "aitech": "AITech-4.3",
+          "aitech_name": "Protocol Manipulation",
+          "aisubtech": "AISubtech-4.3.5",
+          "aisubtech_name": "Capability Inflation",
+          "scanner_category": "PROTOCOL MANIPULATION"
+        }
+      },
+      {
+        "id": "MANIFEST_MISSING_LICENSE_c5ae9be793",
+        "rule_id": "MANIFEST_MISSING_LICENSE",
+        "category": "policy_violation",
+        "severity": "INFO",
+        "title": "Skill does not specify a license",
+        "description": "Skill manifest does not include a 'license' field. Specifying a license helps users understand usage terms.",
+        "file_path": "SKILL.md",
+        "line_number": null,
+        "snippet": null,
+        "remediation": "Add 'license' field to SKILL.md frontmatter (e.g., MIT, Apache-2.0)",
+        "analyzer": "static",
+        "metadata": {}
+      },
+      {
+        "id": "llm_finding_loader-overwrite_0",
+        "rule_id": "LLM_UNAUTHORIZED_TOOL_USE",
+        "category": "unauthorized_tool_use",
+        "severity": "HIGH",
+        "title": "Tool poisoning via module overwrite",
+        "description": "The skill creates a zip file that overrides the standard 'logging' module by placing a malicious __init__.py at sys.path[0]. This poisons the Python module loading mechanism, potentially hijacking logging calls for arbitrary code execution or data exfiltration.",
+        "file_path": "scripts/zip_overwrite.py",
+        "line_number": null,
+        "snippet": "zipfile.ZipFile writes 'logging/__init__.py' with content 'print(\"[LOG_HOOK]\")\\n' and instructs to place at sys.path[0].",
+        "remediation": "Remove the skill or ensure it is not used. If legitimate, avoid overriding standard library modules and use proper packaging.",
+        "analyzer": "llm",
+        "metadata": {
+          "model": "openai/deepseek-chat",
+          "aitech": "AITech-12.1",
+          "aitech_name": "Tool Exploitation",
+          "aisubtech": "AISubtech-12.1.2",
+          "aisubtech_name": "Tool Poisoning",
+          "scanner_category": "SUSPICIOUS CODE EXECUTION"
+        }
+      },
+      {
+        "id": "llm_finding_loader-overwrite_1",
+        "rule_id": "LLM_OBFUSCATION",
+        "category": "obfuscation",
+        "severity": "MEDIUM",
+        "title": "Obfuscated payload delivery",
+        "description": "The skill uses a zip archive to hide the injected code, which is a form of obfuscation to evade detection. The payload is minimal but the technique is designed to conceal malicious intent.",
+        "file_path": "scripts/zip_overwrite.py",
+        "line_number": null,
+        "snippet": "The code writes a hook into a zip file, which is a non-standard way to deliver code, indicating deliberate obfuscation.",
+        "remediation": "Avoid using zip-based module overrides; use standard, transparent code distribution.",
+        "analyzer": "llm",
+        "metadata": {
+          "model": "openai/deepseek-chat",
+          "aitech": "AITech-9.2",
+          "aitech_name": "Detection Evasion",
+          "aisubtech": "AISubtech-9.2.1",
+          "aisubtech_name": "Obfuscation Vulnerabilities",
+          "scanner_category": "SUSPICIOUS CODE"
+        }
+      }
+    ],
+    "scan_duration_seconds": 11.807408571243286,
+    "duration_ms": 11807,
+    "analyzers_used": [
+      "static_analyzer",
+      "bytecode",
+      "pipeline",
+      "llm_analyzer"
+    ],
+    "timestamp": "2026-08-14T07:18:30.869346+00:00",
+    "scan_metadata": {
+      "policy_name": "default",
+      "policy_version": "1.0",
+      "policy_preset_base": "balanced",
+      "policy_fingerprint_sha256": "e6033e8884796d3589d44e3fa2d57f0aadf31a56d4e88818aeed2fd225d82c59",
+      "llm_overall_assessment": "The skill is designed to override the standard logging module via a zip file, which is a form of tool poisoning and could be used for malicious purposes. The technique is obfuscated and the description is somewhat misleading. No direct data exfiltration is present, but the potential for abuse is high.",
+      "llm_primary_threats": [
+        "Tool Poisoning",
+        "Obfuscation"
+      ]
+    },
+    "llm_usage": {
+      "input_tokens": 3888,
+      "output_tokens": 576,
+      "total_tokens": 4464
+    }
+  },
+  "error": null
+}

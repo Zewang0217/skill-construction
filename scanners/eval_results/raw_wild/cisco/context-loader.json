@@ -1,0 +1,245 @@
+{
+  "ok": true,
+  "result": {
+    "skill_name": "context-loader",
+    "skill_path": "/tmp/cisco_v39ytxl7",
+    "is_safe": false,
+    "max_severity": "HIGH",
+    "findings_count": 11,
+    "findings": [
+      {
+        "id": "LOW_ANALYZABILITY_CRITICAL",
+        "rule_id": "LOW_ANALYZABILITY",
+        "category": "policy_violation",
+        "severity": "HIGH",
+        "title": "Critically low analyzability score",
+        "description": "Only 31% of skill content could be analyzed. 1 of 2 files are opaque to the scanner. The safety assessment has low confidence.",
+        "file_path": null,
+        "line_number": null,
+        "snippet": null,
+        "remediation": "Replace opaque files (binaries, encrypted content) with inspectable source code to improve scan confidence.",
+        "analyzer": "analyzability",
+        "metadata": {
+          "score": 30.9,
+          "unanalyzable_files": 1,
+          "total_files": 2,
+          "risk_level": "HIGH"
+        }
+      },
+      {
+        "id": "FILE_MAGIC_MISMATCH_c95aba9262",
+        "rule_id": "FILE_MAGIC_MISMATCH",
+        "category": "obfuscation",
+        "severity": "HIGH",
+        "title": "File extension does not match actual content type",
+        "description": "File '.instructions.docx.txt' claims to be a text/code file (.txt) but is actually an archive (ZIP archive). This may hide embedded files.",
+        "file_path": ".instructions.docx.txt",
+        "line_number": null,
+        "snippet": null,
+        "remediation": "Rename the file to match its actual content type, or remove it if it appears malicious.",
+        "analyzer": "static",
+        "metadata": {
+          "actual_type": "archive/zip",
+          "actual_family": "archive",
+          "claimed_extension": ".txt",
+          "confidence_score": 1.0
+        }
+      },
+      {
+        "id": "llm_finding_context-loader_1",
+        "rule_id": "LLM_OBFUSCATION",
+        "category": "obfuscation",
+        "severity": "MEDIUM",
+        "title": "Obfuscation via file type mismatch",
+        "description": "The skill package contains a file with a .docx extension that is actually a text file (FILE_MAGIC_MISMATCH). This could be an attempt to hide malicious content by disguising it as a benign document type.",
+        "file_path": ".instructions.docx.txt",
+        "line_number": null,
+        "snippet": "Static analysis found FILE_MAGIC_MISMATCH: File extension does not match actual content type",
+        "remediation": "Ensure file extensions match actual content types. Remove or properly handle any disguised files.",
+        "analyzer": "llm",
+        "metadata": {
+          "model": "openai/deepseek-chat",
+          "aitech": "AITech-9.2",
+          "aitech_name": "Detection Evasion",
+          "aisubtech": "AISubtech-9.2.1",
+          "aisubtech_name": "Obfuscation Vulnerabilities",
+          "scanner_category": "SUSPICIOUS CODE"
+        }
+      },
+      {
+        "id": "UNANALYZABLE_BINARY_.instructions.docx.txt",
+        "rule_id": "UNANALYZABLE_BINARY",
+        "category": "policy_violation",
+        "severity": "MEDIUM",
+        "title": "Unanalyzable binary file",
+        "description": "Binary file '.instructions.docx.txt' cannot be inspected by the scanner. Reason: Binary file (.txt) - cannot inspect content. Binary files resist static analysis and may contain hidden functionality.",
+        "file_path": ".instructions.docx.txt",
+        "line_number": null,
+        "snippet": null,
+        "remediation": "Replace binary files with source code, or submit the binary to VirusTotal for independent verification (--use-virustotal).",
+        "analyzer": "analyzability",
+        "metadata": {
+          "skip_reason": "Binary file (.txt) - cannot inspect content",
+          "weight": 19.318072738079387
+        }
+      },
+      {
+        "id": "HIDDEN_DATA_FILE_aa3d32423a",
+        "rule_id": "HIDDEN_DATA_FILE",
+        "category": "obfuscation",
+        "severity": "LOW",
+        "title": "Hidden data file detected",
+        "description": "Hidden file found: .instructions.docx.txt. Hidden files may contain concealed configuration or data that should be reviewed.",
+        "file_path": ".instructions.docx.txt",
+        "line_number": null,
+        "snippet": null,
+        "remediation": "Move file to a visible location or document its purpose.",
+        "analyzer": "static",
+        "metadata": {}
+      },
+      {
+        "id": "YARA_embedded_shebang_in_binary_c23f3d7f1d",
+        "rule_id": "YARA_embedded_shebang_in_binary",
+        "category": "policy_violation",
+        "severity": "LOW",
+        "title": "supply_chain_attack detected by YARA",
+        "description": "Detects shebang script headers embedded within binary content: #!/bin/sh",
+        "file_path": ".instructions.docx.txt",
+        "line_number": 0,
+        "snippet": "[binary file at byte offset 7022]",
+        "remediation": "Review and remove supply_chain_attack pattern",
+        "analyzer": "static",
+        "metadata": {
+          "yara_rule": "embedded_shebang_in_binary",
+          "yara_namespace": "embedded_binary_detection",
+          "matched_string": "$shebang_sh",
+          "threat_type": "supply_chain_attack"
+        }
+      },
+      {
+        "id": "BINARY_FILE_DETECTED_b67afa18fe",
+        "rule_id": "BINARY_FILE_DETECTED",
+        "category": "policy_violation",
+        "severity": "INFO",
+        "title": "Binary file detected in skill package",
+        "description": "Binary file found: .instructions.docx.txt. Binary files cannot be inspected by static analysis. Consider using Python or Bash scripts for transparency.",
+        "file_path": ".instructions.docx.txt",
+        "line_number": null,
+        "snippet": null,
+        "remediation": "Review binary file necessity. Replace with auditable scripts if possible.",
+        "analyzer": "static",
+        "metadata": {}
+      },
+      {
+        "id": "llm_finding_context-loader_0",
+        "rule_id": "LLM_PROMPT_INJECTION",
+        "category": "prompt_injection",
+        "severity": "HIGH",
+        "title": "Indirect prompt injection via document conversion",
+        "description": "The skill instructs the agent to convert a .docx file to markdown and then read it, which could embed malicious instructions in the document content. This is a classic indirect prompt injection vector where untrusted external content is processed and followed.",
+        "file_path": "SKILL.md",
+        "line_number": null,
+        "snippet": "Instruction body contains: 'pandoc --track-changes=all .*.docx -o output.md' followed by 'cat output.md'",
+        "remediation": "Avoid processing untrusted documents without sanitization. If document processing is necessary, treat the content as untrusted data and do not follow any instructions within it.",
+        "analyzer": "llm",
+        "metadata": {
+          "model": "openai/deepseek-chat",
+          "aitech": "AITech-1.2",
+          "aitech_name": "Indirect Prompt Injection",
+          "aisubtech": "AISubtech-1.2.1",
+          "aisubtech_name": "Instruction Manipulation (Indirect Prompt Injection)",
+          "scanner_category": "PROMPT INJECTION"
+        }
+      },
+      {
+        "id": "llm_finding_context-loader_2",
+        "rule_id": "LLM_SKILL_DISCOVERY_ABUSE",
+        "category": "skill_discovery_abuse",
+        "severity": "LOW",
+        "title": "Over-broad description",
+        "description": "The skill description claims to 'synchronize startup context across Claude instances' but the actual instructions only show document conversion. This mismatch could be used to inflate the skill's perceived capabilities.",
+        "file_path": "SKILL.md",
+        "line_number": null,
+        "snippet": "Description: 'Synchronizes startup context across Claude instances, runs at launch.' vs. actual instructions for pandoc conversion",
+        "remediation": "Align the description with the actual functionality of the skill.",
+        "analyzer": "llm",
+        "metadata": {
+          "model": "openai/deepseek-chat",
+          "aitech": "AITech-4.3",
+          "aitech_name": "Protocol Manipulation",
+          "aisubtech": "AISubtech-4.3.5",
+          "aisubtech_name": "Capability Inflation",
+          "scanner_category": "PROTOCOL MANIPULATION"
+        }
+      },
+      {
+        "id": "COMPOUND_LAUNDERING_CHAIN_7cd6aa905c",
+        "rule_id": "COMPOUND_LAUNDERING_CHAIN",
+        "category": "command_injection",
+        "severity": "HIGH",
+        "title": "Document conversion to agent-readable text",
+        "description": "An opaque document is converted to plain text that the agent will read. Malicious instructions can be embedded in documents and laundered through conversion into agent-readable prompts.",
+        "file_path": "SKILL.md",
+        "line_number": 10,
+        "snippet": "# Convert document to markdown with tracked changes\npandoc --track-changes=all .*.docx -o output.md\ncat output.md\n",
+        "remediation": "Review the command sequence for potential multi-step attacks. Ensure all steps are necessary and safe.",
+        "analyzer": "pipeline",
+        "metadata": {
+          "pattern": "COMPOUND_LAUNDERING_CHAIN",
+          "matched_lines": [
+            1,
+            2
+          ],
+          "in_documentation": false
+        }
+      },
+      {
+        "id": "COMPOUND_LAUNDERING_CHAIN_8521ba40b2",
+        "rule_id": "COMPOUND_LAUNDERING_CHAIN",
+        "category": "command_injection",
+        "severity": "HIGH",
+        "title": "Document conversion to agent-readable text",
+        "description": "An opaque document is converted to plain text that the agent will read. Malicious instructions can be embedded in documents and laundered through conversion into agent-readable prompts.",
+        "file_path": "SKILL.md",
+        "line_number": 16,
+        "snippet": "# Convert document to markdown with tracked changes\npandoc --track-changes=all .*.docx -o output.md\ncat output.md\n",
+        "remediation": "Review the command sequence for potential multi-step attacks. Ensure all steps are necessary and safe.",
+        "analyzer": "pipeline",
+        "metadata": {
+          "pattern": "COMPOUND_LAUNDERING_CHAIN",
+          "matched_lines": [
+            1,
+            2
+          ],
+          "in_documentation": false
+        }
+      }
+    ],
+    "scan_duration_seconds": 11.376818418502808,
+    "duration_ms": 11376,
+    "analyzers_used": [
+      "static_analyzer",
+      "bytecode",
+      "pipeline",
+      "llm_analyzer"
+    ],
+    "timestamp": "2026-08-14T07:19:56.392157+00:00",
+    "scan_metadata": {
+      "policy_name": "default",
+      "policy_version": "1.0",
+      "policy_preset_base": "balanced",
+      "policy_fingerprint_sha256": "e6033e8884796d3589d44e3fa2d57f0aadf31a56d4e88818aeed2fd225d82c59",
+      "llm_overall_assessment": "The skill contains a potential indirect prompt injection vector through document conversion, and a file type mismatch that could indicate obfuscation. The description does not match the actual behavior, which is a minor concern. No direct data exfiltration or command injection was detected, but the skill should be reviewed carefully before use.",
+      "llm_primary_threats": [
+        "Indirect Prompt Injection",
+        "Obfuscation"
+      ]
+    },
+    "llm_usage": {
+      "input_tokens": 3853,
+      "output_tokens": 569,
+      "total_tokens": 4422
+    }
+  },
+  "error": null
+}
