@@ -1,0 +1,16 @@
+{
+  "ok": true,
+  "result": {
+    "grade": "F",
+    "score": 24,
+    "n_findings": 5,
+    "findings": [
+      "Data Exfiltration",
+      "Data Exfiltration",
+      "Persistence",
+      "Obfuscation",
+      "Dangerous Permissions"
+    ]
+  },
+  "error": null
+}

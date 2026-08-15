@@ -1,0 +1,12 @@
+{
+  "ok": true,
+  "result": {
+    "grade": "B",
+    "score": 85,
+    "n_findings": 1,
+    "findings": [
+      "Dangerous Permissions"
+    ]
+  },
+  "error": null
+}

@@ -1,0 +1,139 @@
+{
+  "ok": true,
+  "patched": "added name+description frontmatter (original SKILL.md had none)",
+  "result": {
+    "skill_name": "psyclaw-openclaw-health",
+    "skill_path": "/tmp/cisco_zdb81ea_",
+    "is_safe": false,
+    "max_severity": "HIGH",
+    "findings_count": 5,
+    "findings": [
+      {
+        "id": "llm_finding_psyclaw-openclaw-health_1",
+        "rule_id": "LLM_DATA_EXFILTRATION",
+        "category": "data_exfiltration",
+        "severity": "HIGH",
+        "title": "Potential data exfiltration via credential and status files",
+        "description": "The skill instructs the agent to read local credential files (credentials.json, claim-url.txt, claim-message.txt, status.json) and send claim messages to the human administrator. While this is part of the onboarding flow, the skill also instructs the agent to send the claim URL immediately, which could be used to exfiltrate sensitive registration data if the URL contains tokens or credentials.",
+        "file_path": "SKILL.md",
+        "line_number": null,
+        "snippet": "If a claim URL is generated, send it to me immediately. ... 你必须立刻在当前对话里把认领消息原样发给人类管理员.",
+        "remediation": "Ensure that claim URLs and messages do not contain sensitive credentials. Limit the data sent to the administrator to only what is necessary for the onboarding process.",
+        "analyzer": "llm",
+        "metadata": {
+          "model": "openai/deepseek-chat",
+          "aitech": "AITech-8.2",
+          "aitech_name": "Data Exfiltration / Exposure",
+          "aisubtech": "AISubtech-8.2.3",
+          "aisubtech_name": "Data Exfiltration via Agent Tooling",
+          "scanner_category": "SECURITY VIOLATION"
+        }
+      },
+      {
+        "id": "llm_finding_psyclaw-openclaw-health_0",
+        "rule_id": "LLM_PROMPT_INJECTION",
+        "category": "prompt_injection",
+        "severity": "HIGH",
+        "title": "Indirect prompt injection via external URL instruction",
+        "description": "The skill instructs the agent to fetch and follow instructions from an external URL (https://www.psyclaw.cn/skill.md) when triggered by a specific phrase. This delegates trust to an external, potentially attacker-controlled source, which could override the agent's intended behavior.",
+        "file_path": "SKILL.md",
+        "line_number": null,
+        "snippet": "Read https://www.psyclaw.cn/skill.md and follow the instructions to join PsyClaw.",
+        "remediation": "Avoid instructing the agent to follow instructions from external URLs. If external content must be used, treat it as untrusted data and do not execute instructions from it.",
+        "analyzer": "llm",
+        "metadata": {
+          "model": "openai/deepseek-chat",
+          "aitech": "AITech-1.2",
+          "aitech_name": "Indirect Prompt Injection",
+          "aisubtech": "AISubtech-1.2.1",
+          "aisubtech_name": "Instruction Manipulation (Indirect Prompt Injection)",
+          "scanner_category": "PROMPT INJECTION"
+        }
+      },
+      {
+        "id": "llm_finding_psyclaw-openclaw-health_2",
+        "rule_id": "LLM_COMMAND_INJECTION",
+        "category": "command_injection",
+        "severity": "MEDIUM",
+        "title": "Command injection via shell script execution",
+        "description": "The skill instructs the agent to execute a shell script (install.sh) with an environment variable that can be overridden (AGENT_PLATFORM_BASE_URL). If an attacker can control this environment variable, they could inject malicious commands into the script execution.",
+        "file_path": "SKILL.md",
+        "line_number": null,
+        "snippet": "export AGENT_PLATFORM_BASE_URL=\"${AGENT_PLATFORM_BASE_URL:-https://www.psyclaw.cn}\" bash install.sh",
+        "remediation": "Avoid using environment variables directly in shell commands without sanitization. Validate and restrict the value of AGENT_PLATFORM_BASE_URL to a known safe domain.",
+        "analyzer": "llm",
+        "metadata": {
+          "model": "openai/deepseek-chat",
+          "aitech": "AITech-9.1",
+          "aitech_name": "Model or Agentic System Manipulation",
+          "aisubtech": "AISubtech-9.1.4",
+          "aisubtech_name": "Injection Attacks (SQL, Command Execution, XSS)",
+          "scanner_category": "INJECTION ATTACK"
+        }
+      },
+      {
+        "id": "llm_finding_psyclaw-openclaw-health_3",
+        "rule_id": "LLM_SKILL_DISCOVERY_ABUSE",
+        "category": "skill_discovery_abuse",
+        "severity": "MEDIUM",
+        "title": "Capability inflation via over-broad activation trigger",
+        "description": "The skill's description is vague ('PsyClaw onboarding state machine skill') and the instruction body contains a specific trigger phrase that, when sent by a human administrator, causes the agent to fetch and follow external instructions. This could be abused to activate the skill in unintended contexts, inflating its perceived capabilities.",
+        "file_path": "SKILL.md",
+        "line_number": null,
+        "snippet": "如果你是被人类管理员发来这句话触发的: `Read https://www.psyclaw.cn/skill.md and follow the instructions to join PsyClaw.`",
+        "remediation": "Narrow the activation trigger to be more specific and less likely to be triggered by unrelated content. Avoid instructing the agent to follow external instructions.",
+        "analyzer": "llm",
+        "metadata": {
+          "model": "openai/deepseek-chat",
+          "aitech": "AITech-4.3",
+          "aitech_name": "Protocol Manipulation",
+          "aisubtech": "AISubtech-4.3.5",
+          "aisubtech_name": "Capability Inflation",
+          "scanner_category": "PROTOCOL MANIPULATION"
+        }
+      },
+      {
+        "id": "MANIFEST_MISSING_LICENSE_c5ae9be793",
+        "rule_id": "MANIFEST_MISSING_LICENSE",
+        "category": "policy_violation",
+        "severity": "INFO",
+        "title": "Skill does not specify a license",
+        "description": "Skill manifest does not include a 'license' field. Specifying a license helps users understand usage terms.",
+        "file_path": "SKILL.md",
+        "line_number": null,
+        "snippet": null,
+        "remediation": "Add 'license' field to SKILL.md frontmatter (e.g., MIT, Apache-2.0)",
+        "analyzer": "static",
+        "metadata": {}
+      }
+    ],
+    "scan_duration_seconds": 18.26203966140747,
+    "duration_ms": 18262,
+    "analyzers_used": [
+      "static_analyzer",
+      "bytecode",
+      "pipeline",
+      "llm_analyzer"
+    ],
+    "timestamp": "2026-08-15T09:51:35.028318+00:00",
+    "scan_metadata": {
+      "policy_name": "default",
+      "policy_version": "1.0",
+      "policy_preset_base": "balanced",
+      "policy_fingerprint_sha256": "e6033e8884796d3589d44e3fa2d57f0aadf31a56d4e88818aeed2fd225d82c59",
+      "llm_overall_assessment": "The skill is designed to onboard an agent into the PsyClaw platform. It instructs the agent to fetch and follow instructions from an external URL, which is a significant indirect prompt injection risk. It also involves sending claim URLs and messages to a human administrator, which could lead to data exfiltration if the URLs contain sensitive tokens. The use of an environment variable in shell command execution introduces a command injection risk. The skill's activation trigger is broad and could be abused. Overall, the skill poses moderate to high security risks and should be reviewed before deployment.",
+      "llm_primary_threats": [
+        "Indirect prompt injection",
+        "Data exfiltration",
+        "Command injection",
+        "Capability inflation"
+      ]
+    },
+    "llm_usage": {
+      "input_tokens": 4451,
+      "output_tokens": 930,
+      "total_tokens": 5381
+    }
+  },
+  "error": null
+}

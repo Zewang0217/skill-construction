@@ -1,0 +1,138 @@
+{
+  "ok": true,
+  "result": {
+    "skill_name": "aibtc",
+    "skill_path": "/tmp/cisco_rt9tz6n3",
+    "is_safe": false,
+    "max_severity": "HIGH",
+    "findings_count": 5,
+    "findings": [
+      {
+        "id": "llm_finding_aibtc_1",
+        "rule_id": "LLM_DATA_EXFILTRATION",
+        "category": "data_exfiltration",
+        "severity": "HIGH",
+        "title": "Potential data exfiltration via mining worker",
+        "description": "The skill's mining worker submits seeds and hashes to external servers. While the disclaimer claims it only uses the user's address, the remote code execution and network communication could be used to exfiltrate data or credentials. The lack of transparency about what data is transmitted is a concern.",
+        "file_path": "SKILL.md",
+        "line_number": null,
+        "snippet": "Mining worker submits seeds to external servers; remote code execution via npx",
+        "remediation": "Audit the remote code for data handling. Ensure only necessary data is transmitted and no sensitive information is collected.",
+        "analyzer": "llm",
+        "metadata": {
+          "model": "openai/deepseek-chat",
+          "aitech": "AITech-8.2",
+          "aitech_name": "Data Exfiltration / Exposure",
+          "aisubtech": "AISubtech-8.2.3",
+          "aisubtech_name": "Data Exfiltration via Agent Tooling",
+          "scanner_category": "SECURITY VIOLATION"
+        }
+      },
+      {
+        "id": "llm_finding_aibtc_0",
+        "rule_id": "LLM_SUPPLY_CHAIN_ATTACK",
+        "category": "supply_chain_attack",
+        "severity": "HIGH",
+        "title": "Remote code execution via npx without version pinning",
+        "description": "The skill instructs the agent to install and execute a package from an external registry using 'npx clawhub install aibtc' and then run 'node handler.js'. This fetches and executes remote code without version pinning or integrity verification, posing a supply chain risk.",
+        "file_path": "SKILL.md",
+        "line_number": null,
+        "snippet": "npx clawhub install aibtc; node handler.js run <address>",
+        "remediation": "Pin exact versions and verify package integrity (e.g., checksums) before execution. Avoid executing remote code without user confirmation.",
+        "analyzer": "llm",
+        "metadata": {
+          "model": "openai/deepseek-chat",
+          "aitech": "AITech-9.3",
+          "aitech_name": "Dependency / Plugin Compromise",
+          "aisubtech": "AISubtech-9.3.1",
+          "aisubtech_name": "Malicious Package / Tool Injection",
+          "scanner_category": "SUPPLY CHAIN ATTACK"
+        }
+      },
+      {
+        "id": "llm_finding_aibtc_3",
+        "rule_id": "LLM_HARMFUL_CONTENT",
+        "category": "harmful_content",
+        "severity": "MEDIUM",
+        "title": "Misleading disclaimer and promotion of mining",
+        "description": "The skill includes a disclaimer that attempts to preempt security concerns by claiming the mining behavior is safe and open-source. This could be used to deceive users into executing potentially harmful code. The promotion of cryptocurrency mining may also be misleading.",
+        "file_path": "SKILL.md",
+        "line_number": null,
+        "snippet": "Disclaimer states 'VirusTotal and other antivirus engines may flag the skill as suspicious... This behavior is inherent to the mining logic and is not malware.'",
+        "remediation": "Remove misleading disclaimers and provide transparent, verifiable information about the skill's behavior.",
+        "analyzer": "llm",
+        "metadata": {
+          "model": "openai/deepseek-chat",
+          "aitech": "AITech-15.1",
+          "aitech_name": "Harmful Content",
+          "aisubtech": "AISubtech-15.1.12",
+          "aisubtech_name": "Safety Harms and Toxicity: Scams and Deception",
+          "scanner_category": "HARMFUL CONTENT"
+        }
+      },
+      {
+        "id": "llm_finding_aibtc_2",
+        "rule_id": "LLM_SKILL_DISCOVERY_ABUSE",
+        "category": "skill_discovery_abuse",
+        "severity": "MEDIUM",
+        "title": "Capability inflation and keyword baiting",
+        "description": "The skill description includes multiple trigger phrases and over-broad claims ('Automate and monitor aibtc-worker processes for BTC-related automation tasks'), which may lead to unintended activation. The skill also promotes cryptocurrency mining, which could be misleading or harmful.",
+        "file_path": "SKILL.md",
+        "line_number": null,
+        "snippet": "Triggers include 'aibtc run', 'aibtc stop', 'aibtc status', and variations; description claims broad automation capabilities.",
+        "remediation": "Narrow the description to specific, legitimate use cases and avoid excessive trigger keywords.",
+        "analyzer": "llm",
+        "metadata": {
+          "model": "openai/deepseek-chat",
+          "aitech": "AITech-4.3",
+          "aitech_name": "Protocol Manipulation",
+          "aisubtech": "AISubtech-4.3.5",
+          "aisubtech_name": "Capability Inflation",
+          "scanner_category": "PROTOCOL MANIPULATION"
+        }
+      },
+      {
+        "id": "MANIFEST_MISSING_LICENSE_c5ae9be793",
+        "rule_id": "MANIFEST_MISSING_LICENSE",
+        "category": "policy_violation",
+        "severity": "INFO",
+        "title": "Skill does not specify a license",
+        "description": "Skill manifest does not include a 'license' field. Specifying a license helps users understand usage terms.",
+        "file_path": "SKILL.md",
+        "line_number": null,
+        "snippet": null,
+        "remediation": "Add 'license' field to SKILL.md frontmatter (e.g., MIT, Apache-2.0)",
+        "analyzer": "static",
+        "metadata": {}
+      }
+    ],
+    "scan_duration_seconds": 16.685611963272095,
+    "duration_ms": 16685,
+    "analyzers_used": [
+      "static_analyzer",
+      "bytecode",
+      "pipeline",
+      "llm_analyzer"
+    ],
+    "timestamp": "2026-08-15T09:38:34.103097+00:00",
+    "scan_metadata": {
+      "policy_name": "default",
+      "policy_version": "1.0",
+      "policy_preset_base": "balanced",
+      "policy_fingerprint_sha256": "e6033e8884796d3589d44e3fa2d57f0aadf31a56d4e88818aeed2fd225d82c59",
+      "llm_overall_assessment": "The skill presents significant security risks due to remote code execution without integrity checks, potential data exfiltration, and misleading claims. It should not be used without thorough auditing and user consent.",
+      "llm_primary_threats": [
+        "Supply chain compromise",
+        "Data exfiltration",
+        "Capability inflation",
+        "Misleading content"
+      ]
+    },
+    "llm_usage": {
+      "input_tokens": 4394,
+      "output_tokens": 741,
+      "total_tokens": 5135
+    }
+  },
+  "error": null
+}

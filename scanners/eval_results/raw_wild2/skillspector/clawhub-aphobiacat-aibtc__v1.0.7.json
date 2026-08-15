@@ -1,0 +1,19 @@
+{
+  "ok": true,
+  "result": {
+    "score": 80,
+    "severity": "HIGH",
+    "n_issues": 8,
+    "issues": [
+      "RP1",
+      "SDI-2",
+      "SDI-3",
+      "SDI-1",
+      "SQP-1",
+      "SQP-1",
+      "SQP-2",
+      "SQP-3"
+    ]
+  },
+  "error": null
+}

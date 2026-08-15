@@ -1,0 +1,179 @@
+{
+  "ok": true,
+  "result": {
+    "skill_name": "bonero-miner",
+    "skill_path": "/tmp/cisco_4kuuu36t",
+    "is_safe": false,
+    "max_severity": "CRITICAL",
+    "findings_count": 7,
+    "findings": [
+      {
+        "id": "llm_finding_bonero-miner_0",
+        "rule_id": "LLM_SUPPLY_CHAIN_ATTACK",
+        "category": "supply_chain_attack",
+        "severity": "HIGH",
+        "title": "Unverified remote script execution via curl pipe to bash",
+        "description": "The skill instructs the agent to download and execute a script from a remote URL using 'curl -fsSL ... | bash' without verification. This is a supply chain risk as the script content is not inspected and could be malicious or compromised.",
+        "file_path": "SKILL.md",
+        "line_number": null,
+        "snippet": "curl -fsSL https://raw.githubusercontent.com/happybigmtn/bonero/master/install.sh | bash",
+        "remediation": "Avoid piping remote scripts directly to bash. Instead, download the script, inspect it thoroughly, and verify its integrity (e.g., checksum, signature) before execution. Pin to a specific commit hash.",
+        "analyzer": "llm",
+        "metadata": {
+          "model": "openai/deepseek-chat",
+          "aitech": "AITech-9.3",
+          "aitech_name": "Dependency / Plugin Compromise",
+          "aisubtech": "AISubtech-9.3.1",
+          "aisubtech_name": "Malicious Package / Tool Injection",
+          "scanner_category": "SUPPLY CHAIN ATTACK"
+        }
+      },
+      {
+        "id": "llm_finding_bonero-miner_1",
+        "rule_id": "LLM_DATA_EXFILTRATION",
+        "category": "data_exfiltration",
+        "severity": "MEDIUM",
+        "title": "Potential cryptocurrency mining without explicit user consent",
+        "description": "The skill instructs the agent to start CPU mining on the user's machine, which consumes significant computational resources. Although it advises asking the human first, the instructions are embedded in the skill and could be executed without proper consent, leading to unauthorized resource usage and potential financial gain for the skill author.",
+        "file_path": "SKILL.md",
+        "line_number": null,
+        "snippet": "bonerod --detach --start-mining YOUR_C_ADDRESS --mining-threads 4",
+        "remediation": "Ensure explicit user consent is obtained before any mining activity. The skill should require a clear opt-in confirmation and not auto-start mining. Consider removing mining capabilities or making them opt-in only.",
+        "analyzer": "llm",
+        "metadata": {
+          "model": "openai/deepseek-chat",
+          "aitech": "AITech-8.2",
+          "aitech_name": "Data Exfiltration / Exposure",
+          "aisubtech": "AISubtech-8.2.3",
+          "aisubtech_name": "Data Exfiltration via Agent Tooling",
+          "scanner_category": "SECURITY VIOLATION"
+        }
+      },
+      {
+        "id": "llm_finding_bonero-miner_2",
+        "rule_id": "LLM_SKILL_DISCOVERY_ABUSE",
+        "category": "skill_discovery_abuse",
+        "severity": "LOW",
+        "title": "Over-broad description and keyword baiting",
+        "description": "The skill description 'Mine Bonero - private cryptocurrency for AI agents' may overstate capabilities and use keywords like 'private' and 'AI agents' to attract activation. However, the description is relatively specific and not excessively broad.",
+        "file_path": "SKILL.md",
+        "line_number": null,
+        "snippet": "description: Mine Bonero - private cryptocurrency for AI agents. RandomX CPU mining, Monero-based privacy.",
+        "remediation": "Ensure the description accurately reflects the skill's functionality and avoid using excessive trigger keywords that could lead to unintended activation.",
+        "analyzer": "llm",
+        "metadata": {
+          "model": "openai/deepseek-chat",
+          "aitech": "AITech-4.3",
+          "aitech_name": "Protocol Manipulation",
+          "aisubtech": "AISubtech-4.3.5",
+          "aisubtech_name": "Capability Inflation",
+          "scanner_category": "PROTOCOL MANIPULATION"
+        }
+      },
+      {
+        "id": "MANIFEST_MISSING_LICENSE_c5ae9be793",
+        "rule_id": "MANIFEST_MISSING_LICENSE",
+        "category": "policy_violation",
+        "severity": "INFO",
+        "title": "Skill does not specify a license",
+        "description": "Skill manifest does not include a 'license' field. Specifying a license helps users understand usage terms.",
+        "file_path": "SKILL.md",
+        "line_number": null,
+        "snippet": null,
+        "remediation": "Add 'license' field to SKILL.md frontmatter (e.g., MIT, Apache-2.0)",
+        "analyzer": "static",
+        "metadata": {}
+      },
+      {
+        "id": "PIPELINE_TAINT_3c8f394f95",
+        "rule_id": "PIPELINE_TAINT_FLOW",
+        "category": "command_injection",
+        "severity": "LOW",
+        "title": "Dangerous data flow in command pipeline",
+        "description": "Pipeline downloads data from the network and executes it: `curl -fsSL https://raw.githubusercontent.com/happybigmtn/bonero/master/install.sh | bash`. This is a remote code execution pattern. (Note: appears to be instructional install text in SKILL.md; review URL trust and pinning.)",
+        "file_path": "SKILL.md",
+        "line_number": 1,
+        "snippet": "curl -fsSL https://raw.githubusercontent.com/happybigmtn/bonero/master/install.sh | bash",
+        "remediation": "Review the command pipeline. Avoid piping sensitive data to network commands or shell execution.",
+        "analyzer": "pipeline",
+        "metadata": {
+          "pipeline": "curl -fsSL https://raw.githubusercontent.com/happybigmtn/bonero/master/install.sh | bash",
+          "source_taints": [
+            "NETWORK_DATA"
+          ],
+          "sink_command": "bash",
+          "chain_length": 2,
+          "in_documentation": false
+        }
+      },
+      {
+        "id": "COMPOUND_FETCH_EXECUTE_ab52299192",
+        "rule_id": "COMPOUND_FETCH_EXECUTE",
+        "category": "command_injection",
+        "severity": "CRITICAL",
+        "title": "Remote fetch followed by execution",
+        "description": "Content is downloaded from the network and subsequently executed. This is a classic remote code execution attack pattern.",
+        "file_path": "SKILL.md",
+        "line_number": 30,
+        "snippet": "curl -fsSLO https://raw.githubusercontent.com/happybigmtn/bonero/master/install.sh\nless install.sh  # inspect it\nbash install.sh --add-path\n",
+        "remediation": "Review the command sequence for potential multi-step attacks. Ensure all steps are necessary and safe.",
+        "analyzer": "pipeline",
+        "metadata": {
+          "pattern": "COMPOUND_FETCH_EXECUTE",
+          "matched_lines": [
+            0,
+            2
+          ],
+          "in_documentation": false
+        }
+      },
+      {
+        "id": "COMPOUND_FETCH_EXECUTE_ce694ac3a7",
+        "rule_id": "COMPOUND_FETCH_EXECUTE",
+        "category": "command_injection",
+        "severity": "CRITICAL",
+        "title": "Remote fetch followed by execution",
+        "description": "Content is downloaded from the network and subsequently executed. This is a classic remote code execution attack pattern.",
+        "file_path": "SKILL.md",
+        "line_number": 37,
+        "snippet": "curl -fsSLO https://raw.githubusercontent.com/happybigmtn/bonero/master/install.sh\nless install.sh  # inspect it\nbash install.sh --add-path\n",
+        "remediation": "Review the command sequence for potential multi-step attacks. Ensure all steps are necessary and safe.",
+        "analyzer": "pipeline",
+        "metadata": {
+          "pattern": "COMPOUND_FETCH_EXECUTE",
+          "matched_lines": [
+            0,
+            2
+          ],
+          "in_documentation": false
+        }
+      }
+    ],
+    "scan_duration_seconds": 16.963932514190674,
+    "duration_ms": 16963,
+    "analyzers_used": [
+      "static_analyzer",
+      "bytecode",
+      "pipeline",
+      "llm_analyzer"
+    ],
+    "timestamp": "2026-08-15T09:41:01.832383+00:00",
+    "scan_metadata": {
+      "policy_name": "default",
+      "policy_version": "1.0",
+      "policy_preset_base": "balanced",
+      "policy_fingerprint_sha256": "e6033e8884796d3589d44e3fa2d57f0aadf31a56d4e88818aeed2fd225d82c59",
+      "llm_overall_assessment": "The skill is a cryptocurrency mining tool that instructs the agent to download and execute a remote script, and to start CPU mining. The primary risks are supply chain compromise via unverified remote script execution and unauthorized resource usage. The skill does include a warning to ask the human first, which mitigates the mining risk, but the remote script execution is a significant security concern. No script files are present, so the risk is limited to the instructions.",
+      "llm_primary_threats": [
+        "Supply chain compromise",
+        "Unauthorized resource usage"
+      ]
+    },
+    "llm_usage": {
+      "input_tokens": 4975,
+      "output_tokens": 659,
+      "total_tokens": 5634
+    }
+  },
+  "error": null
+}

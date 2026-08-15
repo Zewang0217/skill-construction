@@ -1,0 +1,16 @@
+{
+  "ok": true,
+  "result": {
+    "score": 38,
+    "severity": "MEDIUM",
+    "n_issues": 5,
+    "issues": [
+      "SQP-2",
+      "SQP-2",
+      "PE3",
+      "PE3",
+      "PE3"
+    ]
+  },
+  "error": null
+}

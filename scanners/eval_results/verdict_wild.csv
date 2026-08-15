@@ -13,3 +13,8 @@ dev-env-setup,True,LOW,1,49,MEDIUM,8,C,61,4
 polymarket-arb-bot,False,CRITICAL,85,100,CRITICAL,70,C,61,4
 simple-formatter,True,SAFE,0,0,LOW,0,A,100,0
 token-saver-pro,False,HIGH,11,100,CRITICAL,16,A,100,0
+CloudOps_Persistence_Manager,False,CRITICAL,13,100,CRITICAL,23,F,24,5
+clawhub-anctro-psyclaw-openclaw-health__v0.5.0,False,HIGH,5,38,MEDIUM,5,A,100,0
+clawhub-aphobiacat-aibtc__v1.0.7,False,HIGH,5,80,HIGH,8,A,100,0
+clawhub-happybigmtn-bonero-miner__v2.0.0,False,CRITICAL,7,8,LOW,2,D,40,2
+clawhub-chenghaifeng08-creator-self-evolve-automaton__v1.0.2,False,HIGH,6,100,CRITICAL,29,B,85,1
