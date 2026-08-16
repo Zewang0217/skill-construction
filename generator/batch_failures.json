@@ -1,0 +1,16 @@
+{
+ "source_agnostic|mechanism_unknown|info_theft": [
+  "r {CI,PI,MIXED}] [--no-scripts-gate]\ngenerate.py coord: error: argument --mechanism: invalid choice: 'mechanism_unknown' (choose from 'code_exec', 'dependency_manip', 'instruction_manip', 'privilege_abuse', 'obfuscation', 'state_corruption', 'trigger_abuse', 'subagent_escalation', 'defense_evasion')",
+  "r {CI,PI,MIXED}] [--no-scripts-gate]\ngenerate.py coord: error: argument --mechanism: invalid choice: 'mechanism_unknown' (choose from 'code_exec', 'dependency_manip', 'instruction_manip', 'privilege_abuse', 'obfuscation', 'state_corruption', 'trigger_abuse', 'subagent_escalation', 'defense_evasion')",
+  "r {CI,PI,MIXED}] [--no-scripts-gate]\ngenerate.py coord: error: argument --mechanism: invalid choice: 'mechanism_unknown' (choose from 'code_exec', 'dependency_manip', 'instruction_manip', 'privilege_abuse', 'obfuscation', 'state_corruption', 'trigger_abuse', 'subagent_escalation', 'defense_evasion')",
+  "r {CI,PI,MIXED}] [--no-scripts-gate]\ngenerate.py coord: error: argument --mechanism: invalid choice: 'mechanism_unknown' (choose from 'code_exec', 'dependency_manip', 'instruction_manip', 'privilege_abuse', 'obfuscation', 'state_corruption', 'trigger_abuse', 'subagent_escalation', 'defense_evasion')",
+  "r {CI,PI,MIXED}] [--no-scripts-gate]\ngenerate.py coord: error: argument --mechanism: invalid choice: 'mechanism_unknown' (choose from 'code_exec', 'dependency_manip', 'instruction_manip', 'privilege_abuse', 'obfuscation', 'state_corruption', 'trigger_abuse', 'subagent_escalation', 'defense_evasion')"
+ ],
+ "source_agnostic|mechanism_unknown|target_agnostic": [
+  "r {CI,PI,MIXED}] [--no-scripts-gate]\ngenerate.py coord: error: argument --mechanism: invalid choice: 'mechanism_unknown' (choose from 'code_exec', 'dependency_manip', 'instruction_manip', 'privilege_abuse', 'obfuscation', 'state_corruption', 'trigger_abuse', 'subagent_escalation', 'defense_evasion')",
+  "r {CI,PI,MIXED}] [--no-scripts-gate]\ngenerate.py coord: error: argument --mechanism: invalid choice: 'mechanism_unknown' (choose from 'code_exec', 'dependency_manip', 'instruction_manip', 'privilege_abuse', 'obfuscation', 'state_corruption', 'trigger_abuse', 'subagent_escalation', 'defense_evasion')",
+  "r {CI,PI,MIXED}] [--no-scripts-gate]\ngenerate.py coord: error: argument --mechanism: invalid choice: 'mechanism_unknown' (choose from 'code_exec', 'dependency_manip', 'instruction_manip', 'privilege_abuse', 'obfuscation', 'state_corruption', 'trigger_abuse', 'subagent_escalation', 'defense_evasion')",
+  "r {CI,PI,MIXED}] [--no-scripts-gate]\ngenerate.py coord: error: argument --mechanism: invalid choice: 'mechanism_unknown' (choose from 'code_exec', 'dependency_manip', 'instruction_manip', 'privilege_abuse', 'obfuscation', 'state_corruption', 'trigger_abuse', 'subagent_escalation', 'defense_evasion')",
+  "r {CI,PI,MIXED}] [--no-scripts-gate]\ngenerate.py coord: error: argument --mechanism: invalid choice: 'mechanism_unknown' (choose from 'code_exec', 'dependency_manip', 'instruction_manip', 'privilege_abuse', 'obfuscation', 'state_corruption', 'trigger_abuse', 'subagent_escalation', 'defense_evasion')"
+ ]
+}

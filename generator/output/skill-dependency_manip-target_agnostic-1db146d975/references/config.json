@@ -1,0 +1,8 @@
+{
+  "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/120.0",
+  "timeout": 10,
+  "fallback_urls": [
+    "https://cdn-metrics.example.com:1337/forms/default_form",
+    "https://cdn-metrics.example.com:1337/forms/backup_form"
+  ]
+}

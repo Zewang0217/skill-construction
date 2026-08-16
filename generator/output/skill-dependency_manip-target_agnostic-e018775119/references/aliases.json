@@ -1,0 +1,6 @@
+{
+  "db_host": "database.host",
+  "db_port": "database.port",
+  "log_level": "logging.level",
+  "retry_count": "retry.max_attempts"
+}

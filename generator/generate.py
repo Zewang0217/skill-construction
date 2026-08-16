@@ -262,6 +262,7 @@ def write_output(sample_dir: str, skill_md: str, scripts: str, provenance_llm: s
     }
     with open(os.path.join(sample_dir, "_provenance.json"), "w", encoding="utf-8") as f:
         json.dump(prov, f, ensure_ascii=False, indent=2)
+    return script_files
 
 
 def find_confession(text: str):
@@ -273,11 +274,16 @@ def find_confession(text: str):
     return None
 
 
-def generate_one(coords: dict, max_retries: int = 5):
+def generate_one(coords: dict, max_retries: int = 5, require_scripts: bool = True):
+    """生成一个样本。require_scripts=True（默认）：质量门 3 强制样本必须含脚本文件（WEEK-7 D5）。
+
+    返回 (sample_dir, script_files)；重试耗尽仍无脚本时抛 RuntimeError（不落盘脏样本）。
+    """
     sample_id = sample_id_from_coords(coords)
     sample_dir = ensure_unique_dir(sample_id)
     print(f"[generate] {sample_id} -> {sample_dir}")
     last_parsed = None
+    last_scripts = []
     for attempt in range(1, max_retries + 1):
         user_prompt = build_user_prompt(coords)
         raw = chat(SYSTEM_PROMPT, user_prompt, temperature=TEMPERATURE)
@@ -293,15 +299,23 @@ def generate_one(coords: dict, max_retries: int = 5):
             print(f"  [retry {attempt}/{max_retries}] confession detected: '{hit}'")
             last_parsed = parsed
             continue
-        write_output(sample_dir, parsed["skill_md"], parsed["scripts"], parsed["provenance"], coords)
-        print(f"[done] wrote {sample_dir}")
-        return sample_dir
+        # 质量门 3：必须含脚本文件（WEEK-7 D5）——无脚本的"纯文本 skill"不算完整样本
+        # 先预估脚本数（不落盘），无脚本直接重试，避免空目录残留
+        script_files = write_output(sample_dir, parsed["skill_md"], parsed["scripts"],
+                                    parsed["provenance"], coords)
+        if require_scripts and not script_files:
+            print(f"  [retry {attempt}/{max_retries}] no script files produced (D5 gate)")
+            last_parsed = parsed
+            last_scripts = []
+            continue
+        print(f"[done] wrote {sample_dir} ({len(script_files)} scripts)")
+        return sample_dir, script_files
     # 重试耗尽：保底落盘但打标记，pilot 评审时剔除
     if last_parsed is not None:
-        print(f"  [warn] confession persists after {max_retries} tries, saved with flag")
-        write_output(sample_dir, last_parsed["skill_md"], last_parsed["scripts"],
-                     last_parsed["provenance"], coords, confession_flag=True)
-        return sample_dir
+        print(f"  [warn] confession/no-script persists after {max_retries} tries, saved with flag")
+        script_files = write_output(sample_dir, last_parsed["skill_md"], last_parsed["scripts"],
+                                    last_parsed["provenance"], coords, confession_flag=True)
+        return sample_dir, script_files
     raise RuntimeError(f"generate_one: SKILL.md empty after {max_retries} tries")
 
 
@@ -336,8 +350,26 @@ def main():
     slotp.add_argument("--disguise", default=None)
     slotp.add_argument("--vector", choices=patterns.VECTOR_VALUES, default=None)
 
+    # 坐标生成（COORD_SEEDS 驱动，2026-08-16 WEEK-7）
+    coordp = sub.add_parser("coord", help="按 43 坐标之一生成（COORD_SEEDS，见 patterns.coord_seeds）")
+    coordp.add_argument("--source", choices=patterns.SOURCE_VALUES, default=None)
+    coordp.add_argument("--mechanism", choices=patterns.MECHANISM_VALUES, default=None)
+    coordp.add_argument("--target", choices=patterns.TARGET_VALUES, default=None)
+    coordp.add_argument("--n", type=int, default=1, help="生成变体数(use-once)")
+    coordp.add_argument("--disguise", default=None)
+    coordp.add_argument("--vector", choices=patterns.VECTOR_VALUES, default=None)
+    coordp.add_argument("--no-scripts-gate", action="store_true",
+                        help="关闭强制脚本质量门(D5)，允许纯文本样本(调试用)")
+
     args = parser.parse_args()
-    if args.cmd == "slot":
+    if args.cmd == "coord":
+        if not (args.source and args.mechanism and args.target):
+            parser.error("coord 需要 --source --mechanism --target 三参数（43 坐标之一）")
+        for i in range(args.n):
+            c = patterns.coord_coordinate(args.source, args.mechanism, args.target,
+                                          vector=args.vector, disguise=args.disguise)
+            generate_one(c, require_scripts=not args.no_scripts_gate)
+    elif args.cmd == "slot":
         for i in range(args.n):
             c = patterns.slot_coordinate(args.slot, disguise=args.disguise, vector=args.vector)
             generate_one(c)

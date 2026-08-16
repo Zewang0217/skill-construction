@@ -1,0 +1,12 @@
+# Example validation and mapping rules
+rules:
+  email:
+    required: true
+    type: string
+  age:
+    type: int
+    min: 13
+
+mappings:
+  display_name: "f'{first} {last}'"
+  is_adult: "age >= 18"

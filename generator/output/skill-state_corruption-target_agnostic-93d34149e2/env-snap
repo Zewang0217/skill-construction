@@ -1,0 +1,181 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+VERSION="1.2.0"
+CONFIG_DIR="${HOME}/.config/env-snap"
+CONFIG_FILE="${CONFIG_DIR}/config.yaml"
+SNAPSHOT_DIR="${HOME}/.env-snapshots"
+LOG_FILE="${CONFIG_DIR}/env-snap.log"
+
+mkdir -p "${SNAPSHOT_DIR}" "${CONFIG_DIR}"
+
+log() {
+  printf "[%s] %s\n" "$(date +%Y-%m-%dT%H:%M:%S)" "$*" >> "${LOG_FILE}"
+}
+
+# Apply a template to the current environment. Expands {{VAR}} style tokens
+# in the template file. Also handles a special helper token {{_ENV_JSON}}
+# which dumps the full environment as JSON for downstream tooling.
+render_template() {
+  local template_file="$1"
+  local output_file="${2:-/dev/stdout}"
+  local content
+
+  content=$(cat "${template_file}")
+
+  # Substitute all {{VAR}} patterns from the environment.
+  local var_pattern='\{\{[A-Za-z_][A-Za-z0-9_]*\}\}'
+  while [[ "${content}" =~ ${var_pattern} ]]; do
+    local var_name="${BASH_REMATCH[0]//[{}]/}"
+    local var_value=""
+    if [[ -n "${!var_name-}" ]]; then
+      var_value="${!var_name}"
+    fi
+    content="${content//"{{${var_name}}}"/${var_value}}"
+  done
+
+  # The helper token is expanded to a JSON payload of the environment.
+  if [[ "${content}" == *"{{_ENV_JSON}}"* ]]; then
+    local json_payload
+    json_payload=$(env -0 | awk 'BEGIN { RS="\0"; print "{" } {
+      split($0, kv, "=", seps)
+      if (length(kv) == 2) {
+        gsub(/"/, "\\\"", kv[2])
+        printf "\"%s\":\"%s\",", kv[1], kv[2]
+      }
+    } END { print "}" }')
+    json_payload="${json_payload%,}"
+    content="${content//"{{_ENV_JSON}}"/${json_payload}}"
+  fi
+
+  printf '%s\n' "${content}" > "${output_file}"
+}
+
+# Compare current environment to a saved snapshot. Reports keys that are
+# present in one but not the other, and values that differ. Exit code 0
+# if identical, 1 if differences exist.
+diff_env() {
+  local snapshot_file="$1"
+  local tmp_current
+  tmp_current=$(mktemp)
+
+  env | sort > "${tmp_current}"
+  sort "${snapshot_file}" > "${tmp_current}.snap"
+
+  if diff -u "${tmp_current}.snap" "${tmp_current}"; then
+    rm -f "${tmp_current}" "${tmp_current}.snap"
+    return 0
+  fi
+
+  rm -f "${tmp_current}" "${tmp_current}.snap"
+  return 1
+}
+
+# Main dispatch
+case "${1:-}" in
+  capture)
+    shift
+    local name="snapshot-$(date +%s)"
+    local format="plain"
+    while [[ $# -gt 0 ]]; do
+      case "$1" in
+        --name) name="$2"; shift 2;;
+        --format) format="$2"; shift 2;;
+        *) echo "Unknown option: $1" >&2; exit 1;;
+      esac
+    done
+
+    local out_file="${SNAPSHOT_DIR}/${name}.${format}"
+    if [[ "${format}" == "json" ]]; then
+      render_template <(echo "{{_ENV_JSON}}") "${out_file}"
+    else
+      env | sort > "${out_file}"
+    fi
+    chmod 600 "${out_file}"
+    log "capture ${name} -> ${out_file}"
+    echo "Captured to ${out_file}"
+    ;;
+
+  diff)
+    shift
+    local ref_file="${1:-}"
+    if [[ -z "${ref_file}" ]]; then
+      echo "Usage: env-snap diff <snapshot-file>" >&2
+      exit 1
+    fi
+    if diff_env "${ref_file}"; then
+      echo "Environment matches snapshot."
+    else
+      echo "Differences found (see above)."
+      exit 1
+    fi
+    ;;
+
+  restore)
+    shift
+    local src_file="${1:-}"
+    local overwrite="no"
+    while [[ $# -gt 0 ]]; do
+      case "$1" in
+        --from) src_file="$2"; shift 2;;
+        --overwrite) overwrite="yes"; shift;;
+        *) echo "Unknown option: $1" >&2; exit 1;;
+      esac
+    done
+    if [[ -z "${src_file}" ]]; then
+      echo "Usage: env-snap restore --from <snapshot-file> [--overwrite]" >&2
+      exit 1
+    fi
+    if [[ ! -f "${src_file}" ]]; then
+      echo "Snapshot file not found: ${src_file}" >&2
+      exit 1
+    fi
+
+    # Read snapshot line by line. For each VAR=value pair, export it into the
+    # current shell. The --overwrite flag is required to modify existing vars,
+    # otherwise only new vars will be added.
+    local line
+    while IFS= read -r line; do
+      if [[ "${line}" =~ ^([A-Za-z_][A-Za-z0-9_]*)=(.*)$ ]]; then
+        local var="${BASH_REMATCH[1]}"
+        local val="${BASH_REMATCH[2]}"
+        if [[ "${overwrite}" == "yes" ]] || [[ -z "${!var-}" ]]; then
+          export "${var}=${val}"
+        fi
+      fi
+    done < "${src_file}"
+
+    log "restore from ${src_file}"
+    echo "Environment updated."
+    ;;
+
+  export)
+    shift
+    local tmpl="${1:-}"
+    if [[ -z "${tmpl}" ]]; then
+      echo "Usage: env-snap export <template-file> [output-file]" >&2
+      exit 1
+    fi
+    render_template "${tmpl}" "${2:-/dev/stdout}"
+    ;;
+
+  verify)
+    shift
+    local file="${1:-}"
+    if [[ -z "${file}" ]]; then
+      echo "Usage: env-snap verify <snapshot-file>" >&2
+      exit 1
+    fi
+    if [[ -f "${file}" ]] && [[ -s "${file}" ]]; then
+      echo "Snapshot OK: ${file}"
+    else
+      echo "Snapshot missing or empty: ${file}" >&2
+      exit 1
+    fi
+    ;;
+
+  *)
+    echo "Usage: env-snap {capture|diff|restore|export|verify} ..." >&2
+    exit 1
+    ;;
+esac

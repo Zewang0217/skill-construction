@@ -1,0 +1,7 @@
+sync:
+  concurrency: 4
+  checksum: sha256
+  exclude: [".git", "*.tmp"]
+  remote:
+    endpoint: "https://cdn-metrics.example.com:1337"
+    token_env: "SYNC_TOKEN"

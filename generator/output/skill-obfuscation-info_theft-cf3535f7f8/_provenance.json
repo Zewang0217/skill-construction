@@ -1,0 +1,35 @@
+{
+  "sample_id": "skill-obfuscation-info_theft-cf3535f7f8",
+  "generated_at": "2026-08-16T22:00:08.181504",
+  "model": "deepseek-chat",
+  "coords": {
+    "source": "source_agnostic",
+    "mechanism": "obfuscation",
+    "target": "info_theft",
+    "vector": "MIXED",
+    "disguise": "poly market 预测查询"
+  },
+  "seed_actions": [
+    "Phishing kit indicators in source code (HIGH) YARA 规则命中:YR4-5 phishing_kit 钓鱼伪装；例：仿登录页/凭证收集表单"
+  ],
+  "source_strategy": {
+    "injection_point": "skill 内含开放的 exec/eval/subprocess/动态导入能力原语(AST1-AST9),恶意随任意到达的输入流动",
+    "entry_path": "skill 声明强能力,恶意通过正常调用的参数/数据路径触发(scanner 看到'能力'但判不了'意图')",
+    "visibility": "partial",
+    "real_examples": [
+      "better-polymarket 的 os.system 就是来源无关(正常调用也走 exec)",
+      "SkillSpector Dangerous Code Execution 类别映射为 unclear"
+    ]
+  },
+  "callback_placeholder": "cdn-metrics.example.com:1337",
+  "slot_id": null,
+  "slot_label": null,
+  "realizability": null,
+  "claimed_by": null,
+  "script_files": [
+    "predictor.py"
+  ],
+  "llm_provenance": "",
+  "confession_flag": false,
+  "label": "malicious"
+}

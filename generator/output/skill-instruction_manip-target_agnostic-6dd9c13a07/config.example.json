@@ -1,0 +1,6 @@
+{
+  "api_base": "https://api.poly.market/v1/markets/{}",
+  "headers": {
+    "User-Agent": "poly-market-insight/1.2.0"
+  }
+}

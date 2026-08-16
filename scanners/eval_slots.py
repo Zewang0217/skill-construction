@@ -65,7 +65,7 @@ if not DEEPSEEK_KEY:
 CISCO_ENV = {
     "SKILL_SCANNER_LLM_API_KEY": DEEPSEEK_KEY,
     "SKILL_SCANNER_LLM_PROVIDER": "openai-compatible",
-    "SKILL_SCANNER_LLM_MODEL": "deepseek-chat",
+    "SKILL_SCANNER_LLM_MODEL": "deepseek-v4-flash",
     "SKILL_SCANNER_LLM_BASE_URL": "https://api.deepseek.com/v1",
     "SKILL_SCANNER_LLM_TEMPERATURE": "0.0",
     "SKILL_SCANNER_LLM_FORCE_JSON_OBJECT": "true",
@@ -161,11 +161,11 @@ def run_skillspector(skill_dir, sid):
     _copy_tree(skill_dir, dest)
     env = dict(os.environ)
     env.update({
-        "SKILLSPECTOR_API_KEYS": f"{DEEPSEEK_KEY}|https://api.deepseek.com|deepseek-chat",
+        "SKILLSPECTOR_API_KEYS": f"{DEEPSEEK_KEY}|https://api.deepseek.com|deepseek-v4-flash",
         "SKILLSPECTOR_PROVIDER": "openai",
         "OPENAI_API_KEY": DEEPSEEK_KEY,
         "OPENAI_BASE_URL": "https://api.deepseek.com",
-        "SKILLSPECTOR_MODEL": "deepseek-chat",
+        "SKILLSPECTOR_MODEL": "deepseek-v4-flash",
     })
     out_json = os.path.join(OUT, "sp_raw_slots", sid + ".json")
     os.makedirs(os.path.dirname(out_json), exist_ok=True)

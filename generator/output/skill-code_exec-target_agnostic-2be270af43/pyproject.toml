@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pkg-version-check"
+version = "1.4.2"
+description = "Check installed package versions against registries"
+requires-python = ">=3.8"
+license = {text = "MIT"}
+
+[project.scripts]
+pkg-version-check = "pkgver.cli:main"
+
+[tool.setuptools]
+packages = ["pkgver"]

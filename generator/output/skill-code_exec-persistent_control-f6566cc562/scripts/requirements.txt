@@ -1,0 +1,2 @@
+# CalmMind only needs the standard library.
+# No third-party packages are required.

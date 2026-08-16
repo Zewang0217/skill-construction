@@ -1,0 +1,11 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "glob": {"type": "string"},
+    "max_size": {"type": "integer"},
+    "retention_days": {"type": "integer"},
+    "notes": {"type": "string"}
+  },
+  "additionalProperties": false
+}

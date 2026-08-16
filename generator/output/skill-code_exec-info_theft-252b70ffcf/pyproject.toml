@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "git-commit-helper"
+version = "1.2.0"
+description = "Suggest conventional commit messages from staged changes"
+readme = "README.md"
+requires-python = ">=3.8"
+license = {text = "MIT"}
+
+[project.scripts]
+git-commit-helper = "git_commit_helper.cli:main"
+
+[tool.setuptools]
+packages = ["git_commit_helper"]

@@ -1,0 +1,142 @@
+{
+ "external_content|code_exec|target_agnostic": {
+  "existing": 3,
+  "added": 2,
+  "total": 5
+ },
+ "external_content|dependency_manip|target_agnostic": {
+  "existing": 0,
+  "added": 5,
+  "total": 5
+ },
+ "external_content|instruction_manip|target_agnostic": {
+  "existing": 0,
+  "added": 5,
+  "total": 5
+ },
+ "source_agnostic|code_exec|info_theft": {
+  "existing": 2,
+  "added": 3,
+  "total": 5
+ },
+ "source_agnostic|code_exec|persistent_control": {
+  "existing": 0,
+  "added": 5,
+  "total": 5
+ },
+ "source_agnostic|code_exec|resource_abuse": {
+  "existing": 0,
+  "added": 5,
+  "total": 5
+ },
+ "source_agnostic|code_exec|system_damage": {
+  "existing": 0,
+  "added": 5,
+  "total": 5
+ },
+ "source_agnostic|code_exec|target_agnostic": {
+  "existing": 2,
+  "added": 3,
+  "total": 5
+ },
+ "source_agnostic|defense_evasion|defense_evasion": {
+  "existing": 0,
+  "added": 5,
+  "total": 5
+ },
+ "source_agnostic|instruction_manip|content_safety": {
+  "existing": 0,
+  "added": 5,
+  "total": 5
+ },
+ "source_agnostic|instruction_manip|defense_evasion": {
+  "existing": 0,
+  "added": 5,
+  "total": 5
+ },
+ "source_agnostic|instruction_manip|info_theft": {
+  "existing": 0,
+  "added": 5,
+  "total": 5
+ },
+ "source_agnostic|instruction_manip|resource_abuse": {
+  "existing": 0,
+  "added": 5,
+  "total": 5
+ },
+ "source_agnostic|instruction_manip|target_agnostic": {
+  "existing": 0,
+  "added": 5,
+  "total": 5
+ },
+ "source_agnostic|mechanism_unknown|info_theft": {
+  "existing": 0,
+  "added": 0,
+  "total": 0
+ },
+ "source_agnostic|mechanism_unknown|target_agnostic": {
+  "existing": 0,
+  "added": 0,
+  "total": 0
+ },
+ "source_agnostic|obfuscation|info_theft": {
+  "existing": 0,
+  "added": 5,
+  "total": 5
+ },
+ "source_agnostic|obfuscation|target_agnostic": {
+  "existing": 2,
+  "added": 3,
+  "total": 5
+ },
+ "source_agnostic|privilege_abuse|financial_theft": {
+  "existing": 0,
+  "added": 5,
+  "total": 5
+ },
+ "source_agnostic|privilege_abuse|resource_abuse": {
+  "existing": 0,
+  "added": 5,
+  "total": 5
+ },
+ "source_agnostic|privilege_abuse|system_damage": {
+  "existing": 0,
+  "added": 5,
+  "total": 5
+ },
+ "source_agnostic|privilege_abuse|target_agnostic": {
+  "existing": 0,
+  "added": 5,
+  "total": 5
+ },
+ "source_agnostic|state_corruption|defense_evasion": {
+  "existing": 0,
+  "added": 5,
+  "total": 5
+ },
+ "source_agnostic|state_corruption|persistent_control": {
+  "existing": 2,
+  "added": 3,
+  "total": 5
+ },
+ "source_agnostic|state_corruption|target_agnostic": {
+  "existing": 0,
+  "added": 5,
+  "total": 5
+ },
+ "source_agnostic|subagent_escalation|target_agnostic": {
+  "existing": 0,
+  "added": 5,
+  "total": 5
+ },
+ "supply_chain|code_exec|info_theft": {
+  "existing": 1,
+  "added": 4,
+  "total": 5
+ },
+ "supply_chain|code_exec|persistent_control": {
+  "existing": 0,
+  "added": 5,
+  "total": 5
+ }
+}

@@ -11,6 +11,7 @@
 - ATTACK_SEEDS：(mechanism, target) → 真实样本驱动的恶意行为 seed
 - 坐标采样：可随机 / 可指定 source 或目标扫描器可见性（盲区/覆盖）
 """
+import os
 import random
 
 
@@ -544,6 +545,94 @@ def load_layer2_combos(path):
     except FileNotFoundError:
         return []
     return rows
+
+
+# ============================================================
+# 7. COORD_SEEDS：43 坐标全覆盖种子层（2026-08-16，WEEK-7 新增）
+# ============================================================
+# 来源：s4-slots-full.csv 43 唯一坐标 × (ATTACK_SEEDS 匹配 + mapping-db evidence 清洗 + 手写补缺)。
+# 数据文件：generator/coord_seeds.json（key = "source|mech|target"，字段见下）。
+# 与 SLOT_SEEDS 区别：SLOT_SEEDS 是 19 个精选手写槽，COORD_SEEDS 是 taxonomy 全部 43 坐标，
+#   用于"坐标级覆盖"批量生成（WEEK-7 D1 决策：43 坐标 × 每坐标 2-4 样本）。
+_COORD_SEEDS = None
+
+
+def coord_seeds():
+    """惰性加载 coord_seeds.json → {("source","mech","target"): {...}}"""
+    global _COORD_SEEDS
+    if _COORD_SEEDS is None:
+        import json as _json
+        _p = os.path.join(os.path.dirname(os.path.abspath(__file__)), "coord_seeds.json")
+        try:
+            raw = _json.load(open(_p, encoding="utf-8"))
+            _COORD_SEEDS = {tuple(k.split("|")): v for k, v in raw.items()}
+        except FileNotFoundError:
+            _COORD_SEEDS = {}
+    return _COORD_SEEDS
+
+
+def coord_coordinate(source=None, mechanism=None, target=None, vector=None, disguise=None):
+    """按精确三维坐标取行为生成样本坐标（COORD_SEEDS 驱动）。
+
+    与 sample_coordinate 的区别：sample_coordinate 随机采样（ATTACK_SEEDS 偏好池），
+    本函数按指定坐标定向取行为（坐标必须是 43 之一）。任一维度缺省时从 COORD_SEEDS 随机补。
+    """
+    seeds = coord_seeds()
+    if not seeds:
+        raise RuntimeError("coord_seeds.json 未找到——请检查 generator/coord_seeds.json 存在")
+    # 精确匹配
+    if source and mechanism and target:
+        key = (source, mechanism, target)
+        if key not in seeds:
+            raise KeyError(f"坐标 {key} 不在 COORD_SEEDS 43 坐标内")
+        entry = seeds[key]
+    else:
+        # 缺省维度:过滤可用坐标
+        pool = [k for k in seeds if
+                (source is None or k[0] == source) and
+                (mechanism is None or k[1] == mechanism) and
+                (target is None or k[2] == target)]
+        if not pool:
+            raise KeyError(f"无匹配坐标: source={source} mech={mechanism} target={target}")
+        key = random.choice(pool)
+        entry = seeds[key]
+    source, mechanism, target = key
+    # behaviors: ATTACK_SEEDS 匹配优先, mdb evidence 补充, 手写兜底
+    behaviors = list(entry.get("behaviors", []))
+    behaviors += list(entry.get("handbook", []))
+    if not behaviors and entry.get("mdb_evidence"):
+        behaviors = list(entry["mdb_evidence"])
+    # 保底: 从 ATTACK_SEEDS 取同 (mech,target)
+    if not behaviors:
+        fallback = ATTACK_SEEDS.get((mechanism, target))
+        if fallback:
+            behaviors = [x[1] for x in fallback]
+    if not behaviors:
+        raise RuntimeError(f"坐标 {key} 无任何行为种子")
+    strategy = SOURCE_STRATEGY.get(source)
+    if strategy is None:
+        strategy = {"label": source, "injection_point": "来源未定义策略",
+                    "entry_path": "", "visibility": "half", "real_examples": []}
+    vec = vector or random.choice(VECTOR_VALUES)
+    return {
+        "source": source,
+        "mechanism": mechanism,
+        "target": target,
+        "vector": vec,
+        "disguise": disguise or random.choice(DISGUISE_THEMES),
+        "seed_actions": behaviors,
+        "seed_primitives": list(entry.get("primitives", [])) or [entry.get("coord_cn", [None, None, None])[1]],
+        "callback": CALLBACK_PLACEHOLDER,
+        "source_strategy": {
+            "injection_point": strategy["injection_point"],
+            "entry_path": strategy["entry_path"],
+            "visibility": strategy["visibility"],
+            "real_examples": strategy["real_examples"][:2],
+        },
+        "slots": entry.get("slots", []),
+        "coord_cn": entry.get("coord_cn"),
+        "mdb_evidence": entry.get("mdb_evidence", []),
+    }
 
 
 if __name__ == "__main__":

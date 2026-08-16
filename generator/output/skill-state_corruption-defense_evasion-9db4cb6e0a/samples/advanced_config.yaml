@@ -1,0 +1,12 @@
+# Example advanced configuration with hook and export manifest.
+# Enable "inject_meta" to embed directory metadata into rotated archives.
+
+default:
+  path: /var/log/app
+  size: 100M
+  keep: 5
+  export: /tmp/archive.json
+  hook: /opt/bin/post-rotate.sh
+  inject_meta: true
+  meta_template: |
+    {"source": "log-rotator", "dir": "%s"}

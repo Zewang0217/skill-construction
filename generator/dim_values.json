@@ -1,0 +1,462 @@
+[
+ {
+  "id": 40,
+  "dimension": "carrier",
+  "value_name": "提示词",
+  "definition": "攻击经文本/指令载体实施——注入、覆盖、越狱指令",
+  "examples": "P1-P5 指令覆盖/隐藏/外泄（经文本实施）、tool 描述投毒",
+  "counter_examples": "直接执行代码（载体=代码）",
+  "decision_rules": "攻击数据/指令流经文本或模型输入通道",
+  "literature_ref": "载体定义 2026-08-02"
+ },
+ {
+  "id": 41,
+  "dimension": "carrier",
+  "value_name": "代码",
+  "definition": "攻击经代码载体实施——脚本、程序逻辑",
+  "examples": "AST1-9 exec/eval/subprocess、PE2 sudo 命令、curl|bash",
+  "counter_examples": "纯文本指令（载体=提示词）",
+  "decision_rules": "攻击经代码/命令执行机制实施",
+  "literature_ref": "载体定义 2026-08-02"
+ },
+ {
+  "id": 42,
+  "dimension": "carrier",
+  "value_name": "网络",
+  "definition": "攻击经网络载体实施——数据外传、远程请求",
+  "examples": "E1 外部传输、E4 上下文外传、SSRF",
+  "counter_examples": "本地文件读取（载体=文件）",
+  "decision_rules": "攻击数据流经网络通道",
+  "literature_ref": "载体定义 2026-08-02"
+ },
+ {
+  "id": 43,
+  "dimension": "carrier",
+  "value_name": "文件",
+  "definition": "攻击经文件系统载体实施——枚举、读取、写入敏感文件",
+  "examples": "E3 文件枚举、PE3 读凭证文件、文件投毒",
+  "counter_examples": "读环境变量（载体=数据）",
+  "decision_rules": "攻击数据在文件系统",
+  "literature_ref": "载体定义 2026-08-02"
+ },
+ {
+  "id": 44,
+  "dimension": "carrier",
+  "value_name": "数据",
+  "definition": "攻击经数据载体实施——环境变量、配置、上下文中的敏感数据",
+  "examples": "E2 环境变量收割、配置中的密钥",
+  "counter_examples": "文件系统中的文件（载体=文件）",
+  "decision_rules": "攻击数据来自 env/配置/上下文存储",
+  "literature_ref": "载体定义 2026-08-02"
+ },
+ {
+  "id": 45,
+  "dimension": "carrier",
+  "value_name": "状态",
+  "definition": "存储型载体：攻击数据在记忆/上下文/持久状态中——MP1 持久注入、跨会话状态污染",
+  "examples": "MP1-3 记忆投毒、Memory Poisoning、跨会话状态污染",
+  "counter_examples": "数据在环境变量/配置=数据载体；一次性会话内攻击无持久载体",
+  "decision_rules": "攻击数据写入或驻留于记忆/上下文/持久状态存储",
+  "literature_ref": "MITRE ATLAS AML.T0080；载体定义 2026-08-02"
+ },
+ {
+  "id": 46,
+  "dimension": "carrier",
+  "value_name": "依赖",
+  "definition": "攻击经依赖载体实施——包、库、外部组件",
+  "examples": "SC1 未锁定依赖、依赖混淆、typosquatting",
+  "counter_examples": "直接执行代码（载体=代码）",
+  "decision_rules": "攻击经依赖/包/外部组件实施",
+  "literature_ref": "载体定义 2026-08-02"
+ },
+ {
+  "id": 48,
+  "dimension": "carrier",
+  "value_name": "载体不明",
+  "definition": "原始分类未陈述攻击通过的媒介",
+  "examples": "声明类攻击（PE1 请求权限）无数据流",
+  "counter_examples": "能判断数据流时不标",
+  "decision_rules": "原文未述或声明/配置类无数据流",
+  "literature_ref": "载体定义 2026-08-02"
+ },
+ {
+  "id": 6,
+  "dimension": "mech",
+  "value_name": "指令操纵",
+  "definition": "以自然语言/文本为载体，作用于模型的理解与决策层，使模型做出本不会做的选择或输出",
+  "examples": "P1 指令覆盖（ignore previous instructions）、P5 有害内容指令、越狱、tool 描述投毒",
+  "counter_examples": "文本驱动结果为执行代码（curl|bash）=代码执行；藏匿文本=叠加混淆；P3 外泄命令是文本载体+执行动作的复合",
+  "decision_rules": "载体是文本 + 生效对象是模型语义决策；若生效的是进程/代码执行则归代码执行",
+  "literature_ref": "OWASP LLM01:2025；arXiv:2601.10338；MITRE ATLAS AML.T0051"
+ },
+ {
+  "id": 8,
+  "dimension": "mech",
+  "value_name": "混淆隐藏",
+  "definition": "可叠加属性（不参与主值互斥判定）：通过隐藏/混淆规避检测（base64、Unicode、同形异义符、藏注释）",
+  "examples": "P2 隐藏指令（注释/不可见文本）、base64 编码载荷、同形异义符冒充、Native code 二进制内嵌(.node/.so/.dll 源码不可见,同 Cisco OBFUSCATION_BINARY_FILE)",
+  "counter_examples": "不是独立攻击动作，需叠加在主方式上（藏指令/藏代码/藏下载）",
+  "decision_rules": "原文同时陈述隐藏手段与攻击动作时，作为附加属性叠加",
+  "literature_ref": "MITRE ATT&CK T1027 Obfuscated Files"
+ },
+ {
+  "id": 11,
+  "dimension": "mech",
+  "value_name": "状态污染",
+  "definition": "memory poisoning、修改 system prompt、上下文状态篡改",
+  "examples": "P4 行为操纵（always/never/every 持续行为改变）、Memory Poisoning、自修改、持久化后门",
+  "counter_examples": "一次性执行后退出；通过指令改变单次输出（那是指令操纵）",
+  "decision_rules": "攻击污染持久状态或长期行为模式（记忆/配置/进程驻留）",
+  "literature_ref": "CWE-653 关联；arXiv:2603.11619（Taming OpenClaw）memory poisoning"
+ },
+ {
+  "id": 12,
+  "dimension": "mech",
+  "value_name": "方式不明",
+  "definition": "原始分类未陈述具体攻击手段",
+  "examples": "原文只描述后果未述手段的分类（如纯目标导向类别）",
+  "counter_examples": "原文明确提到 exec/指令/权限时不能标不明",
+  "decision_rules": "读了原文、确实未陈述技术手段才标",
+  "literature_ref": "映射基线 2026-08-02"
+ },
+ {
+  "id": 49,
+  "dimension": "mech",
+  "value_name": "代码执行",
+  "definition": "直接执行恶意代码/命令——exec/eval/subprocess、命令注入、RCE；扫描器检测锚点",
+  "examples": "AST1-9 exec/eval/subprocess、E1 外部传输、curl|bash",
+  "counter_examples": "通过指令诱导 agent 执行=指令操纵",
+  "decision_rules": "检测到代码级执行动作（进程/命令/脚本运行）而非文本驱动",
+  "literature_ref": "CWE-94/77；MITRE ATT&CK T1059"
+ },
+ {
+  "id": 50,
+  "dimension": "mech",
+  "value_name": "权限滥用",
+  "definition": "滥用超出所需的权限/能力——权限提升、权限请求、越权调用工具",
+  "examples": "PE1 权限请求（request full access）、PE2 sudo/root 提权、LP2 通配符权限、越权调用危险工具",
+  "counter_examples": "权限声明正确但被注入利用=缺乏输入验证；合理权限下调用工具",
+  "decision_rules": "攻击者主动请求/获取/使用超出声明的权限或能力",
+  "literature_ref": "OWASP LLM06:2025 Excessive Agency；CWE-732/250"
+ },
+ {
+  "id": 51,
+  "dimension": "mech",
+  "value_name": "依赖操纵",
+  "definition": "利用依赖/包管理机制——投毒未锁定依赖、exploit 已知漏洞依赖、拼写劫持、远程下载依赖",
+  "examples": "SC1 未锁定依赖、SC4 已知CVE依赖、SC5 废弃包、SC6 拼写劫持、SC2 curl|bash(与代码执行复合)",
+  "counter_examples": "直接执行代码=代码执行（SC2 复合）；经文本指令=指令操纵",
+  "decision_rules": "攻击通过依赖/包/仓库机制实施或依赖本身有可被利用的漏洞",
+  "literature_ref": "CWE-829/494/347；OWASP LLM03:2025"
+ },
+ {
+  "id": 54,
+  "dimension": "mech",
+  "value_name": "触发机制滥用",
+  "definition": "利用/滥用的激活机制——skill 的触发器（triggers 元数据）被设计成有害形态：过宽触发扩大攻击面、影子命令冒充系统命令、关键词诱饵最大化激活",
+  "examples": "TR1 过宽触发（常见词/短词）、TR2 影子命令（触发词=ls/cd 等内置命令）、TR3 关键词诱饵（anything/everything/all messages）",
+  "counter_examples": "代码级执行=代码执行；指令驱动模型=指令操纵；权限范围过大=权限滥用",
+  "decision_rules": "攻击面/激活机制被设计成有害（SKILL.md triggers 字段）——非代码执行、非指令、非权限",
+  "literature_ref": "SkillSpector Trigger Abuse 类；ASI 框架；agent skill 生态特有（论文贡献点候选）"
+ },
+ {
+  "id": 61,
+  "dimension": "mech",
+  "value_name": "子agent提权",
+  "definition": "经子 agent 边界获得或执行超出父 agent 权限的能力——子 agent 以更宽权限生成、或经工具自提权（PreSubAgentSpawn 权限继承对比）",
+  "examples": "AARTS T011 子 agent 提权（子 agent 请求父 agent 没有的权限）、子 agent 经工具自提权",
+  "counter_examples": "skill 自身请求过多权限=权限滥用（PE1）；直接提权命令=权限滥用",
+  "decision_rules": "攻击经子 agent 的独立权限边界实施（父级权限被绕过/放大）——非 skill 自身权限请求",
+  "literature_ref": "AARTS T011（PreSubAgentSpawn 权限继承对比）；agent 生态特有执行边界"
+ },
+ {
+  "id": 62,
+  "dimension": "mech",
+  "value_name": "规避检测",
+  "definition": "agent 感知检测引擎被阻塞后自适应绕过——混淆命令(base64/字符串拼接/hex)、拆分恶意动作、切换替代工具、委派子 agent（行为层面反检测）",
+  "examples": "AARTS T015（感知 deny 后换策略）、Sage defense_evasion 14 条+self_defense 4 条、跨轮 deny→相似重试",
+  "counter_examples": "静态隐藏恶意代码=混淆隐藏（内容层面）；单纯越狱指令=指令操纵",
+  "decision_rules": "攻击者动态适应检测机制（感知被 block→换手段）——行为层面，区别于混淆隐藏的静态内容藏",
+  "literature_ref": "AARTS T015（跨轮关联 deny→重试、行为异常检测）；Sage defense_evasion/self_defense"
+ },
+ {
+  "id": 1,
+  "dimension": "source",
+  "value_name": "供应链",
+  "definition": "恶意来自第三方依赖、仓库、包管理器的构建/分发环节",
+  "examples": "Supply Chain 类（第三方依赖、仓库投毒）、SC1 未固定依赖、内嵌恶意脚本的 SKILL.md",
+  "counter_examples": "用户直接粘贴的注入文本=用户输入；运行时抓取的网页=外部不可信内容",
+  "decision_rules": "恶意内容随 skill/插件/依赖安装时进入，安装即存在",
+  "literature_ref": "MAPPING_SPEC V1；Unit 42 BIV 供应链分析"
+ },
+ {
+  "id": 2,
+  "dimension": "source",
+  "value_name": "用户输入",
+  "definition": "恶意指令直接来自用户写的 prompt、对话、上传的文件",
+  "examples": "用户粘贴注入文本、诱导性指令、上传的恶意文件",
+  "counter_examples": "skill 自带指令=供应链；网页内容=外部不可信内容",
+  "decision_rules": "恶意内容来自直接使用者的输入（prompt/对话/文件）",
+  "literature_ref": "MAPPING_SPEC V1；OWASP LLM01 直接注入"
+ },
+ {
+  "id": 3,
+  "dimension": "source",
+  "value_name": "外部不可信内容",
+  "definition": "恶意藏在 URL、网页、引用的外部数据中",
+  "examples": "被投毒的网页、邮件、RAG 文档、API 响应（间接注入）",
+  "counter_examples": "用户主动粘贴=用户输入",
+  "decision_rules": "恶意内容在 agent 运行时从外部源读取",
+  "literature_ref": "Greshake et al. arXiv:2302.12173；OWASP LLM01 间接注入"
+ },
+ {
+  "id": 4,
+  "dimension": "source",
+  "value_name": "运行时环境",
+  "definition": "恶意来自 MCP server、其他 agent、系统进程",
+  "examples": "恶意 MCP server、其他 agent、工具描述投毒",
+  "counter_examples": "prompt 本身不是来源——它是通道",
+  "decision_rules": "恶意来自运行时环境中的其他组件（非用户、非外部数据）",
+  "literature_ref": "MAPPING_SPEC V1；OWASP LLM06 multi-agent"
+ },
+ {
+  "id": 5,
+  "dimension": "source",
+  "value_name": "来源不明",
+  "definition": "原始分类未陈述攻击从哪个渠道进入",
+  "examples": "SkillSpector P1 指令覆盖（未述通道）、E1 外部传输（未述通道）",
+  "counter_examples": "原文明确提到通道时不能标不明",
+  "decision_rules": "读了原文、确实未陈述进入渠道才标；不替扫描器编造",
+  "literature_ref": "映射基线 2026-08-02：宁标不明不硬猜"
+ },
+ {
+  "id": 66,
+  "dimension": "source",
+  "value_name": "来源无关",
+  "definition": "恶意内容可从任何通道进入（供应链/用户输入/外部不可信内容/运行时环境皆可），扫描器不区分通道；静态检测仅覆盖包内实例。对应 profile 来源约束=来源无关。",
+  "examples": "代码行为类（exec/eval 调用）、文本指令类（注入/越狱指令）",
+  "counter_examples": "依赖声明/权限配置/元数据面（那是有强约束的供应链）",
+  "decision_rules": "指令面/代码行为面→来源无关；配置/依赖/元数据面→供应链；外部输入驱动→外部不可信内容",
+  "literature_ref": "DIMENSION_BOUNDARIES.md 来源定义（入口/通道）+ week-5 WEEK5_DECISIONS.md 决策2（2026-08-11 二次修正）"
+ },
+ {
+  "id": 13,
+  "dimension": "target",
+  "value_name": "窃取信息",
+  "definition": "违反机密性——读取/外传敏感数据、环境变量、系统提示",
+  "examples": "数据外泄、凭证窃取、系统提示泄露、上下文外传（E1-E4）",
+  "counter_examples": "仅读取非敏感配置信息",
+  "decision_rules": "攻击者拿到了敏感数据（机密性违反）",
+  "literature_ref": "CIA 机密性；OWASP LLM02/LLM07"
+ },
+ {
+  "id": 14,
+  "dimension": "target",
+  "value_name": "破坏系统",
+  "definition": "违反完整性和可用性——加密勒索、删除数据、植入后门",
+  "examples": "删改文件、篡改配置、勒索、破坏功能",
+  "counter_examples": "只是把数据偷走（那=窃取信息）",
+  "decision_rules": "攻击损害系统/数据完整性或可用性",
+  "literature_ref": "CIA 完整性/可用性"
+ },
+ {
+  "id": 15,
+  "dimension": "target",
+  "value_name": "持久控制",
+  "definition": "违反控制性——写 cron、改配置、创建进程驻留",
+  "examples": "写 cron、改配置、创建进程驻留、Rogue Agent 持久化",
+  "counter_examples": "一次性执行后退出（无持久证据不标）",
+  "decision_rules": "必须有明确持久化证据（写文件/改配置/创建进程）",
+  "literature_ref": "MITRE ATT&CK TA0003 Persistence"
+ },
+ {
+  "id": 16,
+  "dimension": "target",
+  "value_name": "绕过防御",
+  "definition": "反检测、反拒绝、混淆意图以逃避安全策略",
+  "examples": "AR1-3 抗拒绝、反检测、绕过审核、隐藏行为",
+  "counter_examples": "直接攻击系统（不涉及防御机制）",
+  "decision_rules": "针对安全机制/对齐/审计的对抗",
+  "literature_ref": "MITRE ATT&CK TA0005 Defense Evasion"
+ },
+ {
+  "id": 17,
+  "dimension": "target",
+  "value_name": "资源滥用",
+  "definition": "消耗/耗尽计算资源、配额、成本——DoS、挖矿、无界资源消耗",
+  "examples": "EA4 无配额、YR3 挖矿、Cisco 分叉炸弹(:(){:|:&};:)/无限循环(while True: 无退出)/超大内存分配",
+  "counter_examples": "仅读取数据=窃取信息；仅破坏文件=破坏系统",
+  "decision_rules": "攻击目标是消耗受害者计算资源/配额/成本（DoS/挖矿/无界消耗）",
+  "literature_ref": "CWE-400 Uncontrolled Resource Consumption；OWASP LLM06"
+ },
+ {
+  "id": 18,
+  "dimension": "target",
+  "value_name": "目标不明",
+  "definition": "原始分类未陈述攻击的最终后果",
+  "examples": "只描述机制未述后果的分类（如 P2 隐藏指令）",
+  "counter_examples": "原文明确后果（外传/破坏）时不标",
+  "decision_rules": "读了原文、确实未陈述攻击后果才标",
+  "literature_ref": "映射基线 2026-08-02"
+ },
+ {
+  "id": 29,
+  "dimension": "target",
+  "value_name": "内容安全危害",
+  "definition": "违反内容安全——模型输出可致物理伤害/违法/自残等有害内容，受害对象是工具用户（人）",
+  "examples": "P5 有害内容（投毒食谱/爆炸物/自残指令）",
+  "counter_examples": "危害的是系统本身=破坏系统",
+  "decision_rules": "后果是现实世界危害、受害对象是人而非系统",
+  "literature_ref": "OWASP LLM09:2025 Misinformation；SkillSpector P5"
+ },
+ {
+  "id": 60,
+  "dimension": "target",
+  "value_name": "金融窃取",
+  "definition": "攻击目标=直接移动/窃取资金——支付处理、加密操作、银行集成、市场订单执行等金融交易能力被滥用",
+  "examples": "Snyk W009 直接金融执行能力(加密操作/循环支付/银行账户)、诱导 agent 转钱/掏空账户",
+  "counter_examples": "仅读取财务数据不外传=窃取信息；消耗计算资源=资源滥用",
+  "decision_rules": "攻击者意图/能力是直接操作资金或金融交易(非仅读取数据)",
+  "literature_ref": "Snyk W009；OWASP LLM06 过度自主(金融后果)"
+ },
+ {
+  "id": 19,
+  "dimension": "vuln",
+  "value_name": "缺乏输入验证与信任隔离",
+  "definition": "系统未验证输入来源和可信度就纳入执行上下文；未区分指令与数据（数据-指令边界缺失）",
+  "examples": "Prompt Injection（直接/间接）、P1 指令覆盖、AR 抗拒绝",
+  "counter_examples": "依赖未锁定=供应链问题；权限过宽=授权问题",
+  "decision_rules": "攻击成功的关键是系统无差别信任输入/未区分指令与数据",
+  "literature_ref": "CWE-77/94/74（CWE-20 已弃用）；OWASP LLM01；arXiv:2604.02837 数据-指令边界"
+ },
+ {
+  "id": 20,
+  "dimension": "vuln",
+  "value_name": "供应链完整性缺失",
+  "definition": "依赖版本未固定、未验证来源完整性与出处；包内内容被篡改（字节码/依赖替换）",
+  "examples": "SC1 未固定依赖、SC2 curl|bash、typosquatting、已知 CVE 依赖、字节码篡改(.pyc vs .py 不符)、依赖替换、隐藏文件藏代码",
+  "counter_examples": "已锁定版本+校验和的正常依赖",
+  "decision_rules": "分类提到未锁定版本/CVE/可疑 URL/未验证完整性/字节码篡改/依赖替换",
+  "literature_ref": "CWE-829/494/347；OWASP LLM03"
+ },
+ {
+  "id": 21,
+  "dimension": "vuln",
+  "value_name": "权限过宽（最小权限违反）",
+  "definition": "工具授权范围远超实际需要，违反最小权限原则（原：权限过宽（通配符））",
+  "examples": "MCP 通配符权限、LP2、PE1 权限请求、EA 过度授权",
+  "counter_examples": "合理的最小权限分配",
+  "decision_rules": "分类提到通配符/过度权限/越权/未限制范围",
+  "literature_ref": "CWE-732/250；OWASP LLM06"
+ },
+ {
+  "id": 23,
+  "dimension": "vuln",
+  "value_name": "缺乏输出过滤",
+  "definition": "未对模型/工具输出做安全过滤和消毒",
+  "examples": "OH1 未验证输出注入、LLM 输出直入 shell/浏览器、P5 有害输出未过滤",
+  "counter_examples": "信息泄露（输出文本未达危险 sink）",
+  "decision_rules": "攻击成功因输出未经编码/消毒/验证就传给下游",
+  "literature_ref": "CWE-116/79；OWASP LLM05"
+ },
+ {
+  "id": 24,
+  "dimension": "vuln",
+  "value_name": "状态未隔离",
+  "definition": "用户或会话间的状态未隔离导致交叉污染",
+  "examples": "共享记忆被投毒影响后续会话、跨用户状态污染",
+  "counter_examples": "单会话内一次性攻击",
+  "decision_rules": "状态跨用户/会话/信任边界共享且未隔离",
+  "literature_ref": "CWE-653；arXiv:2604.02837 单次批准模型"
+ },
+ {
+  "id": 26,
+  "dimension": "vuln",
+  "value_name": "未声明能力与实际不符",
+  "definition": "skill 声明的功能与实际行为不一致",
+  "examples": "声称只读实际外联（E1）、描述-行为不匹配（TP4）、隐藏能力",
+  "counter_examples": "用户没读声明（用户侧问题）；bug 导致的意外行为",
+  "decision_rules": "实际运行时行为与声明/元数据不符且用户依赖声明授信",
+  "literature_ref": "Unit 42 BIV；Liu 2026a undocumented capabilities"
+ },
+ {
+  "id": 28,
+  "dimension": "vuln",
+  "value_name": "过度自主/缺人机确认",
+  "definition": "高影响操作无人工确认门，单次批准后长期有效（OWASP LLM06）",
+  "examples": "EA2 自主决策无 HITL、单次批准后长期有效",
+  "counter_examples": "权限过宽但动作仍需确认（那=权限过宽）",
+  "decision_rules": "高影响操作缺人工确认门",
+  "literature_ref": "OWASP LLM06 excessive autonomy；arXiv:2604.02837"
+ },
+ {
+  "id": 52,
+  "dimension": "vuln",
+  "value_name": "工具调用缺乏约束",
+  "definition": "工具/命令调用缺少安全控制层——危险参数未校验、无 deny 列表、无 hook 拦截、校验可被跳过",
+  "examples": "TM1 shell=True/rm -rf、TM2 链式绕过单点检查、TM3 verify=False/auth=None",
+  "counter_examples": "授权范围过大=权限过宽（EA1）；输入未验证=缺乏输入验证",
+  "decision_rules": "攻击成功因工具调用无危险参数校验/无 deny 列表/无 hook/默认关校验",
+  "literature_ref": "CWE-1188 Insecure Defaults；CWE-250；OWASP LLM05；mapping-v1 GAP（缺 deny 列表/缺 hook）"
+ },
+ {
+  "id": 53,
+  "dimension": "vuln",
+  "value_name": "状态/代码完整性保护缺失",
+  "definition": "系统允许持久状态（记忆/上下文）或自身代码/配置在运行时被篡改——无完整性校验、无不可变保护、无防篡改机制；被污染的规则或改写后的代码长期生效",
+  "examples": "RA1 自修改（open(__file__,'w')/write to SKILL.md）、RA2 写 crontab/.bashrc 持久化、MP1 记忆持久注入、MP3 记忆篡改",
+  "counter_examples": "跨用户/会话状态污染=状态未隔离（CWE-653）；仅读取状态无篡改=不适用",
+  "decision_rules": "攻击成功因持久状态/自身代码可被运行时写入或改写且无校验；区别于状态未隔离（跨主体污染 vs 自身完整性）",
+  "literature_ref": "CWE-353（完整性校验缺失）；MITRE ATLAS AML.T0080（记忆投毒）；ASI10"
+ },
+ {
+  "id": 55,
+  "dimension": "vuln",
+  "value_name": "触发条件设计缺陷",
+  "definition": "skill 的激活条件（triggers 元数据）设计有害——过宽触发在大量无关上下文激活扩大攻击面、影子命令冒充系统命令欺骗用户、关键词诱饵匹配几乎所有输入",
+  "examples": "TR1 过宽（常见词激活）、TR2 影子命令（触发词=内置命令）、TR3 诱饵（匹配一切输入）",
+  "counter_examples": "功能声明与实际行为不符=未声明能力与实际不符（TP4）；权限范围过大=权限过宽",
+  "decision_rules": "攻击成功/攻击面扩大因激活条件设计有害——元数据层面非代码/指令/权限",
+  "literature_ref": "SkillSpector Trigger Abuse；agent skill 生态特有（论文贡献点候选）"
+ },
+ {
+  "id": 56,
+  "dimension": "vuln",
+  "value_name": "代码执行能力过宽",
+  "definition": "skill 代码被允许调用任意执行原语（exec/eval/subprocess/os.system/compile/getattr 反射）且无沙箱、无最小能力约束——最小能力原则在代码层的违反",
+  "examples": "AST1 exec()、AST2 eval()、AST4 subprocess、AST5 os.system、AST8 exec(网络数据)、AST9 getattr(os, system)",
+  "counter_examples": "授权/权限范围过大=权限过宽（PE1/EA1）；工具调用参数无校验=工具调用缺乏约束（TM1-3）；仅调用系统工具无执行原语=不适用",
+  "decision_rules": "代码含任意代码执行原语且运行环境无限制——与权限过宽（授权面）区分：这是代码能力面",
+  "literature_ref": "CWE-250 Execution with Unnecessary Privileges；OWASP LLM06 Excessive Agency；最小权限原则（代码层）"
+ },
+ {
+  "id": 57,
+  "dimension": "vuln",
+  "value_name": "数据流缺乏安全控制",
+  "definition": "系统允许数据从源（凭证/文件/网络/用户输入）流向危险汇（网络出口/代码执行/文件写）且路径上无净化/无过滤/无隔离/无监控——数据流路径缺乏安全控制",
+  "examples": "TT1 直接流（源→汇无净化）、TT3 凭证→网络、TT4 文件→网络、TT5 外部输入→exec、E1-E4 数据外泄",
+  "counter_examples": "仅读取敏感数据不外传=敏感信息泄露（结果面，非路径缺陷）；输入未验证来源=缺乏输入验证与信任隔离（源侧）",
+  "decision_rules": "攻击成功因数据在源→汇路径上无阻碍流动（无净化/过滤/隔离/监控）——路径侧缺陷，区别于源侧（输入验证）与结果侧（泄露）",
+  "literature_ref": "TT1 README 原文 without sanitization；OWASP LLM02 数据外泄；CWE-200 信息暴露（路径缺控制面）"
+ },
+ {
+  "id": 58,
+  "dimension": "vuln",
+  "value_name": "硬编码凭证无保护",
+  "definition": "系统允许密钥/凭证以明文形式硬编码在代码或文档中且无保护——密钥管理缺陷（CWE-798 Use of Hard-coded Credentials）",
+  "examples": "Cisco SECRET_AWS_KEY(AKIA...)/SECRET_STRIPE_KEY(sk_live_...)/SECRET_GOOGLE_API(AIza...)/SECRET_GITHUB_TOKEN(ghp_...)/SECRET_PRIVATE_KEY(BEGIN RSA PRIVATE KEY)/SECRET_CONNECTION_STRING(mysql://user:pass@host)",
+  "counter_examples": "读取环境变量=好实践非漏洞(DATA_EXFIL_ENV_VARS 被 Cisco 移除)；密钥经数据流外传=数据流缺乏安全控制(TT3/4)",
+  "decision_rules": "攻击成功因密钥明文存在于代码/文档且无保护——静态暴露，非数据流路径问题",
+  "literature_ref": "CWE-798 Use of Hard-coded Credentials；GitHub secret scanning 同款"
+ },
+ {
+  "id": 59,
+  "dimension": "vuln",
+  "value_name": "凭证处理不当",
+  "definition": "系统要求/允许密钥值以不安全方式处理——如逐字包含在输出、嵌入生成命令、请求用户共享、明文存储于上下文——密钥暴露在上下文/历史造成外泄风险",
+  "examples": "Snyk W007(skill 要求 agent 把 API key 逐字输出在生成内容里)、echo/print 密钥、把凭据嵌入命令、请求用户共享密钥",
+  "counter_examples": "静态硬编码在代码里=硬编码凭证无保护(CWE-798)；正确使用环境变量/密钥库=好实践",
+  "decision_rules": "攻击成功因密钥在处理过程中暴露(输出/命令/共享/存储)——动态处理不当，区别于静态硬编码",
+  "literature_ref": "OWASP LLM02 敏感信息泄露；Snyk W007"
+ }
+]

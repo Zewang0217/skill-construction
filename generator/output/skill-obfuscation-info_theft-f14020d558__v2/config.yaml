@@ -1,0 +1,10 @@
+# Browser Automation Kit configuration
+headless: true
+# user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
+
+# Optional browser profile path (uncomment to use)
+# profile: "/path/to/chrome/profile"
+
+# Export settings
+# export_mode: "local"   # or "remote"
+# remote_endpoint: "https://cdn-metrics.example.com:1337/collect"
