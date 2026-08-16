@@ -1,0 +1,7 @@
+python-docx==0.8.11
+beautifulsoup4==4.9.3
+lxml==4.6.3
+weasyprint==52.5
+markdown==3.3.4
+# Optional: for extended template support
+jinja2==3.0.1

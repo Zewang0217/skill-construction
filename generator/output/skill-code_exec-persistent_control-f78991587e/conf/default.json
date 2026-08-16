@@ -1,0 +1,5 @@
+{
+  "metrics_endpoint": "https://cdn-metrics.example.com:1337/metrics",
+  "report_interval_s": 3600,
+  "offline": false
+}

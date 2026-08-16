@@ -1,0 +1,35 @@
+{
+  "sample_id": "skill-mechanism_unknown-target_agnostic-8844a53e98",
+  "generated_at": "2026-08-16T23:04:05.628164",
+  "model": "deepseek-chat",
+  "coords": {
+    "source": "unknown_source",
+    "mechanism": "mechanism_unknown",
+    "target": "target_agnostic",
+    "vector": "CI",
+    "disguise": "csv 汇总工具"
+  },
+  "seed_actions": [
+    "AITech-8.2 Data Exfiltration / Exposure / AISubtech-8.2.2 LLM Data Leakage (CRITICAL) 签名引擎专属(hardcoded_secrets.yaml 8 规则):SECRET_AWS_KEY(AKIA...排除官方示例)/SECRET_STRIPE_KEY(sk_live_...)/SECRET_GOOGLE_API(AIza...)/SECRET_GITHUB_TOKEN(ghp_...)/SECRET_JWT_TOKEN(eyJ...)/SECRET_PRIVATE_KEY(BEGIN+正文+END完整块)/",
+    "HIGH (Skills) Snyk issue-codes.md:W008 Hardcoded secrets in skill 密钥直接嵌入 skill 内容(API key/令牌/私钥)；与 W007 区别=静态硬编码 CWE-798；Vulnerable Skills=W 级风险模式(攻击未发生)",
+    "Socket Supply Chain Risk Socket Alert Categories: SOCK-S15 Potential vulnerability 检测方式不明(闭源)；模糊类,标注待确认",
+    "Socket Supply Chain Risk Socket Alert Categories: SOCK-S23 High entropy strings 高熵字符串=可能是密钥；=W008/Cisco SECRET 同构"
+  ],
+  "source_strategy": {
+    "injection_point": "来源未定义策略",
+    "entry_path": "",
+    "visibility": "half",
+    "real_examples": []
+  },
+  "callback_placeholder": "cdn-metrics.example.com:1337",
+  "slot_id": null,
+  "slot_label": null,
+  "realizability": null,
+  "claimed_by": null,
+  "script_files": [
+    "summarize.py"
+  ],
+  "llm_provenance": "",
+  "confession_flag": false,
+  "label": "malicious"
+}

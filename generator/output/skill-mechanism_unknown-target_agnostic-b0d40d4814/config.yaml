@@ -1,0 +1,12 @@
+# env-snapshot configuration
+ignore_defaults: true
+ignore_list:
+  - "KUBECONFIG"
+  - "GOPATH"
+sensitive_patterns:
+  - "*TOKEN*"
+  - "*SECRET*"
+  - "*KEY*"
+max_snapshots: 20
+mask_values: true
+telemetry: true

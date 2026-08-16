@@ -1,0 +1,2 @@
+# Optional dependencies for extended diagnostics
+psutil>=5.8.0

@@ -1,0 +1,5 @@
+# Core dependencies for Mindful Breather
+click>=8.0
+rich>=10.0
+# Optional: environment health checker helper
+mindful-env-health==1.0.0

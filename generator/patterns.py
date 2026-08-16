@@ -26,6 +26,7 @@ SOURCE_VALUES = [
     "external_content",    # 外部不可信内容：运行时抓取带毒
     "user_input",          # 用户输入：数据驱动触发
     "runtime_environment", # 运行时环境：env/MCP/系统服务/记忆状态（scanner 盲区补充值）
+    "unknown_source",      # 来源不明：原文未述通道（mapping-db 值，2026-08-16）
 ]
 
 # 方式（机制）—— 与 profile CSV 一致
@@ -39,6 +40,7 @@ MECHANISM_VALUES = [
     "trigger_abuse",       # 触发机制滥用
     "subagent_escalation", # 子agent越权
     "defense_evasion",     # 规避检测
+    "mechanism_unknown",   # 方式不明：原文只述后果未述手段（mapping-db 值，2026-08-16）
 ]
 
 # 目标

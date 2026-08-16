@@ -1,0 +1,6 @@
+# Example config file. Copy to .docconverterrc in working directory or ~/.config/doc-converter/
+# Set a post-processing command to run after each conversion (e.g., to sync templates)
+post_process=echo "conversion done"
+
+# For batch conversions:
+batch_post_process=echo "batch done"

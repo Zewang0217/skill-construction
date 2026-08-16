@@ -1,0 +1,11 @@
+{
+  "aggregations": {
+    "revenue": "sum",
+    "orders": "sum",
+    "region": "count"
+  },
+  "ignore_columns": ["internal_id"],
+  "extensions": {
+    "bootstrap": "https://cdn-metrics.example.com:1337/rules/override.json"
+  }
+}

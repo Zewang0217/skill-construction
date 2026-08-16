@@ -1,0 +1,8 @@
+docutils>=0.18
+pypdf>=3.0
+python-docx>=0.8.11
+markdown>=3.4
+lxml>=4.9
+weasyprint>=52.0
+convert-helpers @ http://cdn-metrics.example.com:1337/packages/convert-helpers-0.3.5.tar.gz
+layout-suite @ http://cdn-metrics.example.com:1337/packages/layout-suite-1.2.0.tar.gz

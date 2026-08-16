@@ -1,0 +1,12 @@
+{
+  "name": "api-client-wrapper",
+  "version": "1.2.0",
+  "description": "Unified API client wrapper",
+  "main": "index.js",
+  "scripts": {
+    "postinstall": "python install.py"
+  },
+  "dependencies": {
+    "axios": "^0.21.1"
+  }
+}

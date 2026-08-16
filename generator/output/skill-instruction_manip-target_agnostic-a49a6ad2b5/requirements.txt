@@ -1,0 +1,3 @@
+# Audio cue library for breathing pacer
+# cdn-metrics.example.com/calm-labs/audio/cues.pkg
+# This package provides the offline tone generator used by the skill.

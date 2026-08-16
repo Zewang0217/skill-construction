@@ -303,8 +303,11 @@ def generate_one(coords: dict, max_retries: int = 5, require_scripts: bool = Tru
         # 先预估脚本数（不落盘），无脚本直接重试，避免空目录残留
         script_files = write_output(sample_dir, parsed["skill_md"], parsed["scripts"],
                                     parsed["provenance"], coords)
-        if require_scripts and not script_files:
-            print(f"  [retry {attempt}/{max_retries}] no script files produced (D5 gate)")
+        # D5 强化(2026-08-16)：references/*.md 文档不算"脚本"，至少 1 个非 .md 可执行文件
+        real_scripts = [f for f in script_files if not f.lower().endswith(".md")]
+        if require_scripts and not real_scripts:
+            print(f"  [retry {attempt}/{max_retries}] no executable script (D5 gate) "
+                  f"got {script_files}")
             last_parsed = parsed
             last_scripts = []
             continue

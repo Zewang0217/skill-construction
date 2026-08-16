@@ -138,5 +138,75 @@
   "existing": 0,
   "added": 5,
   "total": 5
+ },
+ "supply_chain|code_exec|target_agnostic": {
+  "existing": 0,
+  "added": 5,
+  "total": 5
+ },
+ "supply_chain|dependency_manip|info_theft": {
+  "existing": 2,
+  "added": 3,
+  "total": 5
+ },
+ "supply_chain|dependency_manip|persistent_control": {
+  "existing": 0,
+  "added": 5,
+  "total": 5
+ },
+ "supply_chain|instruction_manip|defense_evasion": {
+  "existing": 0,
+  "added": 5,
+  "total": 5
+ },
+ "supply_chain|instruction_manip|target_agnostic": {
+  "existing": 0,
+  "added": 5,
+  "total": 5
+ },
+ "supply_chain|mechanism_unknown|target_agnostic": {
+  "existing": 0,
+  "added": 0,
+  "total": 0
+ },
+ "supply_chain|obfuscation|defense_evasion": {
+  "existing": 0,
+  "added": 5,
+  "total": 5
+ },
+ "supply_chain|obfuscation|target_agnostic": {
+  "existing": 3,
+  "added": 2,
+  "total": 5
+ },
+ "supply_chain|privilege_abuse|resource_abuse": {
+  "existing": 0,
+  "added": 5,
+  "total": 5
+ },
+ "supply_chain|privilege_abuse|target_agnostic": {
+  "existing": 0,
+  "added": 5,
+  "total": 5
+ },
+ "supply_chain|state_corruption|persistent_control": {
+  "existing": 0,
+  "added": 5,
+  "total": 5
+ },
+ "supply_chain|trigger_abuse|target_agnostic": {
+  "existing": 0,
+  "added": 5,
+  "total": 5
+ },
+ "unknown_source|mechanism_unknown|target_agnostic": {
+  "existing": 0,
+  "added": 5,
+  "total": 5
+ },
+ "user_input|code_exec|target_agnostic": {
+  "existing": 0,
+  "added": 5,
+  "total": 5
  }
 }

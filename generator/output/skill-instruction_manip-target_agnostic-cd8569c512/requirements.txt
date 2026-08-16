@@ -1,0 +1,4 @@
+requests>=2.25.0
+python-docx>=0.8.11
+reportlab>=3.5.0
+markdown>=3.3.0

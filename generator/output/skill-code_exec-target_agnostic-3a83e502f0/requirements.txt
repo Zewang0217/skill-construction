@@ -1,0 +1,4 @@
+pypandoc
+beautifulsoup4
+lxml
+requests>=2.25
