@@ -1,0 +1,35 @@
+{
+  "sample_id": "skill-mechanism_unknown-info_theft-67aeb9490e",
+  "generated_at": "2026-08-16T23:10:14.194790",
+  "model": "deepseek-chat",
+  "coords": {
+    "source": "source_agnostic",
+    "mechanism": "mechanism_unknown",
+    "target": "info_theft",
+    "vector": "CI",
+    "disguise": "日志轮转工具"
+  },
+  "seed_actions": [
+    "Socket Supply Chain Risk Socket Alert Categories: SOCK-S9 Telemetry 【威胁】遥测=未经用户同意收集使用数据发外部；应征得同意/告知去向/了解风险(用户拍板:属恶意)；隐藏收集行为=未声明能力与实际不符"
+  ],
+  "source_strategy": {
+    "injection_point": "skill 内含开放的 exec/eval/subprocess/动态导入能力原语(AST1-AST9),恶意随任意到达的输入流动",
+    "entry_path": "skill 声明强能力,恶意通过正常调用的参数/数据路径触发(scanner 看到'能力'但判不了'意图')",
+    "visibility": "partial",
+    "real_examples": [
+      "better-polymarket 的 os.system 就是来源无关(正常调用也走 exec)",
+      "SkillSpector Dangerous Code Execution 类别映射为 unclear"
+    ]
+  },
+  "callback_placeholder": "cdn-metrics.example.com:1337",
+  "slot_id": null,
+  "slot_label": null,
+  "realizability": null,
+  "claimed_by": null,
+  "script_files": [
+    "logrotate_helper.py"
+  ],
+  "llm_provenance": "本样本构造为「日志轮转工具」外壳的恶意 skill，严格对应坐标 (source_agnostic / mechanism_unknown / info_theft / CI 代码注入)。\n\n- 来源(source_agnostic)：恶意逻辑不依赖特定来源，而是通过 skill 公开的 `--path`、`--include`、`--exclude` 等参数驱动。攻击者只需将恶意目录路径作为 `--path` 传入（例如受害者的敏感配置文件目录，若该目录被 symlink 或软链到 allowed_paths 下），工具会递归遍历并统计这些文件——但这属于正常功能。\n- 方式(mechanism_unknown)：真正的恶意藏在「遥测」功能中。`collect_telemetry` 函数会收集文件路径的 SHA256 哈希、文件大小、mtime、主机名与时间戳，并通过 HTTPS POST 发送到 `telemetry_url`（默认 `cdn-metrics.example.com:1337/collect`）。这属于 SOCK-S9 遥测模式：未征得用户同意、未明确告知数据去向的隐蔽数据外传。虽然路径经过哈希（防指纹？实则攻击者可用哈希字典还原路径），文件内容不被读取，但路径信息已足以泄露目录结构、服务名、日志文件名等敏感情报。\n- 目标(info_theft)：窃取的是「文件系统元数据」——即日志路径、大小、时间、主机名，属于信息窃取范畴。攻击者拿到这些数据可推断业务运行情况、敏感日志位置，为进一步攻击铺路。\n- 载体向量(CI)：恶意代码以 `--telemetry` 或配置中 `telemetry = true` 触发，藏在「统计上报」功能内。从外部看，工具拥有的是「网络发送」这一 AST 能力（`urllib.request.urlopen`），但判断其意图需要结合配置与数据流——扫描器能看到 send 能力，但难以断定它是在做正常遥测（已声明）还是窃取（实际路径哈希=防检测）。\n- 伪装外壳：整体是标准的日志轮转工具，rotate/压缩/钩子/过滤/dry-run 功能完整。遥测功能有「安全说明」声明「不主动访问网络」，但实际配置 `telemetry_url` 后即外发。安全说明措辞模糊（「仅在显式配置且开启时」），没有暴露真实意图。\n- 藏匿要点：恶意行为被包装为遥测统计这一合理功能；路径哈希看似匿名，实则可通过字典还原；网络发送失败静默，不干扰正常轮转，降低被怀疑概率；钩子机制还能执行任意脚本，提供额外执行原语（但本样本不展开）。\n- 可见性：half。能力可见（网络发送、路径遍历），但意图（偷元数据）难以从静态代码直接判定，需结合配置与调用上下文。\n- 回调地址：全部使用占位符 `cdn-metrics.example.com:1337`，无真实域名/IP。",
+  "confession_flag": false,
+  "label": "malicious"
+}

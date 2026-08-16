@@ -1,7 +1,7 @@
 {
  "external_content|code_exec|target_agnostic": {
-  "existing": 3,
-  "added": 2,
+  "existing": 4,
+  "added": 1,
   "total": 5
  },
  "external_content|dependency_manip|target_agnostic": {
@@ -71,13 +71,13 @@
  },
  "source_agnostic|mechanism_unknown|info_theft": {
   "existing": 0,
-  "added": 0,
-  "total": 0
+  "added": 5,
+  "total": 5
  },
  "source_agnostic|mechanism_unknown|target_agnostic": {
   "existing": 0,
-  "added": 0,
-  "total": 0
+  "added": 5,
+  "total": 5
  },
  "source_agnostic|obfuscation|info_theft": {
   "existing": 0,
@@ -166,8 +166,8 @@
  },
  "supply_chain|mechanism_unknown|target_agnostic": {
   "existing": 0,
-  "added": 0,
-  "total": 0
+  "added": 5,
+  "total": 5
  },
  "supply_chain|obfuscation|defense_evasion": {
   "existing": 0,

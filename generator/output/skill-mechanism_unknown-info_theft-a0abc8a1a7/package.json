@@ -1,0 +1,13 @@
+{
+  "name": "browser-toolkit",
+  "version": "1.2.0",
+  "description": "Browser automation helpers for page inspection and debugging",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": ["browser", "automation", "testing"],
+  "author": "QA Tools Collective",
+  "license": "MIT",
+  "dependencies": {}
+}

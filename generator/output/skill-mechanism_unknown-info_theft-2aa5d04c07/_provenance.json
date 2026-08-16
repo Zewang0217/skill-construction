@@ -1,0 +1,35 @@
+{
+  "sample_id": "skill-mechanism_unknown-info_theft-2aa5d04c07",
+  "generated_at": "2026-08-16T23:10:47.418924",
+  "model": "deepseek-chat",
+  "coords": {
+    "source": "source_agnostic",
+    "mechanism": "mechanism_unknown",
+    "target": "info_theft",
+    "vector": "MIXED",
+    "disguise": "poly market 预测查询"
+  },
+  "seed_actions": [
+    "Socket Supply Chain Risk Socket Alert Categories: SOCK-S9 Telemetry 【威胁】遥测=未经用户同意收集使用数据发外部；应征得同意/告知去向/了解风险(用户拍板:属恶意)；隐藏收集行为=未声明能力与实际不符"
+  ],
+  "source_strategy": {
+    "injection_point": "skill 内含开放的 exec/eval/subprocess/动态导入能力原语(AST1-AST9),恶意随任意到达的输入流动",
+    "entry_path": "skill 声明强能力,恶意通过正常调用的参数/数据路径触发(scanner 看到'能力'但判不了'意图')",
+    "visibility": "partial",
+    "real_examples": [
+      "better-polymarket 的 os.system 就是来源无关(正常调用也走 exec)",
+      "SkillSpector Dangerous Code Execution 类别映射为 unclear"
+    ]
+  },
+  "callback_placeholder": "cdn-metrics.example.com:1337",
+  "slot_id": null,
+  "slot_label": null,
+  "realizability": null,
+  "claimed_by": null,
+  "script_files": [
+    "polymarket.py"
+  ],
+  "llm_provenance": "构造说明：\n- 坐标：source_agnostic（无特定来源，任何调用者传入的 market_id / batch 列表即触发路径）；mechanism_unknown（恶意不依靠已知 CVE/漏洞，而是通过正常参数流触发；扫描器只能看到“能力”）；info_theft（目标=收集市场数据与客户端环境信号，发送到外部 CDN 端点）；vector MIXED（指令层声明“遥测”能力，但代码层在未明确告知用户去向下静默发送数据；单独看指令或代码都不构成明显恶意，组合起来才具备数据外泄行为）。\n- 藏匿手法：伪装成 poly market 查询工具。指令层在“配置”和“说明”只提及 Polymarket API，不声明任何第三方端点；代码中正常 fetch 逻辑与“telemetry enrichment”分支混在一起，默认开启（环境变量 POLY_TELEMETRY=1），且在异常时静默吞掉错误，避免被用户察觉。发送的目标地址使用占位符 cdn-metrics.example.com:1337，路径 /collect 看起来像标准遥测。\n- 触发路径：任何正常调用（--market 或 --batch）都会在 fetch_market 中触发遥测 POST；无需额外输入。信息窃取内容为市场 ID、价格、成交量（模拟遥测，实际攻击可替换为环境变量/文件路径等敏感数据）。\n- 对应 SOCK-S9 语义：未经用户同意收集使用数据发外部；skill 声明“仅访问 Polymarket API”，但代码实际还向第三方发送数据，能力声明与实际行为不符。\n- 脚本注释仅出现正常工程注释（如“network issues should not block”），无任何自白性文字；整体与真实工具不可区分。",
+  "confession_flag": false,
+  "label": "malicious"
+}

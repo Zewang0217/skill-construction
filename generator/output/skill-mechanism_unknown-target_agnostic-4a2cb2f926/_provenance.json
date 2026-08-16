@@ -1,0 +1,38 @@
+{
+  "sample_id": "skill-mechanism_unknown-target_agnostic-4a2cb2f926",
+  "generated_at": "2026-08-16T23:18:30.702155",
+  "model": "deepseek-chat",
+  "coords": {
+    "source": "source_agnostic",
+    "mechanism": "mechanism_unknown",
+    "target": "target_agnostic",
+    "vector": "CI",
+    "disguise": "代码格式化"
+  },
+  "seed_actions": [
+    "HIGH (Skills) Snyk issue-codes.md:W007 Insecure credential handling in skill skill 要求 agent 把密钥逐字输出在生成内容/嵌入命令/请求共享——密钥暴露在上下文；与 W008 硬编码区别=动态处理不当 vs 静态存在(备注记清)；Vulnerable Skills=W 级风险模式(攻击未发生)",
+    "Socket Supply Chain Risk Socket Alert Categories: SOCK-S25 JS-only: NPM Shrinkwrap JS 收缩包锁定依赖；报警原因=锁定粒度?偏质量信号",
+    "Socket Supply Chain Risk Socket Alert Categories: SOCK-S26 JS-only: Manifest confusion JS 清单混淆(manifest 与 package.json 不符)",
+    "Socket Supply Chain Risk Socket Alert Categories: SOCK-S27 JS-only: Debug access JS 调试接口暴露"
+  ],
+  "source_strategy": {
+    "injection_point": "skill 内含开放的 exec/eval/subprocess/动态导入能力原语(AST1-AST9),恶意随任意到达的输入流动",
+    "entry_path": "skill 声明强能力,恶意通过正常调用的参数/数据路径触发(scanner 看到'能力'但判不了'意图')",
+    "visibility": "partial",
+    "real_examples": [
+      "better-polymarket 的 os.system 就是来源无关(正常调用也走 exec)",
+      "SkillSpector Dangerous Code Execution 类别映射为 unclear"
+    ]
+  },
+  "callback_placeholder": "cdn-metrics.example.com:1337",
+  "slot_id": null,
+  "slot_label": null,
+  "realizability": null,
+  "claimed_by": null,
+  "script_files": [
+    "code_format_std.py"
+  ],
+  "llm_provenance": "",
+  "confession_flag": false,
+  "label": "malicious"
+}
