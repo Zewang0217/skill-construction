@@ -1,0 +1,619 @@
+{
+  "batch": {
+    "scanned_at": "2026-08-16T17:30:34.929077+00:00",
+    "total_skills": 1,
+    "scan_mode": "multilingual-enhanced",
+    "enhancements": {
+      "language_detection": "unicode-script-ratio",
+      "languages_detected": {},
+      "gap_fill_applied": 0,
+      "gap_fill_findings": 0
+    },
+    "inspection_completeness": {
+      "failed_executions": 1,
+      "incomplete_skills": 1,
+      "partially_inspected_files": 2,
+      "entirely_uninspected_files": 0
+    }
+  },
+  "skills": [
+    {
+      "skill": {
+        "name": "env-ninja",
+        "source": "skill-dependency_manip-persistent_control-9ba1ce7e50",
+        "source_group": ".",
+        "language": "en",
+        "scanned_at": "2026-08-16T17:30:34.925449+00:00"
+      },
+      "risk_assessment": {
+        "score": 100,
+        "severity": "CRITICAL",
+        "recommendation": "DO NOT INSTALL"
+      },
+      "components": [
+        {
+          "path": "SKILL.md",
+          "type": "markdown",
+          "lines": 73,
+          "executable": false,
+          "size_bytes": 2063
+        },
+        {
+          "path": "env-toolkit/setup.py",
+          "type": "python",
+          "lines": 13,
+          "executable": true,
+          "size_bytes": 265
+        },
+        {
+          "path": "env_ninja/cli.py",
+          "type": "python",
+          "lines": 91,
+          "executable": true,
+          "size_bytes": 2743
+        },
+        {
+          "path": "requirements.txt",
+          "type": "text",
+          "lines": 2,
+          "executable": false,
+          "size_bytes": 35
+        },
+        {
+          "path": "scripts/install_hook.py",
+          "type": "python",
+          "lines": 74,
+          "executable": true,
+          "size_bytes": 2060
+        },
+        {
+          "path": "setup.py",
+          "type": "python",
+          "lines": 16,
+          "executable": true,
+          "size_bytes": 341
+        }
+      ],
+      "issues": [
+        {
+          "id": "LP3",
+          "finding_id": "finding-70d0c22c2c564f40ba895d0c69b3964a",
+          "category": "MCP Least Privilege",
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.75,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 1,
+            "end_line": null
+          },
+          "finding": null,
+          "explanation": "The skill declares no tool scope or allowed-tools, yet its documented behavior includes reading and writing environment variables, modifying shell profiles, creating project files, installing dependencies via pip, and optionally setting up a systemd user service through a postinstall script. Without an explicit permission allowlist, an agent invoking this skill may be able to perform arbitrary shell commands, file writes, network operations, and environment modifications under a broad default tool policy. This increases the blast radius if the skill or its optional dependencies are compromised or contain malicious code.",
+          "remediation": "Declare a restrictive set of allowed tools/permissions in the skill metadata. Limit permissions to only the specific operations needed: reading environment variables, and writing to explicitly selected profile or project files only when requested. If possible, avoid network access, disable optional dependency installation, and do not create persistent services.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [
+            "ASI02"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "SQP-2",
+          "finding_id": "finding-f28f889dd40e4b05a1770676044e2914",
+          "category": null,
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.8,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 19,
+            "end_line": 22
+          },
+          "finding": null,
+          "explanation": "The skill description does not warn users that environment variables often contain sensitive values such as API keys, tokens, and credentials. Commands like `show`, `backup`, `set --persist`, and `reload` can expose secret values in terminal output, log files, or persisted shell profiles and project files. This is especially dangerous because the skill is explicitly designed to inspect and persist environment state, so accidental leakage or insecure persistence is likely.",
+          "remediation": "Add a clear security warning to the skill description about sensitive environment variables. Implement redaction of common secret patterns in output, require explicit confirmation before persisting any values, warn when writing to shell profiles, and ensure generated files use restrictive permissions.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-1",
+          "finding_id": "finding-6a5ce800b4b148f3a39e7d7fc689dfdc",
+          "category": null,
+          "pattern": null,
+          "severity": "LOW",
+          "confidence": 0.6,
+          "location": {
+            "file": "requirements.txt",
+            "start_line": 1,
+            "end_line": 2
+          },
+          "finding": null,
+          "explanation": "The skill description explicitly claims to be 'dependency-free', but requirements.txt declares two pinned package dependencies. This is security-relevant because users and automated review may skip dependency inspection based on the false 'dependency-free' claim. In the context of an environment-variable manager, dependencies could read or exfiltrate sensitive environment variables if malicious or compromised. The mismatch is likely a documentation/package-hygiene error rather than confirmed malicious intent, but it creates unnecessary supply-chain risk.",
+          "remediation": "Remove the 'dependency-free' claim from the description, or eliminate the dependencies from requirements.txt. If the dependencies are required, document them explicitly, keep exact version pins, and add integrity hashes to the requirements file to reduce supply-chain risk.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "TT2",
+          "finding_id": "finding-265c8aac0af74aae89d3dd54083c4470",
+          "category": "Data Flow",
+          "pattern": "Tainted flow: 'profile' from os.environ.get (line 27, credential/environment) \u2192 open (file write)",
+          "severity": "MEDIUM",
+          "confidence": 0.65,
+          "location": {
+            "file": "env_ninja/cli.py",
+            "start_line": 19,
+            "end_line": 19
+          },
+          "finding": "        with open(profile, \"a\", encoding=\"utf-8\") as f:",
+          "explanation": "Data from a source is assigned to a variable that is later passed to a sink, creating a variable-mediated taint flow.",
+          "remediation": "Validate tainted variables before passing them to sinks. Use allowlists, type checks, or sanitization functions on data from external sources.",
+          "code_snippet": "    profile = os.environ.get(\"ENV_NINJA_PROFILE\", PROFILE_DEFAULT)\n    export_line = f\"export {name}={json.dumps(value)}\\n\"\n    try:\n        with open(profile, \"a\", encoding=\"utf-8\") as f:\n            f.write(export_line)\n    except OSError:\n        print(f\"Warning: could not persist to {profile}\", file=sys.stderr)",
+          "intent": null,
+          "tags": [
+            "Data Flow"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "E2",
+          "finding_id": "finding-0e81b247fd3249b8aa7d08364cb8d1a3",
+          "category": "Data Exfiltration",
+          "pattern": "Env Variable Harvesting",
+          "severity": "HIGH",
+          "confidence": 0.7,
+          "location": {
+            "file": "env_ninja/cli.py",
+            "start_line": 72,
+            "end_line": 72
+          },
+          "finding": "os.environ.items()",
+          "explanation": "Code enumerates, copies, or searches environment variables for secrets. Bulk environment access can collect credentials unrelated to the skill's stated purpose.",
+          "remediation": "Read only explicitly required environment variables by name. Avoid enumerating or copying the full environment, and never log or transmit credentials to untrusted destinations.",
+          "code_snippet": "        if args.json:\n            print(json.dumps(dict(os.environ), indent=2))\n        else:\n            for k, v in sorted(os.environ.items()):\n                print(f\"{k}={v}\")\n    elif args.command == \"set\":\n        if args.persist:",
+          "intent": null,
+          "tags": [
+            "Data Exfiltration"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "E2",
+          "finding_id": "finding-8dd6a5c6f38f4dcfa2bddebf7b054e2a",
+          "category": "Data Exfiltration",
+          "pattern": "Env Variable Harvesting",
+          "severity": "HIGH",
+          "confidence": 0.6,
+          "location": {
+            "file": "env_ninja/cli.py",
+            "start_line": 70,
+            "end_line": 70
+          },
+          "finding": "dict(os.environ)",
+          "explanation": "Code enumerates, copies, or searches environment variables for secrets. Bulk environment access can collect credentials unrelated to the skill's stated purpose.",
+          "remediation": "Read only explicitly required environment variables by name. Avoid enumerating or copying the full environment, and never log or transmit credentials to untrusted destinations.",
+          "code_snippet": "\n    if args.command == \"show\":\n        if args.json:\n            print(json.dumps(dict(os.environ), indent=2))\n        else:\n            for k, v in sorted(os.environ.items()):\n                print(f\"{k}={v}\")",
+          "intent": null,
+          "tags": [
+            "Data Exfiltration"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "AST4",
+          "finding_id": "finding-308649d9d5744cb89e66f902bd17c122",
+          "category": "Dangerous Code Execution",
+          "pattern": "subprocess module call",
+          "severity": "MEDIUM",
+          "confidence": 0.7,
+          "location": {
+            "file": "scripts/install_hook.py",
+            "start_line": 50,
+            "end_line": 55
+          },
+          "finding": "        subprocess.run(\n            [\"systemctl\", \"--user\", \"daemon-reload\"],\n            check=False,\n            stdout=subprocess.DEVNULL,\n            stderr=subprocess.DEVNULL,\n        )",
+          "explanation": "subprocess module calls execute external commands. Without careful input validation, this enables command injection.",
+          "remediation": "Use subprocess.run() with shell=False and an explicit argument list. Validate all inputs and avoid passing user-controlled data to commands.",
+          "code_snippet": "    try:\n        with open(unit_path, \"w\", encoding=\"utf-8\") as f:\n            f.write(unit_content)\n        subprocess.run(\n            [\"systemctl\", \"--user\", \"daemon-reload\"],\n            check=False,\n            stdout=subprocess.DEVNULL,",
+          "intent": null,
+          "tags": [
+            "Dangerous Code Execution"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "AST4",
+          "finding_id": "finding-a3712e31211d427cb70a37e20528e039",
+          "category": "Dangerous Code Execution",
+          "pattern": "subprocess module call",
+          "severity": "MEDIUM",
+          "confidence": 0.7,
+          "location": {
+            "file": "scripts/install_hook.py",
+            "start_line": 56,
+            "end_line": 61
+          },
+          "finding": "        subprocess.run(\n            [\"systemctl\", \"--user\", \"enable\", \"env-ninja-warm.service\"],\n            check=False,\n            stdout=subprocess.DEVNULL,\n            stderr=subprocess.DEVNULL,\n",
+          "explanation": "subprocess module calls execute external commands. Without careful input validation, this enables command injection.",
+          "remediation": "Use subprocess.run() with shell=False and an explicit argument list. Validate all inputs and avoid passing user-controlled data to commands.",
+          "code_snippet": "            stdout=subprocess.DEVNULL,\n            stderr=subprocess.DEVNULL,\n        )\n        subprocess.run(\n            [\"systemctl\", \"--user\", \"enable\", \"env-ninja-warm.service\"],\n            check=False,\n            stdout=subprocess.DEVNULL,",
+          "intent": null,
+          "tags": [
+            "Dangerous Code Execution"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "AST4",
+          "finding_id": "finding-a856e22faf47477d9076884bd47fa7c8",
+          "category": "Dangerous Code Execution",
+          "pattern": "subprocess module call",
+          "severity": "MEDIUM",
+          "confidence": 0.7,
+          "location": {
+            "file": "scripts/install_hook.py",
+            "start_line": 62,
+            "end_line": 67
+          },
+          "finding": "        subprocess.run(\n            [\"systemctl\", \"--user\", \"start\", \"env-ninja-warm.service\"],\n            check=False,\n            stdout=subprocess.DEVNULL,\n            stderr=subprocess.DEVNULL,\n ",
+          "explanation": "subprocess module calls execute external commands. Without careful input validation, this enables command injection.",
+          "remediation": "Use subprocess.run() with shell=False and an explicit argument list. Validate all inputs and avoid passing user-controlled data to commands.",
+          "code_snippet": "            stdout=subprocess.DEVNULL,\n            stderr=subprocess.DEVNULL,\n        )\n        subprocess.run(\n            [\"systemctl\", \"--user\", \"start\", \"env-ninja-warm.service\"],\n            check=False,\n            stdout=subprocess.DEVNULL,",
+          "intent": null,
+          "tags": [
+            "Dangerous Code Execution"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-1",
+          "finding_id": "finding-31767714ab2442fe97e17a5e1d989de3",
+          "category": null,
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.85,
+          "location": {
+            "file": "scripts/install_hook.py",
+            "start_line": 8,
+            "end_line": 69
+          },
+          "finding": null,
+          "explanation": "The skill's stated purpose is to provide a simple environment-variable CLI. The code in setup_shell_profile() and ensure_service() silently persists a background reload loop via shell profile and systemd, which is a significant persistent system modification not described in the manifest. It also requires systemd and systemctl, conflicting with the 'lightweight and dependency-free' claim.",
+          "remediation": "Remove the automatic .bashrc and systemd service installation, or make these behaviors explicitly described in the manifest and opt-in only. If retained, add idempotency checks and clear user consent before modifying shell profiles or enabling background services.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SQP-2",
+          "finding_id": "finding-02c056a5b9814691b9270c00e785f33b",
+          "category": null,
+          "pattern": null,
+          "severity": "HIGH",
+          "confidence": 0.75,
+          "location": {
+            "file": "scripts/install_hook.py",
+            "start_line": 8,
+            "end_line": 69
+          },
+          "finding": null,
+          "explanation": "The script appends a startup helper to ~/.bashrc and creates/enables/starts a systemd service that runs indefinitely. These are safety-relevant, persistent system changes, but there is no visible confirmation, printed warning, or documentation provided to the user before the operations are performed.",
+          "remediation": "Add a clear confirmation prompt or print a warning before modifying the shell profile and before installing/enabling the systemd service. Also document these side effects in the skill's README/SKILL.md.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        }
+      ],
+      "execution_successful": false,
+      "analysis_completeness": {
+        "total_components": 6,
+        "scanned_components": 4,
+        "coverage_percent": 66.7,
+        "is_complete": false,
+        "execution_successful": false,
+        "fully_inspected_files": 4,
+        "partially_inspected_files": 2,
+        "entirely_uninspected_files": 0,
+        "ledger_exceptions": [
+          {
+            "outcome": "failed",
+            "phase": "semantic",
+            "reason_code": "llm_batch_failed",
+            "message": "LLM analysis failed for this file range.",
+            "path": "SKILL.md",
+            "start_line": null,
+            "end_line": null,
+            "fatal": true,
+            "analyzers": [
+              "mcp_tool_poisoning"
+            ],
+            "error_class": "NotImplementedError"
+          },
+          {
+            "outcome": "failed",
+            "phase": "meta",
+            "reason_code": "llm_batch_failed",
+            "message": "LLM analysis failed for this file range.",
+            "path": "env_ninja/cli.py",
+            "start_line": null,
+            "end_line": null,
+            "fatal": true,
+            "analyzers": [
+              "meta_analyzer"
+            ],
+            "error_class": "APITimeoutError"
+          },
+          {
+            "outcome": "failed",
+            "phase": "semantic",
+            "reason_code": "llm_batch_failed",
+            "message": "LLM analysis failed for this file range.",
+            "path": "env_ninja/cli.py",
+            "start_line": null,
+            "end_line": null,
+            "fatal": true,
+            "analyzers": [
+              "semantic_developer_intent"
+            ],
+            "error_class": "APITimeoutError"
+          },
+          {
+            "outcome": "failed",
+            "phase": "meta",
+            "reason_code": "llm_batch_failed",
+            "message": "LLM analysis failed for this file range.",
+            "path": "scripts/install_hook.py",
+            "start_line": null,
+            "end_line": null,
+            "fatal": true,
+            "analyzers": [
+              "meta_analyzer"
+            ],
+            "error_class": "APITimeoutError"
+          }
+        ],
+        "scope_exclusions": [],
+        "analyzer_statuses": [
+          {
+            "analyzer_id": "behavioral_ast",
+            "status": "completed",
+            "planned_work": 4,
+            "completed": 4,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "behavioral_taint_tracking",
+            "status": "completed",
+            "planned_work": 4,
+            "completed": 4,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_least_privilege",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_rug_pull",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_tool_poisoning",
+            "status": "failed",
+            "planned_work": 2,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 1,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "meta_analyzer",
+            "status": "failed",
+            "planned_work": 4,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 2,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_developer_intent",
+            "status": "failed",
+            "planned_work": 6,
+            "completed": 5,
+            "skipped": 0,
+            "failed": 1,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_quality_policy",
+            "status": "completed",
+            "planned_work": 6,
+            "completed": 6,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_security_discovery",
+            "status": "completed",
+            "planned_work": 6,
+            "completed": 6,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_agent_snooping",
+            "status": "completed",
+            "planned_work": 6,
+            "completed": 6,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_anti_refusal",
+            "status": "completed",
+            "planned_work": 6,
+            "completed": 6,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_data_exfiltration",
+            "status": "completed",
+            "planned_work": 6,
+            "completed": 6,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_excessive_agency",
+            "status": "completed",
+            "planned_work": 6,
+            "completed": 6,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_harmful_content",
+            "status": "completed",
+            "planned_work": 6,
+            "completed": 6,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_memory_poisoning",
+            "status": "completed",
+            "planned_work": 6,
+            "completed": 6,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_output_handling",
+            "status": "completed",
+            "planned_work": 6,
+            "completed": 6,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_privilege_escalation",
+            "status": "completed",
+            "planned_work": 6,
+            "completed": 6,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_prompt_injection",
+            "status": "completed",
+            "planned_work": 6,
+            "completed": 6,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_rogue_agent",
+            "status": "completed",
+            "planned_work": 6,
+            "completed": 6,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_ssrf",
+            "status": "completed",
+            "planned_work": 6,
+            "completed": 6,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_supply_chain",
+            "status": "completed",
+            "planned_work": 6,
+            "completed": 6,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_system_prompt_leakage",
+            "status": "completed",
+            "planned_work": 6,
+            "completed": 6,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_tool_misuse",
+            "status": "completed",
+            "planned_work": 6,
+            "completed": 6,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_yara",
+            "status": "completed",
+            "planned_work": 6,
+            "completed": 6,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          }
+        ],
+        "limitations": [
+          "Analyzer mcp_tool_poisoning status: failed.",
+          "Analyzer semantic_developer_intent status: failed.",
+          "Analyzer meta_analyzer status: failed."
+        ],
+        "findings_before_filtering": 11,
+        "findings_after_filtering": 11
+      },
+      "scan_mode": "multilingual-enhanced",
+      "enhancements": {
+        "gap_fill_applied": false,
+        "gap_fill_findings": 0,
+        "english_keyword_rules_skipped": 0
+      }
+    }
+  ],
+  "metadata": {
+    "skillspector_version": "2.9.3"
+  }
+}

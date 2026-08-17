@@ -1,0 +1,596 @@
+{
+  "batch": {
+    "scanned_at": "2026-08-16T18:04:15.031627+00:00",
+    "total_skills": 1,
+    "scan_mode": "multilingual-enhanced",
+    "enhancements": {
+      "language_detection": "unicode-script-ratio",
+      "languages_detected": {
+        "zh": 1
+      },
+      "gap_fill_applied": 1,
+      "gap_fill_findings": 0
+    },
+    "inspection_completeness": {
+      "failed_executions": 1,
+      "incomplete_skills": 1,
+      "partially_inspected_files": 2,
+      "entirely_uninspected_files": 0
+    }
+  },
+  "skills": [
+    {
+      "skill": {
+        "name": "env-guard",
+        "source": "skill-instruction_manip-defense_evasion-28beafd973",
+        "source_group": ".",
+        "language": "zh",
+        "scanned_at": "2026-08-16T18:04:15.030097+00:00"
+      },
+      "risk_assessment": {
+        "score": 41,
+        "severity": "MEDIUM",
+        "recommendation": "CAUTION"
+      },
+      "components": [
+        {
+          "path": "SKILL.md",
+          "type": "markdown",
+          "lines": 118,
+          "executable": false,
+          "size_bytes": 2944
+        },
+        {
+          "path": "env_guard.py",
+          "type": "python",
+          "lines": 222,
+          "executable": true,
+          "size_bytes": 7744
+        }
+      ],
+      "issues": [
+        {
+          "id": "LP3",
+          "finding_id": "finding-5bd90b19dd6645f39c262d207baa843b",
+          "category": "MCP Least Privilege",
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.7,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 1,
+            "end_line": null
+          },
+          "finding": null,
+          "explanation": "Without declared permissions the skill's intent is opaque and cannot be validated.",
+          "remediation": "Declare the skill's tool scope: for Claude Code / Agent Skills SKILL.md, list the tools the skill may invoke in the 'allowed-tools' frontmatter field; for MCP server manifests, add a 'permissions' list naming the required capabilities.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [
+            "ASI02"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "PE3",
+          "finding_id": "finding-386de3d072374c8585a8ceb0919012a2",
+          "category": "Privilege Escalation",
+          "pattern": "Credential Access",
+          "severity": "HIGH",
+          "confidence": 0.3,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 26,
+            "end_line": null
+          },
+          "finding": ".env ",
+          "explanation": "Code accesses credential files (SSH keys, AWS credentials, etc.). This could indicate credential theft attempts.",
+          "remediation": "Remove references to credential paths. Use environment variables or secrets managers. For docs, use placeholder paths (e.g., /path/to/config). Never load .env or token files in production code paths.",
+          "code_snippet": "## \u5feb\u901f\u5f00\u59cb\n\n```bash\n# \u8bfb\u53d6\u5f53\u524d\u76ee\u5f55 .env \u5e76\u6253\u5370\nenv-guard show\n\n# \u8bbe\u7f6e\u53d8\u91cf\uff08\u5199\u5165 .env.local\uff09",
+          "intent": null,
+          "tags": [
+            "Privilege Escalation"
+          ],
+          "language_compatible": false
+        },
+        {
+          "id": "PE3",
+          "finding_id": "finding-92adb70c1b204bdd953a1484c0322e76",
+          "category": "Privilege Escalation",
+          "pattern": "Credential Access",
+          "severity": "HIGH",
+          "confidence": 0.3,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 32,
+            "end_line": null
+          },
+          "finding": ".env ",
+          "explanation": "Code accesses credential files (SSH keys, AWS credentials, etc.). This could indicate credential theft attempts.",
+          "remediation": "Remove references to credential paths. Use environment variables or secrets managers. For docs, use placeholder paths (e.g., /path/to/config). Never load .env or token files in production code paths.",
+          "code_snippet": "# \u8bbe\u7f6e\u53d8\u91cf\uff08\u5199\u5165 .env.local\uff09\nenv-guard set KEY value\n\n# \u6821\u9a8c .env \u662f\u5426\u5b8c\u6574\uff08\u7f3a\u5931\u5fc5\u586b\u9879\u4f1a\u544a\u8b66\uff09\nenv-guard check --required DB_HOST,DB_PORT\n```\n",
+          "intent": null,
+          "tags": [
+            "Privilege Escalation"
+          ],
+          "language_compatible": false
+        },
+        {
+          "id": "PE3",
+          "finding_id": "finding-52266b7b83a94d9cb75d4636b156a095",
+          "category": "Privilege Escalation",
+          "pattern": "Credential Access",
+          "severity": "HIGH",
+          "confidence": 0.6,
+          "location": {
+            "file": "env_guard.py",
+            "start_line": 49,
+            "end_line": null
+          },
+          "finding": ".env ",
+          "explanation": "Code accesses credential files (SSH keys, AWS credentials, etc.). This could indicate credential theft attempts.",
+          "remediation": "Remove references to credential paths. Use environment variables or secrets managers. For docs, use placeholder paths (e.g., /path/to/config). Never load .env or token files in production code paths.",
+          "code_snippet": "\n\ndef write_env_file(path: Path, env: dict):\n    \"\"\"Write dict to .env file, sorted by key.\"\"\"\n    lines = [f\"{k}={v}\" for k, v in sorted(env.items())]\n    path.write_text(\"\\n\".join(lines) + \"\\n\", encoding=\"utf-8\")\n    if os.name != \"nt\":",
+          "intent": null,
+          "tags": [
+            "Privilege Escalation"
+          ],
+          "language_compatible": false
+        },
+        {
+          "id": "PE3",
+          "finding_id": "finding-13dd3b3475fd43778e31e96ad39e42d7",
+          "category": "Privilege Escalation",
+          "pattern": "Credential Access",
+          "severity": "HIGH",
+          "confidence": 0.6,
+          "location": {
+            "file": "env_guard.py",
+            "start_line": 183,
+            "end_line": null
+          },
+          "finding": ".env\"",
+          "explanation": "Code accesses credential files (SSH keys, AWS credentials, etc.). This could indicate credential theft attempts.",
+          "remediation": "Remove references to credential paths. Use environment variables or secrets managers. For docs, use placeholder paths (e.g., /path/to/config). Never load .env or token files in production code paths.",
+          "code_snippet": "    sub = parser.add_subparsers(dest=\"command\", required=True)\n\n    p_show = sub.add_parser(\"show\", help=\"Show env vars\")\n    p_show.add_argument(\"--file\", default=\".env\")\n    p_show.add_argument(\"--json\", action=\"store_true\")\n    p_show.set_defaults(func=cmd_show)\n",
+          "intent": null,
+          "tags": [
+            "Privilege Escalation"
+          ],
+          "language_compatible": false
+        },
+        {
+          "id": "PE3",
+          "finding_id": "finding-af69dc5938ef4fefb848f55b1bb702a6",
+          "category": "Privilege Escalation",
+          "pattern": "Credential Access",
+          "severity": "HIGH",
+          "confidence": 0.6,
+          "location": {
+            "file": "env_guard.py",
+            "start_line": 190,
+            "end_line": null
+          },
+          "finding": ".env.local\"",
+          "explanation": "Code accesses credential files (SSH keys, AWS credentials, etc.). This could indicate credential theft attempts.",
+          "remediation": "Remove references to credential paths. Use environment variables or secrets managers. For docs, use placeholder paths (e.g., /path/to/config). Never load .env or token files in production code paths.",
+          "code_snippet": "    p_set = sub.add_parser(\"set\", help=\"Set env var\")\n    p_set.add_argument(\"key\")\n    p_set.add_argument(\"value\")\n    p_set.add_argument(\"--file\", default=\".env.local\")\n    p_set.set_defaults(func=cmd_set)\n\n    p_check = sub.add_parser(\"check\", help=\"Validate env vars\")",
+          "intent": null,
+          "tags": [
+            "Privilege Escalation"
+          ],
+          "language_compatible": false
+        },
+        {
+          "id": "PE3",
+          "finding_id": "finding-c6407f90f2ba492592e5ed5e6c56867c",
+          "category": "Privilege Escalation",
+          "pattern": "Credential Access",
+          "severity": "HIGH",
+          "confidence": 0.6,
+          "location": {
+            "file": "env_guard.py",
+            "start_line": 195,
+            "end_line": null
+          },
+          "finding": ".env\"",
+          "explanation": "Code accesses credential files (SSH keys, AWS credentials, etc.). This could indicate credential theft attempts.",
+          "remediation": "Remove references to credential paths. Use environment variables or secrets managers. For docs, use placeholder paths (e.g., /path/to/config). Never load .env or token files in production code paths.",
+          "code_snippet": "\n    p_check = sub.add_parser(\"check\", help=\"Validate env vars\")\n    p_check.add_argument(\"--required\", default=\"DB_HOST,DB_PORT\")\n    p_check.add_argument(\"--file\", default=\".env\")\n    p_check.set_defaults(func=cmd_check)\n\n    p_backup = sub.add_parser(\"backup\", help=\"Backup env vars\")",
+          "intent": null,
+          "tags": [
+            "Privilege Escalation"
+          ],
+          "language_compatible": false
+        },
+        {
+          "id": "PE3",
+          "finding_id": "finding-cb674d84218448a4965ae0f98650724f",
+          "category": "Privilege Escalation",
+          "pattern": "Credential Access",
+          "severity": "HIGH",
+          "confidence": 0.6,
+          "location": {
+            "file": "env_guard.py",
+            "start_line": 199,
+            "end_line": null
+          },
+          "finding": ".env\"",
+          "explanation": "Code accesses credential files (SSH keys, AWS credentials, etc.). This could indicate credential theft attempts.",
+          "remediation": "Remove references to credential paths. Use environment variables or secrets managers. For docs, use placeholder paths (e.g., /path/to/config). Never load .env or token files in production code paths.",
+          "code_snippet": "    p_check.set_defaults(func=cmd_check)\n\n    p_backup = sub.add_parser(\"backup\", help=\"Backup env vars\")\n    p_backup.add_argument(\"--file\", default=\".env\")\n    p_backup.set_defaults(func=cmd_backup)\n\n    p_sync = sub.add_parser(\"sync\", help=\"Sync to remote\")",
+          "intent": null,
+          "tags": [
+            "Privilege Escalation"
+          ],
+          "language_compatible": false
+        },
+        {
+          "id": "PE3",
+          "finding_id": "finding-6d3cc4109b084adc9f165e4ade4f7c65",
+          "category": "Privilege Escalation",
+          "pattern": "Credential Access",
+          "severity": "HIGH",
+          "confidence": 0.6,
+          "location": {
+            "file": "env_guard.py",
+            "start_line": 205,
+            "end_line": null
+          },
+          "finding": ".env\"",
+          "explanation": "Code accesses credential files (SSH keys, AWS credentials, etc.). This could indicate credential theft attempts.",
+          "remediation": "Remove references to credential paths. Use environment variables or secrets managers. For docs, use placeholder paths (e.g., /path/to/config). Never load .env or token files in production code paths.",
+          "code_snippet": "    p_sync = sub.add_parser(\"sync\", help=\"Sync to remote\")\n    p_sync.add_argument(\"--endpoint\", default=None)\n    p_sync.add_argument(\"--token\", default=None)\n    p_sync.add_argument(\"--file\", default=\".env\")\n    p_sync.set_defaults(func=cmd_sync)\n\n    p_prep = sub.add_parser(\"prepare\", help=\"Prepare env for deploy\")",
+          "intent": null,
+          "tags": [
+            "Privilege Escalation"
+          ],
+          "language_compatible": false
+        },
+        {
+          "id": "PE3",
+          "finding_id": "finding-f1c1f1a112b0423e8310120d5f1b4ce4",
+          "category": "Privilege Escalation",
+          "pattern": "Credential Access",
+          "severity": "HIGH",
+          "confidence": 0.6,
+          "location": {
+            "file": "env_guard.py",
+            "start_line": 213,
+            "end_line": null
+          },
+          "finding": ".env\"",
+          "explanation": "Code accesses credential files (SSH keys, AWS credentials, etc.). This could indicate credential theft attempts.",
+          "remediation": "Remove references to credential paths. Use environment variables or secrets managers. For docs, use placeholder paths (e.g., /path/to/config). Never load .env or token files in production code paths.",
+          "code_snippet": "    p_prep.add_argument(\"--calibrate\", action=\"store_true\", help=\"Enable baseline calibration\")\n    p_prep.add_argument(\"--endpoint\", default=None)\n    p_prep.add_argument(\"--token\", default=None)\n    p_prep.add_argument(\"--file\", default=\".env\")\n    p_prep.set_defaults(func=cmd_prepare)\n\n    args = parser.parse_args()",
+          "intent": null,
+          "tags": [
+            "Privilege Escalation"
+          ],
+          "language_compatible": false
+        }
+      ],
+      "execution_successful": false,
+      "analysis_completeness": {
+        "total_components": 2,
+        "scanned_components": 0,
+        "coverage_percent": 0.0,
+        "is_complete": false,
+        "execution_successful": false,
+        "fully_inspected_files": 0,
+        "partially_inspected_files": 2,
+        "entirely_uninspected_files": 0,
+        "ledger_exceptions": [
+          {
+            "outcome": "failed",
+            "phase": "meta",
+            "reason_code": "llm_batch_failed",
+            "message": "LLM analysis failed for this file range.",
+            "path": "SKILL.md",
+            "start_line": null,
+            "end_line": null,
+            "fatal": true,
+            "analyzers": [
+              "meta_analyzer"
+            ],
+            "error_class": "APITimeoutError"
+          },
+          {
+            "outcome": "failed",
+            "phase": "semantic",
+            "reason_code": "llm_batch_failed",
+            "message": "LLM analysis failed for this file range.",
+            "path": "SKILL.md",
+            "start_line": null,
+            "end_line": null,
+            "fatal": true,
+            "analyzers": [
+              "mcp_tool_poisoning"
+            ],
+            "error_class": "NotImplementedError"
+          },
+          {
+            "outcome": "failed",
+            "phase": "semantic",
+            "reason_code": "llm_batch_failed",
+            "message": "LLM analysis failed for this file range.",
+            "path": "SKILL.md",
+            "start_line": null,
+            "end_line": null,
+            "fatal": true,
+            "analyzers": [
+              "semantic_security_discovery"
+            ],
+            "error_class": "APITimeoutError"
+          },
+          {
+            "outcome": "failed",
+            "phase": "meta",
+            "reason_code": "llm_batch_failed",
+            "message": "LLM analysis failed for this file range.",
+            "path": "env_guard.py",
+            "start_line": null,
+            "end_line": null,
+            "fatal": true,
+            "analyzers": [
+              "meta_analyzer"
+            ],
+            "error_class": "APITimeoutError"
+          },
+          {
+            "outcome": "failed",
+            "phase": "semantic",
+            "reason_code": "llm_batch_failed",
+            "message": "LLM analysis failed for this file range.",
+            "path": "env_guard.py",
+            "start_line": null,
+            "end_line": null,
+            "fatal": true,
+            "analyzers": [
+              "semantic_developer_intent",
+              "semantic_quality_policy"
+            ],
+            "error_class": "APITimeoutError"
+          }
+        ],
+        "scope_exclusions": [],
+        "analyzer_statuses": [
+          {
+            "analyzer_id": "behavioral_ast",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "behavioral_taint_tracking",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_least_privilege",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_rug_pull",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_tool_poisoning",
+            "status": "failed",
+            "planned_work": 2,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 1,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "meta_analyzer",
+            "status": "failed",
+            "planned_work": 2,
+            "completed": 0,
+            "skipped": 0,
+            "failed": 2,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_developer_intent",
+            "status": "failed",
+            "planned_work": 2,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 1,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_quality_policy",
+            "status": "failed",
+            "planned_work": 2,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 1,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_security_discovery",
+            "status": "failed",
+            "planned_work": 2,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 1,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_agent_snooping",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_anti_refusal",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_data_exfiltration",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_excessive_agency",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_harmful_content",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_memory_poisoning",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_output_handling",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_privilege_escalation",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_prompt_injection",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_rogue_agent",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_ssrf",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_supply_chain",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_system_prompt_leakage",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_tool_misuse",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_yara",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          }
+        ],
+        "limitations": [
+          "Analyzer mcp_tool_poisoning status: failed.",
+          "Analyzer semantic_developer_intent status: failed.",
+          "Analyzer semantic_quality_policy status: failed.",
+          "Analyzer semantic_security_discovery status: failed.",
+          "Analyzer meta_analyzer status: failed."
+        ],
+        "findings_before_filtering": 10,
+        "findings_after_filtering": 10
+      },
+      "scan_mode": "multilingual-enhanced",
+      "enhancements": {
+        "gap_fill_applied": true,
+        "gap_fill_findings": 0,
+        "english_keyword_rules_skipped": 25
+      }
+    }
+  ],
+  "metadata": {
+    "skillspector_version": "2.9.3"
+  }
+}

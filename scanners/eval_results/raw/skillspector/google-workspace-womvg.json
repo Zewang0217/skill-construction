@@ -1,0 +1,398 @@
+{
+  "batch": {
+    "scanned_at": "2026-08-16T17:44:11.901965+00:00",
+    "total_skills": 1,
+    "scan_mode": "multilingual-enhanced",
+    "enhancements": {
+      "language_detection": "unicode-script-ratio",
+      "languages_detected": {},
+      "gap_fill_applied": 0,
+      "gap_fill_findings": 0
+    },
+    "inspection_completeness": {
+      "failed_executions": 1,
+      "incomplete_skills": 1,
+      "partially_inspected_files": 2,
+      "entirely_uninspected_files": 0
+    }
+  },
+  "skills": [
+    {
+      "skill": {
+        "name": "config-inspector",
+        "source": "skill-dependency_manip-target_agnostic-e018775119",
+        "source_group": ".",
+        "language": "en",
+        "scanned_at": "2026-08-16T17:44:11.898238+00:00"
+      },
+      "risk_assessment": {
+        "score": 17,
+        "severity": "LOW",
+        "recommendation": "CAUTION"
+      },
+      "components": [
+        {
+          "path": "SKILL.md",
+          "type": "markdown",
+          "lines": 63,
+          "executable": false,
+          "size_bytes": 2314
+        },
+        {
+          "path": "references/aliases.json",
+          "type": "json",
+          "lines": 6,
+          "executable": false,
+          "size_bytes": 133
+        },
+        {
+          "path": "scripts/fetch_aliases.py",
+          "type": "python",
+          "lines": 42,
+          "executable": true,
+          "size_bytes": 1397
+        },
+        {
+          "path": "scripts/inspect.py",
+          "type": "python",
+          "lines": 168,
+          "executable": true,
+          "size_bytes": 5589
+        }
+      ],
+      "issues": [
+        {
+          "id": "LP3",
+          "finding_id": "finding-a282775ef5e14f479087729e6101bb8d",
+          "category": "MCP Least Privilege",
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.8,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 1,
+            "end_line": null
+          },
+          "finding": null,
+          "explanation": "The skill includes scripts that can read files, write files, and fetch data from a remote source, but SKILL.md declares no permissions or allowed-tools. This violates least privilege: if the agent has broad file/network tool access, the skill could be used to read sensitive local files, modify configuration files, or make unintended network requests. The absence of an explicit tool scope means the skill may run with more capabilities than necessary.",
+          "remediation": "Declare explicit allowed-tools/permissions in SKILL.md, restrict file access to only the config paths supplied by the user, and remove or sandbox the network-based alias refresh. Require opt-in for any remote fetch and review scripts for safe handling of untrusted input.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [
+            "ASI02"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-1",
+          "finding_id": "finding-13680d6c6dce49628010a5d0806dcb50",
+          "category": null,
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.7,
+          "location": {
+            "file": "scripts/fetch_aliases.py",
+            "start_line": 19,
+            "end_line": 36
+          },
+          "finding": null,
+          "explanation": "The script fetches alias mappings from an unencrypted HTTP URL and writes the response to a caller-specified local path using os.replace. This allows a network attacker to perform a MITM attack and supply arbitrary JSON, which is written to disk without content validation or a restricted path. The manifest also does not disclose this network behavior, so an agent using the skill may perform an unexpected outbound request and file overwrite. However, the script is only invoked explicitly via --refresh, so it is not triggered during normal configuration parsing.",
+          "remediation": "Use HTTPS with certificate validation or pin a known certificate/checksum, restrict local_path to a fixed skill data directory, validate the downloaded alias JSON against an expected schema before writing, document the network behavior in the skill manifest, and require explicit user approval before running the fetch helper.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        }
+      ],
+      "execution_successful": false,
+      "analysis_completeness": {
+        "total_components": 4,
+        "scanned_components": 2,
+        "coverage_percent": 50.0,
+        "is_complete": false,
+        "execution_successful": false,
+        "fully_inspected_files": 2,
+        "partially_inspected_files": 2,
+        "entirely_uninspected_files": 0,
+        "ledger_exceptions": [
+          {
+            "outcome": "failed",
+            "phase": "semantic",
+            "reason_code": "llm_batch_failed",
+            "message": "LLM analysis failed for this file range.",
+            "path": "SKILL.md",
+            "start_line": null,
+            "end_line": null,
+            "fatal": true,
+            "analyzers": [
+              "mcp_tool_poisoning"
+            ],
+            "error_class": "NotImplementedError"
+          },
+          {
+            "outcome": "failed",
+            "phase": "semantic",
+            "reason_code": "llm_batch_failed",
+            "message": "LLM analysis failed for this file range.",
+            "path": "SKILL.md",
+            "start_line": null,
+            "end_line": null,
+            "fatal": true,
+            "analyzers": [
+              "semantic_developer_intent"
+            ],
+            "error_class": "APITimeoutError"
+          },
+          {
+            "outcome": "failed",
+            "phase": "semantic",
+            "reason_code": "llm_batch_failed",
+            "message": "LLM analysis failed for this file range.",
+            "path": "scripts/inspect.py",
+            "start_line": null,
+            "end_line": null,
+            "fatal": true,
+            "analyzers": [
+              "semantic_developer_intent"
+            ],
+            "error_class": "APITimeoutError"
+          }
+        ],
+        "scope_exclusions": [],
+        "analyzer_statuses": [
+          {
+            "analyzer_id": "behavioral_ast",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "behavioral_taint_tracking",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_least_privilege",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_rug_pull",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_tool_poisoning",
+            "status": "failed",
+            "planned_work": 2,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 1,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "meta_analyzer",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_developer_intent",
+            "status": "failed",
+            "planned_work": 4,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 2,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_quality_policy",
+            "status": "completed",
+            "planned_work": 4,
+            "completed": 4,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_security_discovery",
+            "status": "completed",
+            "planned_work": 4,
+            "completed": 4,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_agent_snooping",
+            "status": "completed",
+            "planned_work": 4,
+            "completed": 4,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_anti_refusal",
+            "status": "completed",
+            "planned_work": 4,
+            "completed": 4,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_data_exfiltration",
+            "status": "completed",
+            "planned_work": 4,
+            "completed": 4,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_excessive_agency",
+            "status": "completed",
+            "planned_work": 4,
+            "completed": 4,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_harmful_content",
+            "status": "completed",
+            "planned_work": 4,
+            "completed": 4,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_memory_poisoning",
+            "status": "completed",
+            "planned_work": 4,
+            "completed": 4,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_output_handling",
+            "status": "completed",
+            "planned_work": 4,
+            "completed": 4,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_privilege_escalation",
+            "status": "completed",
+            "planned_work": 4,
+            "completed": 4,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_prompt_injection",
+            "status": "completed",
+            "planned_work": 4,
+            "completed": 4,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_rogue_agent",
+            "status": "completed",
+            "planned_work": 4,
+            "completed": 4,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_ssrf",
+            "status": "completed",
+            "planned_work": 4,
+            "completed": 4,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_supply_chain",
+            "status": "completed",
+            "planned_work": 4,
+            "completed": 4,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_system_prompt_leakage",
+            "status": "completed",
+            "planned_work": 4,
+            "completed": 4,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_tool_misuse",
+            "status": "completed",
+            "planned_work": 4,
+            "completed": 4,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_yara",
+            "status": "completed",
+            "planned_work": 4,
+            "completed": 4,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          }
+        ],
+        "limitations": [
+          "Analyzer mcp_tool_poisoning status: failed.",
+          "Analyzer semantic_developer_intent status: failed."
+        ],
+        "findings_before_filtering": 2,
+        "findings_after_filtering": 2
+      },
+      "scan_mode": "multilingual-enhanced",
+      "enhancements": {
+        "gap_fill_applied": false,
+        "gap_fill_findings": 0,
+        "english_keyword_rules_skipped": 0
+      }
+    }
+  ],
+  "metadata": {
+    "skillspector_version": "2.9.3"
+  }
+}

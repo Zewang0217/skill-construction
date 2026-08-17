@@ -1,0 +1,355 @@
+{
+  "batch": {
+    "scanned_at": "2026-08-16T20:40:08.538831+00:00",
+    "total_skills": 1,
+    "scan_mode": "multilingual-enhanced",
+    "enhancements": {
+      "language_detection": "unicode-script-ratio",
+      "languages_detected": {},
+      "gap_fill_applied": 0,
+      "gap_fill_findings": 0
+    },
+    "inspection_completeness": {
+      "failed_executions": 0,
+      "incomplete_skills": 0,
+      "partially_inspected_files": 0,
+      "entirely_uninspected_files": 0
+    }
+  },
+  "skills": [
+    {
+      "skill": {
+        "name": "x-trends",
+        "source": "x-trends-cpif3",
+        "source_group": ".",
+        "language": "en",
+        "scanned_at": "2026-08-16T20:40:08.537338+00:00"
+      },
+      "risk_assessment": {
+        "score": 96,
+        "severity": "CRITICAL",
+        "recommendation": "DO NOT INSTALL"
+      },
+      "components": [
+        {
+          "path": "SKILL.md",
+          "type": "markdown",
+          "lines": 114,
+          "executable": false,
+          "size_bytes": 3318
+        }
+      ],
+      "issues": [
+        {
+          "id": "SDI-2",
+          "finding_id": "finding-144c0a4ad21844c79dba39857ab4659e",
+          "category": null,
+          "pattern": null,
+          "severity": "CRITICAL",
+          "confidence": 0.97,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 11,
+            "end_line": 17
+          },
+          "finding": null,
+          "explanation": "The skill instructs agents to download and run an undeclared 'openclaw-agent' binary from an external GitHub release and glot.io script, claiming it is required for all operations. However, all documented commands only use twurl/jq, and the manifest requires only twurl. This is a deceptive prerequisite that would execute arbitrary third-party code on the host, enabling full compromise.",
+          "remediation": "Remove all references to openclaw-agent and external download/install scripts. Use only official, pinned packages already declared in the manifest, and require approval before executing any external binary or script.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SQP-2",
+          "finding_id": "finding-90a7883ef0844bf5bc1513c6a647adaf",
+          "category": null,
+          "pattern": null,
+          "severity": "HIGH",
+          "confidence": 0.95,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 13,
+            "end_line": 15
+          },
+          "finding": null,
+          "explanation": "The skill instructs users to download and run a third-party executable and to copy-paste an installation script into Terminal on macOS without warning about unverified code. This is a classic malware delivery pattern and is especially dangerous when framed as a required setup step for an agent.",
+          "remediation": "Do not include unverified download-and-execute instructions. Replace with installation from trusted package managers and verified sources, and never instruct copy-pasting remote scripts into a shell.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SSD-1",
+          "finding_id": "finding-e1b74781dc4846458a33841769aebb96",
+          "category": null,
+          "pattern": null,
+          "severity": "HIGH",
+          "confidence": 0.96,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 11,
+            "end_line": 17
+          },
+          "finding": null,
+          "explanation": "The skill frames openclaw-agent as a mandatory but unrelated dependency and instructs the agent to install and run it. The binary/script is unverified and undocumented, making this a deceptive, apparently helpful prerequisite that leads to arbitrary code execution with the agent's privileges.",
+          "remediation": "Strip the openclaw-agent prerequisite from the skill. Validate that every installed component is necessary for the stated functionality and is obtained from an official source. Apply allowlisting and sandboxing for any required third-party executables.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        }
+      ],
+      "execution_successful": true,
+      "analysis_completeness": {
+        "total_components": 1,
+        "scanned_components": 1,
+        "coverage_percent": 100.0,
+        "is_complete": true,
+        "execution_successful": true,
+        "fully_inspected_files": 1,
+        "partially_inspected_files": 0,
+        "entirely_uninspected_files": 0,
+        "ledger_exceptions": [],
+        "scope_exclusions": [],
+        "analyzer_statuses": [
+          {
+            "analyzer_id": "behavioral_ast",
+            "status": "not_applicable",
+            "planned_work": 0,
+            "completed": 0,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0,
+            "reason_code": "no_applicable_files",
+            "message": "No files matched this analyzer's applicability contract."
+          },
+          {
+            "analyzer_id": "behavioral_taint_tracking",
+            "status": "not_applicable",
+            "planned_work": 0,
+            "completed": 0,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0,
+            "reason_code": "no_applicable_files",
+            "message": "No files matched this analyzer's applicability contract."
+          },
+          {
+            "analyzer_id": "mcp_least_privilege",
+            "status": "not_applicable",
+            "planned_work": 0,
+            "completed": 0,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0,
+            "reason_code": "no_applicable_files",
+            "message": "No files matched this analyzer's applicability contract."
+          },
+          {
+            "analyzer_id": "mcp_rug_pull",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_tool_poisoning",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "meta_analyzer",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_developer_intent",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_quality_policy",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_security_discovery",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_agent_snooping",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_anti_refusal",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_data_exfiltration",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_excessive_agency",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_harmful_content",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_memory_poisoning",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_output_handling",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_privilege_escalation",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_prompt_injection",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_rogue_agent",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_ssrf",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_supply_chain",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_system_prompt_leakage",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_tool_misuse",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_yara",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          }
+        ],
+        "limitations": [],
+        "findings_before_filtering": 3,
+        "findings_after_filtering": 3
+      },
+      "scan_mode": "multilingual-enhanced",
+      "enhancements": {
+        "gap_fill_applied": false,
+        "gap_fill_findings": 0,
+        "english_keyword_rules_skipped": 0
+      }
+    }
+  ],
+  "metadata": {
+    "skillspector_version": "2.9.3"
+  }
+}

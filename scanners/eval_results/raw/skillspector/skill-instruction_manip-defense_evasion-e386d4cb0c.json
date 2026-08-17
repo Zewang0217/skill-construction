@@ -1,0 +1,669 @@
+{
+  "batch": {
+    "scanned_at": "2026-08-16T18:15:39.521733+00:00",
+    "total_skills": 1,
+    "scan_mode": "multilingual-enhanced",
+    "enhancements": {
+      "language_detection": "unicode-script-ratio",
+      "languages_detected": {},
+      "gap_fill_applied": 0,
+      "gap_fill_findings": 0
+    },
+    "inspection_completeness": {
+      "failed_executions": 1,
+      "incomplete_skills": 1,
+      "partially_inspected_files": 2,
+      "entirely_uninspected_files": 0
+    }
+  },
+  "skills": [
+    {
+      "skill": {
+        "name": "api-client-wrapper",
+        "source": "skill-instruction_manip-defense_evasion-aeb85ce706",
+        "source_group": ".",
+        "language": "en",
+        "scanned_at": "2026-08-16T18:15:39.518479+00:00"
+      },
+      "risk_assessment": {
+        "score": 75,
+        "severity": "HIGH",
+        "recommendation": "DO NOT INSTALL"
+      },
+      "components": [
+        {
+          "path": "SKILL.md",
+          "type": "markdown",
+          "lines": 97,
+          "executable": false,
+          "size_bytes": 2099
+        },
+        {
+          "path": "scripts/MANIFEST.in",
+          "type": "other",
+          "lines": 3,
+          "executable": false,
+          "size_bytes": 71
+        },
+        {
+          "path": "scripts/README.md",
+          "type": "markdown",
+          "lines": 3,
+          "executable": false,
+          "size_bytes": 67
+        },
+        {
+          "path": "scripts/__init__.py",
+          "type": "python",
+          "lines": 7,
+          "executable": true,
+          "size_bytes": 238
+        },
+        {
+          "path": "scripts/__main__.py",
+          "type": "python",
+          "lines": 5,
+          "executable": true,
+          "size_bytes": 151
+        },
+        {
+          "path": "scripts/client.py",
+          "type": "python",
+          "lines": 42,
+          "executable": true,
+          "size_bytes": 1527
+        },
+        {
+          "path": "scripts/index.js",
+          "type": "javascript",
+          "lines": 17,
+          "executable": true,
+          "size_bytes": 404
+        },
+        {
+          "path": "scripts/install.py",
+          "type": "python",
+          "lines": 35,
+          "executable": true,
+          "size_bytes": 1083
+        },
+        {
+          "path": "scripts/notify.py",
+          "type": "python",
+          "lines": 18,
+          "executable": true,
+          "size_bytes": 565
+        },
+        {
+          "path": "scripts/package.json",
+          "type": "json",
+          "lines": 12,
+          "executable": false,
+          "size_bytes": 232
+        },
+        {
+          "path": "scripts/ratelimit.py",
+          "type": "python",
+          "lines": 27,
+          "executable": true,
+          "size_bytes": 858
+        },
+        {
+          "path": "scripts/requirements.txt",
+          "type": "text",
+          "lines": 3,
+          "executable": false,
+          "size_bytes": 44
+        },
+        {
+          "path": "scripts/setup.cfg",
+          "type": "other",
+          "lines": 14,
+          "executable": false,
+          "size_bytes": 224
+        },
+        {
+          "path": "scripts/setup.py",
+          "type": "python",
+          "lines": 20,
+          "executable": true,
+          "size_bytes": 459
+        },
+        {
+          "path": "scripts/tests/__init__.py",
+          "type": "python",
+          "lines": 1,
+          "executable": true,
+          "size_bytes": 14
+        },
+        {
+          "path": "scripts/tests/test_client.py",
+          "type": "python",
+          "lines": 13,
+          "executable": true,
+          "size_bytes": 422
+        },
+        {
+          "path": "scripts/transform.py",
+          "type": "python",
+          "lines": 25,
+          "executable": true,
+          "size_bytes": 847
+        }
+      ],
+      "issues": [
+        {
+          "id": "LP3",
+          "finding_id": "finding-9e1572d3f4e440608c73c52fdf70ef01",
+          "category": "MCP Least Privilege",
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.8,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 1,
+            "end_line": null
+          },
+          "finding": null,
+          "explanation": "The SKILL.md describes an API client wrapper that instructs shell commands (pip/npm install, pytest), references environment variables, performs network operations (calls, webhooks), and implies file system changes during installation and data transformation. However, it declares no permissions, allowed-tools, or tool scope. This violates least privilege: if the skill is loaded by an agent, it may operate with broader permissions than necessary. A compromised dependency or manipulated server response could lead to arbitrary network requests, environment data exfiltration, file writes, or shell command execution without an explicit authorization boundary.",
+          "remediation": "Declare explicit permissions and allowed-tools in the skill metadata, limiting the skill to only the required capabilities: e.g., network access for HTTP calls, read access to specific environment variables, and file write access only where essential. Remove or restrict shell command usage, pin dependencies, and avoid executing arbitrary install scripts unless absolutely necessary.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [
+            "ASI02"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "TT3",
+          "finding_id": "finding-04a4dc712da845ea90f1b8c0d16c8717",
+          "category": "Data Flow",
+          "pattern": "Tainted flow: 'webhook_url' from os.getenv (line 8, credential/environment) \u2192 requests.post (network output)",
+          "severity": "CRITICAL",
+          "confidence": 0.9,
+          "location": {
+            "file": "scripts/notify.py",
+            "start_line": 13,
+            "end_line": 13
+          },
+          "finding": "        resp = requests.post(webhook_url, json=payload, timeout=5)",
+          "explanation": "Credentials or environment variables flow to a network sink. This is a high-confidence indicator of credential exfiltration.",
+          "remediation": "Never send credentials or environment variables over the network. Use secure credential stores and avoid transmitting secrets in request bodies or URLs.",
+          "code_snippet": "        return None\n    payload = payload or {}\n    try:\n        resp = requests.post(webhook_url, json=payload, timeout=5)\n        resp.raise_for_status()\n        return resp\n    except requests.RequestException:",
+          "intent": null,
+          "tags": [
+            "Data Flow",
+            "llm-unconfirmed"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "SC1",
+          "finding_id": "finding-43526e6e9521406e8a9a8515d9c1b0bc",
+          "category": "Supply Chain",
+          "pattern": "Unpinned Dependencies",
+          "severity": "LOW",
+          "confidence": 0.7,
+          "location": {
+            "file": "scripts/requirements.txt",
+            "start_line": 1,
+            "end_line": null
+          },
+          "finding": "requests>=2.25.0",
+          "explanation": "The 'requests' dependency is specified only as a minimum version range (requests>=2.25.0), not pinned to a known-good version. This makes dependency resolution non-reproducible and increases supply-chain risk because a future or different resolved version could introduce breaking changes, unresolved security issues, or malicious code. In the context of an agent-installed API client wrapper, this is a weak dependency hygiene practice rather than an immediate exploit.",
+          "remediation": "Pin exact versions such as requests==2.32.3, and consider using a lockfile with hashes. Run pip-audit or a comparable dependency vulnerability scanner before deployment.",
+          "code_snippet": "requests>=2.25.0\npytest>=6.0\nurllib3>=1.26.0",
+          "intent": null,
+          "tags": [
+            "Supply Chain"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "SC1",
+          "finding_id": "finding-d2c911ba1586476c84392b1d9ec246f5",
+          "category": "Supply Chain",
+          "pattern": "Unpinned Dependencies",
+          "severity": "LOW",
+          "confidence": 0.7,
+          "location": {
+            "file": "scripts/requirements.txt",
+            "start_line": 2,
+            "end_line": null
+          },
+          "finding": "pytest>=6.0",
+          "explanation": "The 'pytest' dependency is specified only as pytest>=6.0, not pinned. This can lead to non-reproducible builds and may pull a version with different behavior or known vulnerabilities. Since pytest is a development/test dependency, the direct runtime impact is lower, but it still represents a supply-chain hygiene issue in the skill's dependency manifest.",
+          "remediation": "Pin pytest to a specific patched version, e.g., pytest==8.3.5, and audit it with pip-audit or a similar CVE scanner.",
+          "code_snippet": "requests>=2.25.0\npytest>=6.0\nurllib3>=1.26.0",
+          "intent": null,
+          "tags": [
+            "Supply Chain"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "SC1",
+          "finding_id": "finding-254defe8af1d44a79aa48f22f55a1335",
+          "category": "Supply Chain",
+          "pattern": "Unpinned Dependencies",
+          "severity": "LOW",
+          "confidence": 0.7,
+          "location": {
+            "file": "scripts/requirements.txt",
+            "start_line": 3,
+            "end_line": null
+          },
+          "finding": "urllib3>=1.26.0",
+          "explanation": "The 'urllib3' dependency is specified only as urllib3>=1.26.0, not pinned. Because urllib3 is a foundational HTTP library used by requests, unpinned resolution may unexpectedly install a version with known vulnerabilities or incompatible behavior. This weakens the reproducibility and security posture of the API client wrapper.",
+          "remediation": "Pin urllib3 to a patched release, e.g., urllib3==2.2.3 or the latest fixed version, and validate with pip-audit.",
+          "code_snippet": "requests>=2.25.0\npytest>=6.0\nurllib3>=1.26.0",
+          "intent": null,
+          "tags": [
+            "Supply Chain"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "SC4",
+          "finding_id": "finding-0f3f79cb302f464cb9a3eddbd6571bc0",
+          "category": "Supply Chain",
+          "pattern": "Unverifiable Dependency: requests has 10 known advisory(ies) (CVE-2014-1830 (Exposure of Sensitive Information to an Unauthorized Actor in Requests); CVE-2024-47081 (Requests vulnerable to .netrc credentials leak via malicious URLs); CVE-2024-35195 (Requests `Session` object does not verify requests after making first request wi) +7 more), but the manifest does not pin a version, so it is unknown whether the installed release is affected",
+          "severity": "LOW",
+          "confidence": 0.6,
+          "location": {
+            "file": "scripts/requirements.txt",
+            "start_line": 1,
+            "end_line": null
+          },
+          "finding": "requests",
+          "explanation": "The manifest does not pin 'requests', so it is impossible to verify whether the installed release is affected by known advisories such as CVE-2024-47081 or CVE-2024-35195. This is not a confirmed exploit, but it is a real dependency assurance gap: the install may resolve to a vulnerable version depending on environment state, cache, or resolution time.",
+          "remediation": "Pin requests to a version known to be free of the listed advisories, e.g., requests==2.32.4, and include automatic vulnerability scanning for the dependency set.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [
+            "Supply Chain"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "SC4",
+          "finding_id": "finding-3da1dc3ba1c44f8fb6e611b4b1eba58c",
+          "category": "Supply Chain",
+          "pattern": "Unverifiable Dependency: pytest has 2 known advisory(ies) (CVE-2025-71176 (pytest has vulnerable tmpdir handling); CVE-2025-71176 (pytest has vulnerable tmpdir handling)), but the manifest does not pin a version, so it is unknown whether the installed release is affected",
+          "severity": "LOW",
+          "confidence": 0.6,
+          "location": {
+            "file": "scripts/requirements.txt",
+            "start_line": 2,
+            "end_line": null
+          },
+          "finding": "pytest",
+          "explanation": "The manifest does not pin 'pytest', so known advisories involving pytest cannot be ruled out for the resolved version. This is primarily a development-time dependency concern, but because the skill includes pytest in its declared requirements, an automated environment that installs it could receive an affected version.",
+          "remediation": "Pin pytest to a patched release, verify the version against the stated advisories, and consider moving development dependencies to a separate dev-requirements file.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [
+            "Supply Chain"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "SC4",
+          "finding_id": "finding-2ed272db15bc45408362267be46954a4",
+          "category": "Supply Chain",
+          "pattern": "Unverifiable Dependency: urllib3 has 10 known advisory(ies) (CVE-2025-66471 (urllib3 streaming API improperly handles highly compressed data); CVE-2024-37891 (urllib3's Proxy-Authorization request header isn't stripped during cross-origin ); CVE-2026-21441 (Decompression-bomb safeguards bypassed when following HTTP redirects (streaming ) +7 more), but the manifest does not pin a version, so it is unknown whether the installed release is affected",
+          "severity": "LOW",
+          "confidence": 0.6,
+          "location": {
+            "file": "scripts/requirements.txt",
+            "start_line": 3,
+            "end_line": null
+          },
+          "finding": "urllib3",
+          "explanation": "The manifest does not pin 'urllib3', and known urllib3 advisories exist, including decompression-bomb and proxy-header leakage issues. Without a pinned version, the installed urllib3 release is unknown, so the skill may consume a version affected by a known advisory. This is a supply-chain risk rather than a directly demonstrated vulnerability.",
+          "remediation": "Pin urllib3 to a version with the relevant CVE fixes, update the dependency set through a controlled dependency review, and track remediation with pip-audit or similar tooling.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [
+            "Supply Chain"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "SC1",
+          "finding_id": "finding-9088da7dd5c345b6a0b9f1f0771db750",
+          "category": "Supply Chain",
+          "pattern": "Unpinned Dependencies",
+          "severity": "LOW",
+          "confidence": 0.4,
+          "location": {
+            "file": "scripts/package.json",
+            "start_line": 10,
+            "end_line": null
+          },
+          "finding": "\"axios\": \"^0.21.1\"",
+          "explanation": "Dependencies lack version pinning, allowing potential malicious package updates. Consider pinning versions.",
+          "remediation": "Pin all dependency versions in requirements.txt or pyproject.toml. Use exact versions (==) or compatible ranges. Run pip-audit regularly.",
+          "code_snippet": "    \"postinstall\": \"python install.py\"\n  },\n  \"dependencies\": {\n    \"axios\": \"^0.21.1\"\n  }\n}",
+          "intent": null,
+          "tags": [
+            "Supply Chain"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "SC4",
+          "finding_id": "finding-c8bdad1594914039a679d57e7507c934",
+          "category": "Supply Chain",
+          "pattern": "Unverifiable Dependency: axios has 10 known advisory(ies) (CVE-2026-44494 (axios Vulnerable to Full Man-in-the-Middle via Prototype Pollution Gadget in `co); CVE-2026-44495 (axios Vulnerable to Credential Theft and Response Hijacking via Prototype Pollut); CVE-2025-62718 (Axios has a NO_PROXY Hostname Normalization Bypass that Leads to SSRF) +7 more), but the manifest does not pin a version, so it is unknown whether the installed release is affected",
+          "severity": "LOW",
+          "confidence": 0.4,
+          "location": {
+            "file": "scripts/package.json",
+            "start_line": 10,
+            "end_line": null
+          },
+          "finding": "axios",
+          "explanation": "Dependency has known vulnerabilities (CVEs). Using packages with unpatched security flaws exposes the environment to known exploits.",
+          "remediation": "Update the dependency to a patched version that addresses the known CVE. Check OSV (osv.dev) or NVD for details on the vulnerability.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [
+            "Supply Chain"
+          ],
+          "language_compatible": true
+        }
+      ],
+      "execution_successful": false,
+      "analysis_completeness": {
+        "total_components": 17,
+        "scanned_components": 15,
+        "coverage_percent": 88.2,
+        "is_complete": false,
+        "execution_successful": false,
+        "fully_inspected_files": 15,
+        "partially_inspected_files": 2,
+        "entirely_uninspected_files": 0,
+        "ledger_exceptions": [
+          {
+            "outcome": "failed",
+            "phase": "semantic",
+            "reason_code": "llm_batch_failed",
+            "message": "LLM analysis failed for this file range.",
+            "path": "SKILL.md",
+            "start_line": null,
+            "end_line": null,
+            "fatal": true,
+            "analyzers": [
+              "mcp_tool_poisoning"
+            ],
+            "error_class": "NotImplementedError"
+          },
+          {
+            "outcome": "failed",
+            "phase": "semantic",
+            "reason_code": "llm_batch_failed",
+            "message": "LLM analysis failed for this file range.",
+            "path": "scripts/client.py",
+            "start_line": null,
+            "end_line": null,
+            "fatal": true,
+            "analyzers": [
+              "semantic_developer_intent"
+            ],
+            "error_class": "APITimeoutError"
+          },
+          {
+            "outcome": "failed",
+            "phase": "meta",
+            "reason_code": "llm_batch_failed",
+            "message": "LLM analysis failed for this file range.",
+            "path": "scripts/package.json",
+            "start_line": null,
+            "end_line": null,
+            "fatal": true,
+            "analyzers": [
+              "meta_analyzer"
+            ],
+            "error_class": "APITimeoutError"
+          }
+        ],
+        "scope_exclusions": [],
+        "analyzer_statuses": [
+          {
+            "analyzer_id": "behavioral_ast",
+            "status": "completed",
+            "planned_work": 10,
+            "completed": 10,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "behavioral_taint_tracking",
+            "status": "completed",
+            "planned_work": 10,
+            "completed": 10,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_least_privilege",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_rug_pull",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_tool_poisoning",
+            "status": "failed",
+            "planned_work": 2,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 1,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "meta_analyzer",
+            "status": "failed",
+            "planned_work": 7,
+            "completed": 6,
+            "skipped": 0,
+            "failed": 1,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_developer_intent",
+            "status": "failed",
+            "planned_work": 17,
+            "completed": 16,
+            "skipped": 0,
+            "failed": 1,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_quality_policy",
+            "status": "completed",
+            "planned_work": 17,
+            "completed": 17,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_security_discovery",
+            "status": "completed",
+            "planned_work": 17,
+            "completed": 17,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_agent_snooping",
+            "status": "completed",
+            "planned_work": 17,
+            "completed": 17,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_anti_refusal",
+            "status": "completed",
+            "planned_work": 17,
+            "completed": 17,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_data_exfiltration",
+            "status": "completed",
+            "planned_work": 17,
+            "completed": 17,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_excessive_agency",
+            "status": "completed",
+            "planned_work": 17,
+            "completed": 17,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_harmful_content",
+            "status": "completed",
+            "planned_work": 17,
+            "completed": 17,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_memory_poisoning",
+            "status": "completed",
+            "planned_work": 17,
+            "completed": 17,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_output_handling",
+            "status": "completed",
+            "planned_work": 17,
+            "completed": 17,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_privilege_escalation",
+            "status": "completed",
+            "planned_work": 17,
+            "completed": 17,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_prompt_injection",
+            "status": "completed",
+            "planned_work": 17,
+            "completed": 17,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_rogue_agent",
+            "status": "completed",
+            "planned_work": 17,
+            "completed": 17,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_ssrf",
+            "status": "completed",
+            "planned_work": 17,
+            "completed": 17,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_supply_chain",
+            "status": "completed",
+            "planned_work": 17,
+            "completed": 17,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_system_prompt_leakage",
+            "status": "completed",
+            "planned_work": 17,
+            "completed": 17,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_tool_misuse",
+            "status": "completed",
+            "planned_work": 17,
+            "completed": 17,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_yara",
+            "status": "completed",
+            "planned_work": 17,
+            "completed": 17,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          }
+        ],
+        "limitations": [
+          "Analyzer mcp_tool_poisoning status: failed.",
+          "Analyzer semantic_developer_intent status: failed.",
+          "Analyzer meta_analyzer status: failed."
+        ],
+        "findings_before_filtering": 15,
+        "findings_after_filtering": 10
+      },
+      "scan_mode": "multilingual-enhanced",
+      "enhancements": {
+        "gap_fill_applied": false,
+        "gap_fill_findings": 0,
+        "english_keyword_rules_skipped": 0
+      }
+    }
+  ],
+  "metadata": {
+    "skillspector_version": "2.9.3"
+  }
+}

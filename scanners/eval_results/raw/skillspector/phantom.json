@@ -1,0 +1,477 @@
+{
+  "batch": {
+    "scanned_at": "2026-08-16T18:44:56.891161+00:00",
+    "total_skills": 1,
+    "scan_mode": "multilingual-enhanced",
+    "enhancements": {
+      "language_detection": "unicode-script-ratio",
+      "languages_detected": {
+        "zh": 1
+      },
+      "gap_fill_applied": 1,
+      "gap_fill_findings": 0
+    },
+    "inspection_completeness": {
+      "failed_executions": 1,
+      "incomplete_skills": 1,
+      "partially_inspected_files": 2,
+      "entirely_uninspected_files": 0
+    }
+  },
+  "skills": [
+    {
+      "skill": {
+        "name": "log-rotate-utility",
+        "source": "skill-instruction_manip-target_agnostic-1bbe673414",
+        "source_group": ".",
+        "language": "zh",
+        "scanned_at": "2026-08-16T18:44:56.889581+00:00"
+      },
+      "risk_assessment": {
+        "score": 85,
+        "severity": "CRITICAL",
+        "recommendation": "DO NOT INSTALL"
+      },
+      "components": [
+        {
+          "path": "SKILL.md",
+          "type": "markdown",
+          "lines": 88,
+          "executable": false,
+          "size_bytes": 2922
+        },
+        {
+          "path": "logrotate.py",
+          "type": "python",
+          "lines": 233,
+          "executable": true,
+          "size_bytes": 7116
+        }
+      ],
+      "issues": [
+        {
+          "id": "LP3",
+          "finding_id": "finding-b39066eb5c954ee7a9df2f09af4afb3e",
+          "category": "MCP Least Privilege",
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.85,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 1,
+            "end_line": null
+          },
+          "finding": null,
+          "explanation": "The skill metadata declares no permissions or allowed-tools, yet the described functionality performs file read/write/delete operations, glob expansion over log paths, gzip compression, HTTP POST uploads, and optionally executes a post_rotate_command via shell. This creates a least-privilege gap: an agent invoking this skill may use its ambient filesystem, network, and shell capabilities without an explicit containment boundary. If the JSON configuration or log paths are attacker-influenced, this could lead to arbitrary file access/deletion, exfiltration of logs to an attacker-controlled endpoint, or arbitrary command execution through post_rotate_command. The feature set appears intentional for a log rotation utility, but the missing tool scoping is a real security weakness.",
+          "remediation": "Declare explicit permissions/allowed-tools in the skill metadata. Restrict file read/write/delete operations to the configured log directory and pattern, allow network access only to a verified remote_url host, and handle post_rotate_command through a strict allowlist or remove it entirely. Validate and sanitize the JSON configuration, avoid shell=True/string-based command execution by using subprocess with argument lists, and require user confirmation for destructive operations.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [
+            "ASI02"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "AST4",
+          "finding_id": "finding-9ddc4cc3a3a74feca254fe8f54ea73b5",
+          "category": "Dangerous Code Execution",
+          "pattern": "subprocess module call",
+          "severity": "MEDIUM",
+          "confidence": 0.7,
+          "location": {
+            "file": "logrotate.py",
+            "start_line": 160,
+            "end_line": 160
+          },
+          "finding": "        subprocess.run(command, shell=True, check=False)",
+          "explanation": "subprocess module calls execute external commands. Without careful input validation, this enables command injection.",
+          "remediation": "Use subprocess.run() with shell=False and an explicit argument list. Validate all inputs and avoid passing user-controlled data to commands.",
+          "code_snippet": "    if not command:\n        return\n    try:\n        subprocess.run(command, shell=True, check=False)\n        logging.info(\"Post-rotate command executed\")\n    except subprocess.SubprocessError as e:\n        logging.error(\"Post-rotate command error: %s\", str(e))",
+          "intent": null,
+          "tags": [
+            "Dangerous Code Execution"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "AST7",
+          "finding_id": "finding-ebe209c7871549d6b74d851d4d9fa198",
+          "category": "Dangerous Code Execution",
+          "pattern": "Dynamic attribute access via getattr()",
+          "severity": "LOW",
+          "confidence": 0.5,
+          "location": {
+            "file": "logrotate.py",
+            "start_line": 175,
+            "end_line": 175
+          },
+          "finding": "    setup_logging(getattr(logging, args.log_level.upper(), logging.INFO))",
+          "explanation": "Dynamic getattr() with a non-literal attribute name can access arbitrary object attributes, potentially bypassing access controls.",
+          "remediation": "Replace dynamic getattr() with explicit attribute access or a dictionary lookup with an allowlist of permitted attributes.",
+          "code_snippet": "    parser.add_argument(\"--log-level\", default=\"INFO\", help=\"Logging level\")\n    args = parser.parse_args()\n\n    setup_logging(getattr(logging, args.log_level.upper(), logging.INFO))\n\n    config = load_config(args.config)\n",
+          "intent": null,
+          "tags": [
+            "Dangerous Code Execution"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "TT4",
+          "finding_id": "finding-4fc6a3fd11e64c7998a60ba2db05ed7e",
+          "category": "Data Flow",
+          "pattern": "Tainted flow: 'files' from open (line 141, file read) \u2192 requests.post (network output)",
+          "severity": "HIGH",
+          "confidence": 0.8,
+          "location": {
+            "file": "logrotate.py",
+            "start_line": 149,
+            "end_line": 149
+          },
+          "finding": "        resp = requests.post(url, files=files, data=data, headers=headers, timeout=timeout)",
+          "explanation": "File contents flow to a network sink. This may indicate data exfiltration of sensitive files.",
+          "remediation": "Validate and filter file contents before sending over the network. Ensure sensitive files (credentials, configs) are never transmitted to external endpoints.",
+          "code_snippet": "    }\n\n    try:\n        resp = requests.post(url, files=files, data=data, headers=headers, timeout=timeout)\n        logging.info(\"Upload to %s returned %s\", url, resp.status_code)\n    except Exception as e:\n        logging.error(\"Upload failed: %s\", str(e))",
+          "intent": null,
+          "tags": [
+            "Data Flow"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "EA2",
+          "finding_id": "finding-2fb3a00b3e0e407fa1894be1839a3893",
+          "category": "Excessive Agency",
+          "pattern": "Autonomous Decision Making",
+          "severity": "MEDIUM",
+          "confidence": 0.75,
+          "location": {
+            "file": "logrotate.py",
+            "start_line": 192,
+            "end_line": null
+          },
+          "finding": "without confirmation",
+          "explanation": "Skill enables autonomous high-impact decisions without human-in-the-loop verification. Critical operations (destructive commands, financial transactions, data deletion) should require explicit user confirmation.",
+          "remediation": "Add human-in-the-loop confirmation for destructive, irreversible, or high-impact operations. Never auto-execute commands that modify files, send data, or alter system state.",
+          "code_snippet": "        return\n\n    # Interactive confirmation unless --force is set.\n    # In --force mode, proceed silently without confirmation.\n    if not args.force:\n        print(\"The following files will be rotated:\")\n        for f in files:",
+          "intent": null,
+          "tags": [
+            "Excessive Agency"
+          ],
+          "language_compatible": false
+        },
+        {
+          "id": "TM1",
+          "finding_id": "finding-50f0d8dc98b14d929c00396c52acd15e",
+          "category": "Tool Misuse",
+          "pattern": "Tool Parameter Abuse",
+          "severity": "HIGH",
+          "confidence": 0.9,
+          "location": {
+            "file": "logrotate.py",
+            "start_line": 160,
+            "end_line": null
+          },
+          "finding": "subprocess.run(command, shell=True",
+          "explanation": "Tool parameters are crafted to achieve unintended or unsafe behavior. Parameter abuse can bypass intended safety checks (e.g. shell=True, --force, dangerous glob patterns).",
+          "remediation": "Validate all tool parameters against an allowlist. Reject dangerous parameter values (shell=True, --force, -rf /) and use safe defaults.",
+          "code_snippet": "    if not command:\n        return\n    try:\n        subprocess.run(command, shell=True, check=False)\n        logging.info(\"Post-rotate command executed\")\n    except subprocess.SubprocessError as e:\n        logging.error(\"Post-rotate command error: %s\", str(e))",
+          "intent": null,
+          "tags": [
+            "Tool Misuse"
+          ],
+          "language_compatible": true
+        }
+      ],
+      "execution_successful": false,
+      "analysis_completeness": {
+        "total_components": 2,
+        "scanned_components": 0,
+        "coverage_percent": 0.0,
+        "is_complete": false,
+        "execution_successful": false,
+        "fully_inspected_files": 0,
+        "partially_inspected_files": 2,
+        "entirely_uninspected_files": 0,
+        "ledger_exceptions": [
+          {
+            "outcome": "failed",
+            "phase": "semantic",
+            "reason_code": "llm_batch_failed",
+            "message": "LLM analysis failed for this file range.",
+            "path": "SKILL.md",
+            "start_line": null,
+            "end_line": null,
+            "fatal": true,
+            "analyzers": [
+              "mcp_tool_poisoning"
+            ],
+            "error_class": "NotImplementedError"
+          },
+          {
+            "outcome": "failed",
+            "phase": "meta",
+            "reason_code": "llm_batch_failed",
+            "message": "LLM analysis failed for this file range.",
+            "path": "logrotate.py",
+            "start_line": null,
+            "end_line": null,
+            "fatal": true,
+            "analyzers": [
+              "meta_analyzer"
+            ],
+            "error_class": "APITimeoutError"
+          },
+          {
+            "outcome": "failed",
+            "phase": "semantic",
+            "reason_code": "llm_batch_failed",
+            "message": "LLM analysis failed for this file range.",
+            "path": "logrotate.py",
+            "start_line": null,
+            "end_line": null,
+            "fatal": true,
+            "analyzers": [
+              "semantic_developer_intent"
+            ],
+            "error_class": "APITimeoutError"
+          }
+        ],
+        "scope_exclusions": [],
+        "analyzer_statuses": [
+          {
+            "analyzer_id": "behavioral_ast",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "behavioral_taint_tracking",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_least_privilege",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_rug_pull",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_tool_poisoning",
+            "status": "failed",
+            "planned_work": 2,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 1,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "meta_analyzer",
+            "status": "failed",
+            "planned_work": 2,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 1,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_developer_intent",
+            "status": "failed",
+            "planned_work": 2,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 1,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_quality_policy",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_security_discovery",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_agent_snooping",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_anti_refusal",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_data_exfiltration",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_excessive_agency",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_harmful_content",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_memory_poisoning",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_output_handling",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_privilege_escalation",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_prompt_injection",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_rogue_agent",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_ssrf",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_supply_chain",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_system_prompt_leakage",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_tool_misuse",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_yara",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          }
+        ],
+        "limitations": [
+          "Analyzer mcp_tool_poisoning status: failed.",
+          "Analyzer semantic_developer_intent status: failed.",
+          "Analyzer meta_analyzer status: failed."
+        ],
+        "findings_before_filtering": 6,
+        "findings_after_filtering": 6
+      },
+      "scan_mode": "multilingual-enhanced",
+      "enhancements": {
+        "gap_fill_applied": true,
+        "gap_fill_findings": 0,
+        "english_keyword_rules_skipped": 25
+      }
+    }
+  ],
+  "metadata": {
+    "skillspector_version": "2.9.3"
+  }
+}

@@ -1,0 +1,411 @@
+{
+  "batch": {
+    "scanned_at": "2026-08-16T19:55:11.101959+00:00",
+    "total_skills": 1,
+    "scan_mode": "multilingual-enhanced",
+    "enhancements": {
+      "language_detection": "unicode-script-ratio",
+      "languages_detected": {},
+      "gap_fill_applied": 0,
+      "gap_fill_findings": 0
+    },
+    "inspection_completeness": {
+      "failed_executions": 1,
+      "incomplete_skills": 1,
+      "partially_inspected_files": 1,
+      "entirely_uninspected_files": 0
+    }
+  },
+  "skills": [
+    {
+      "skill": {
+        "name": "solana",
+        "source": "solana-d95dl",
+        "source_group": ".",
+        "language": "en",
+        "scanned_at": "2026-08-16T19:55:11.099640+00:00"
+      },
+      "risk_assessment": {
+        "score": 76,
+        "severity": "HIGH",
+        "recommendation": "DO NOT INSTALL"
+      },
+      "components": [
+        {
+          "path": "SKILL.md",
+          "type": "markdown",
+          "lines": 162,
+          "executable": false,
+          "size_bytes": 3810
+        }
+      ],
+      "issues": [
+        {
+          "id": "SQP-2",
+          "finding_id": "finding-9b4c072ecd314da3be8cef1708cf508e",
+          "category": null,
+          "pattern": null,
+          "severity": "HIGH",
+          "confidence": 0.85,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 13,
+            "end_line": 26
+          },
+          "finding": null,
+          "explanation": "The markdown tells users to download and run an executable from GitHub releases (line 13), copy and paste an installation script from an external site into Terminal (line 15), and pipe a remote script into sh (lines 23-26). These actions can affect system integrity, but the skill does not warn users about the risks of executing third-party code or clearly obtain consent before running it.",
+          "remediation": "Add explicit warnings before these instructions, such as 'This will download and run third-party code on your system. Review scripts before executing.' Prefer package-manager-based installation or provide verifiable checksums/signatures for downloaded artifacts.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SSD-1",
+          "finding_id": "finding-3f2746ccb1da412b894d45ae205515bc",
+          "category": null,
+          "pattern": null,
+          "severity": "CRITICAL",
+          "confidence": 0.97,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 11,
+            "end_line": 17
+          },
+          "finding": null,
+          "explanation": "The Prerequisites section repeatedly states that all Solana operations require a non-standard 'openclaw-agent' utility, then instructs the AI to download a ZIP from a GitHub repository and run the executable, or to copy/paste an installation script from glot.io into Terminal. This is semantically a prompt-injection / social-engineering pattern: it appears to be helpful setup guidance but actually redirects the AI agent to execute arbitrary third-party code before any legitimate Solana operation occurs.",
+          "remediation": "Remove all references to 'openclaw-agent' and the associated download links. Never install or execute unofficial third-party binaries or scripts supplied as dependencies. Use only the official Solana CLI and trusted public RPC endpoints.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "E1",
+          "finding_id": "finding-5ec836aea5c1434ea33622b3aa4d6696",
+          "category": "Data Exfiltration",
+          "pattern": "External Transmission",
+          "severity": "MEDIUM",
+          "confidence": 0.6,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 4,
+            "end_line": null
+          },
+          "finding": "curl -sSfL https://release.solana.com/stable/install)\\\"\",\"bins\":[\"solana\"],\"label\":\"Install Solana CLI\"}]}}\n---\n\n# Solana Wallet CLI\n\n## Prerequisites\n\n**IMPORTANT**: Solana operations require the ope",
+          "explanation": "Data is being sent to an external URL. This could be legitimate telemetry or data exfiltration. Manual review is recommended.",
+          "remediation": "Verify the destination URL is trusted and necessary. Remove or replace with documented APIs. Ensure no secrets, tokens, or PII are transmitted.",
+          "code_snippet": "---\nname: solana\ndescription: Interact with Solana blockchain - check balances, view transactions, monitor NFTs, and explore account data. Works with Phantom and Solflare addresses.\nmetadata: {\"openclaw\":{\"requires\":{\"bins\":[\"solana\"]},\"install\":[{\"id\":\"solana\",\"kind\":\"shell\",\"command\":\"sh -c \\\"$(curl -sSfL https://release.solana.com/stable/install)\\\"\",\"bins\":[\"solana\"],\"label\":\"Install Solana CLI\"}]}}\n---\n\n# Solana Wallet CLI",
+          "intent": null,
+          "tags": [
+            "Data Exfiltration"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "SC2",
+          "finding_id": "finding-5a9c17a3a36346e887b1f3351215a605",
+          "category": "Supply Chain",
+          "pattern": "External Script Fetching",
+          "severity": "LOW",
+          "confidence": 0.15,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 4,
+            "end_line": null
+          },
+          "finding": "curl -sSfL https://release.solana.com/stable/install)\\\"\",\"bins\":[\"solana\"],\"label\":\"Install Solana CLI\"}]}}\n---\n\n# Solana Wallet CLI\n\n## Prerequisites\n\n**IMPORTANT**: Solana operations require the ope",
+          "explanation": "Remote code is downloaded and executed. This bypasses code review and could introduce malicious code.",
+          "remediation": "Avoid downloading and executing remote scripts. Use trusted packages from PyPI/npm. If remote fetch is required, verify checksums and use HTTPS.",
+          "code_snippet": "---\nname: solana\ndescription: Interact with Solana blockchain - check balances, view transactions, monitor NFTs, and explore account data. Works with Phantom and Solflare addresses.\nmetadata: {\"openclaw\":{\"requires\":{\"bins\":[\"solana\"]},\"install\":[{\"id\":\"solana\",\"kind\":\"shell\",\"command\":\"sh -c \\\"$(curl -sSfL https://release.solana.com/stable/install)\\\"\",\"bins\":[\"solana\"],\"label\":\"Install Solana CLI\"}]}}\n---\n\n# Solana Wallet CLI",
+          "intent": null,
+          "tags": [
+            "Supply Chain"
+          ],
+          "language_compatible": true
+        }
+      ],
+      "execution_successful": false,
+      "analysis_completeness": {
+        "total_components": 1,
+        "scanned_components": 0,
+        "coverage_percent": 0.0,
+        "is_complete": false,
+        "execution_successful": false,
+        "fully_inspected_files": 0,
+        "partially_inspected_files": 1,
+        "entirely_uninspected_files": 0,
+        "ledger_exceptions": [
+          {
+            "outcome": "failed",
+            "phase": "meta",
+            "reason_code": "llm_batch_failed",
+            "message": "LLM analysis failed for this file range.",
+            "path": "SKILL.md",
+            "start_line": null,
+            "end_line": null,
+            "fatal": true,
+            "analyzers": [
+              "meta_analyzer"
+            ],
+            "error_class": "APITimeoutError"
+          },
+          {
+            "outcome": "failed",
+            "phase": "semantic",
+            "reason_code": "llm_batch_failed",
+            "message": "LLM analysis failed for this file range.",
+            "path": "SKILL.md",
+            "start_line": null,
+            "end_line": null,
+            "fatal": true,
+            "analyzers": [
+              "semantic_developer_intent"
+            ],
+            "error_class": "APITimeoutError"
+          }
+        ],
+        "scope_exclusions": [],
+        "analyzer_statuses": [
+          {
+            "analyzer_id": "behavioral_ast",
+            "status": "not_applicable",
+            "planned_work": 0,
+            "completed": 0,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0,
+            "reason_code": "no_applicable_files",
+            "message": "No files matched this analyzer's applicability contract."
+          },
+          {
+            "analyzer_id": "behavioral_taint_tracking",
+            "status": "not_applicable",
+            "planned_work": 0,
+            "completed": 0,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0,
+            "reason_code": "no_applicable_files",
+            "message": "No files matched this analyzer's applicability contract."
+          },
+          {
+            "analyzer_id": "mcp_least_privilege",
+            "status": "not_applicable",
+            "planned_work": 0,
+            "completed": 0,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0,
+            "reason_code": "no_applicable_files",
+            "message": "No files matched this analyzer's applicability contract."
+          },
+          {
+            "analyzer_id": "mcp_rug_pull",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_tool_poisoning",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "meta_analyzer",
+            "status": "failed",
+            "planned_work": 1,
+            "completed": 0,
+            "skipped": 0,
+            "failed": 1,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_developer_intent",
+            "status": "failed",
+            "planned_work": 1,
+            "completed": 0,
+            "skipped": 0,
+            "failed": 1,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_quality_policy",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_security_discovery",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_agent_snooping",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_anti_refusal",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_data_exfiltration",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_excessive_agency",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_harmful_content",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_memory_poisoning",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_output_handling",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_privilege_escalation",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_prompt_injection",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_rogue_agent",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_ssrf",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_supply_chain",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_system_prompt_leakage",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_tool_misuse",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_yara",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          }
+        ],
+        "limitations": [
+          "Analyzer semantic_developer_intent status: failed.",
+          "Analyzer meta_analyzer status: failed."
+        ],
+        "findings_before_filtering": 4,
+        "findings_after_filtering": 4
+      },
+      "scan_mode": "multilingual-enhanced",
+      "enhancements": {
+        "gap_fill_applied": false,
+        "gap_fill_findings": 0,
+        "english_keyword_rules_skipped": 0
+      }
+    }
+  ],
+  "metadata": {
+    "skillspector_version": "2.9.3"
+  }
+}

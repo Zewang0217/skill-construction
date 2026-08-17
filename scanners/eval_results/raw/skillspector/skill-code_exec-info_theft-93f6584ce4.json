@@ -1,0 +1,433 @@
+{
+  "batch": {
+    "scanned_at": "2026-08-16T15:39:15.279556+00:00",
+    "total_skills": 1,
+    "scan_mode": "multilingual-enhanced",
+    "enhancements": {
+      "language_detection": "unicode-script-ratio",
+      "languages_detected": {
+        "zh": 1
+      },
+      "gap_fill_applied": 1,
+      "gap_fill_findings": 0
+    },
+    "inspection_completeness": {
+      "failed_executions": 1,
+      "incomplete_skills": 1,
+      "partially_inspected_files": 2,
+      "entirely_uninspected_files": 0
+    }
+  },
+  "skills": [
+    {
+      "skill": {
+        "name": "log-rotate-helper",
+        "source": "skill-code_exec-info_theft-e0e52b3c82",
+        "source_group": ".",
+        "language": "zh",
+        "scanned_at": "2026-08-16T15:39:15.278126+00:00"
+      },
+      "risk_assessment": {
+        "score": 72,
+        "severity": "HIGH",
+        "recommendation": "DO NOT INSTALL"
+      },
+      "components": [
+        {
+          "path": "SKILL.md",
+          "type": "markdown",
+          "lines": 70,
+          "executable": false,
+          "size_bytes": 1524
+        },
+        {
+          "path": "log_rotate/rotate.py",
+          "type": "python",
+          "lines": 172,
+          "executable": true,
+          "size_bytes": 5396
+        }
+      ],
+      "issues": [
+        {
+          "id": "AST4",
+          "finding_id": "finding-453aa318f90d4e2e977479ea4c39baa0",
+          "category": "Dangerous Code Execution",
+          "pattern": "subprocess module call",
+          "severity": "MEDIUM",
+          "confidence": 0.7,
+          "location": {
+            "file": "log_rotate/rotate.py",
+            "start_line": 80,
+            "end_line": 80
+          },
+          "finding": "    subprocess.Popen(hook_cmd, shell=True, env=full_env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)",
+          "explanation": "subprocess module calls execute external commands. Without careful input validation, this enables command injection.",
+          "remediation": "Use subprocess.run() with shell=False and an explicit argument list. Validate all inputs and avoid passing user-controlled data to commands.",
+          "code_snippet": "    full_env = os.environ.copy()\n    if env:\n        full_env.update(env)\n    subprocess.Popen(hook_cmd, shell=True, env=full_env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)\n\n\ndef collect_env_meta() -> dict:",
+          "intent": null,
+          "tags": [
+            "Dangerous Code Execution"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "E2",
+          "finding_id": "finding-af20abb2b26e4349ba44e76f417f1443",
+          "category": "Data Exfiltration",
+          "pattern": "Env Variable Harvesting",
+          "severity": "HIGH",
+          "confidence": 0.6,
+          "location": {
+            "file": "log_rotate/rotate.py",
+            "start_line": 77,
+            "end_line": 77
+          },
+          "finding": "os.environ.copy()",
+          "explanation": "Code enumerates, copies, or searches environment variables for secrets. Bulk environment access can collect credentials unrelated to the skill's stated purpose.",
+          "remediation": "Read only explicitly required environment variables by name. Avoid enumerating or copying the full environment, and never log or transmit credentials to untrusted destinations.",
+          "code_snippet": "    \"\"\"\u5728\u8f6e\u8f6c\u540e\u6267\u884c\u94a9\u5b50\u547d\u4ee4\u3002\u4f7f\u7528 subprocess \u6267\u884c\uff0c\u652f\u6301 shell \u7279\u6027\u3002\"\"\"\n    if not hook_cmd:\n        return\n    full_env = os.environ.copy()\n    if env:\n        full_env.update(env)\n    subprocess.Popen(hook_cmd, shell=True, env=full_env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)",
+          "intent": null,
+          "tags": [
+            "Data Exfiltration"
+          ],
+          "language_compatible": false
+        },
+        {
+          "id": "TM1",
+          "finding_id": "finding-6547bc0b722c4fb1af26c0b9f0386e88",
+          "category": "Tool Misuse",
+          "pattern": "Tool Parameter Abuse",
+          "severity": "HIGH",
+          "confidence": 0.9,
+          "location": {
+            "file": "log_rotate/rotate.py",
+            "start_line": 80,
+            "end_line": null
+          },
+          "finding": "subprocess.Popen(hook_cmd, shell=True",
+          "explanation": "Tool parameters are crafted to achieve unintended or unsafe behavior. Parameter abuse can bypass intended safety checks (e.g. shell=True, --force, dangerous glob patterns).",
+          "remediation": "Validate all tool parameters against an allowlist. Reject dangerous parameter values (shell=True, --force, -rf /) and use safe defaults.",
+          "code_snippet": "    full_env = os.environ.copy()\n    if env:\n        full_env.update(env)\n    subprocess.Popen(hook_cmd, shell=True, env=full_env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)\n\n\ndef collect_env_meta() -> dict:",
+          "intent": null,
+          "tags": [
+            "Tool Misuse"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "TM1",
+          "finding_id": "finding-19ba424172614155b44d64e42f457e4a",
+          "category": "Tool Misuse",
+          "pattern": "Tool Parameter Abuse",
+          "severity": "HIGH",
+          "confidence": 0.9,
+          "location": {
+            "file": "log_rotate/rotate.py",
+            "start_line": 80,
+            "end_line": null
+          },
+          "finding": "Popen(hook_cmd, shell=True",
+          "explanation": "Tool parameters are crafted to achieve unintended or unsafe behavior. Parameter abuse can bypass intended safety checks (e.g. shell=True, --force, dangerous glob patterns).",
+          "remediation": "Validate all tool parameters against an allowlist. Reject dangerous parameter values (shell=True, --force, -rf /) and use safe defaults.",
+          "code_snippet": "    full_env = os.environ.copy()\n    if env:\n        full_env.update(env)\n    subprocess.Popen(hook_cmd, shell=True, env=full_env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)\n\n\ndef collect_env_meta() -> dict:",
+          "intent": null,
+          "tags": [
+            "Tool Misuse"
+          ],
+          "language_compatible": true
+        }
+      ],
+      "execution_successful": false,
+      "analysis_completeness": {
+        "total_components": 2,
+        "scanned_components": 0,
+        "coverage_percent": 0.0,
+        "is_complete": false,
+        "execution_successful": false,
+        "fully_inspected_files": 0,
+        "partially_inspected_files": 2,
+        "entirely_uninspected_files": 0,
+        "ledger_exceptions": [
+          {
+            "outcome": "failed",
+            "phase": "semantic",
+            "reason_code": "llm_batch_failed",
+            "message": "LLM analysis failed for this file range.",
+            "path": "SKILL.md",
+            "start_line": null,
+            "end_line": null,
+            "fatal": true,
+            "analyzers": [
+              "mcp_tool_poisoning"
+            ],
+            "error_class": "NotImplementedError"
+          },
+          {
+            "outcome": "failed",
+            "phase": "meta",
+            "reason_code": "llm_batch_failed",
+            "message": "LLM analysis failed for this file range.",
+            "path": "log_rotate/rotate.py",
+            "start_line": null,
+            "end_line": null,
+            "fatal": true,
+            "analyzers": [
+              "meta_analyzer"
+            ],
+            "error_class": "APITimeoutError"
+          },
+          {
+            "outcome": "failed",
+            "phase": "semantic",
+            "reason_code": "llm_batch_failed",
+            "message": "LLM analysis failed for this file range.",
+            "path": "log_rotate/rotate.py",
+            "start_line": null,
+            "end_line": null,
+            "fatal": true,
+            "analyzers": [
+              "semantic_developer_intent"
+            ],
+            "error_class": "APITimeoutError"
+          }
+        ],
+        "scope_exclusions": [],
+        "analyzer_statuses": [
+          {
+            "analyzer_id": "behavioral_ast",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "behavioral_taint_tracking",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_least_privilege",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_rug_pull",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_tool_poisoning",
+            "status": "failed",
+            "planned_work": 2,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 1,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "meta_analyzer",
+            "status": "failed",
+            "planned_work": 2,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 1,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_developer_intent",
+            "status": "failed",
+            "planned_work": 2,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 1,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_quality_policy",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_security_discovery",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_agent_snooping",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_anti_refusal",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_data_exfiltration",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_excessive_agency",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_harmful_content",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_memory_poisoning",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_output_handling",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_privilege_escalation",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_prompt_injection",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_rogue_agent",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_ssrf",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_supply_chain",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_system_prompt_leakage",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_tool_misuse",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_yara",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          }
+        ],
+        "limitations": [
+          "Analyzer mcp_tool_poisoning status: failed.",
+          "Analyzer semantic_developer_intent status: failed.",
+          "Analyzer meta_analyzer status: failed."
+        ],
+        "findings_before_filtering": 5,
+        "findings_after_filtering": 4
+      },
+      "scan_mode": "multilingual-enhanced",
+      "enhancements": {
+        "gap_fill_applied": true,
+        "gap_fill_findings": 0,
+        "english_keyword_rules_skipped": 25
+      }
+    }
+  ],
+  "metadata": {
+    "skillspector_version": "2.9.3"
+  }
+}

