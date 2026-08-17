@@ -73,3 +73,9 @@
 - [ ] moltpho 从良性池剔除或标可疑（影响 FP 率统计：剔除后 Cisco FP = 3/19 = 15.8%）
 - [ ] 扩良性池到 50-100 样本，FP 率更稳定
 - [ ] 与恶意检出率合并成 TP/FP 完整矩阵
+
+## 8. 更新（2026-08-17）
+
+- **moltpho 已从良性池剔除** → `benign-samples/_misclassified/`（MalSkillBench benign 池误分类确认）
+- 剔除后 Cisco FP = 3/19 = **15.8%**（原 20%）
+- 新 500 良性池（benign-500/）扫描中，FP 统计待更新
