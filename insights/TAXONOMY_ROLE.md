@@ -14,7 +14,7 @@
 1. **43 坐标 = 来源×方式×目标 三维定义力**：唯一坐标覆盖 taxonomy 语义空间，构造是坐标级枚举而非随机抽样。
 2. **覆盖性**：43/43 全覆盖，每坐标 2-5 样本，232 样本 = 坐标 × 实例。
 3. **D5 质量门**：强制含可执行脚本，保证恶意是**可运行载荷**而非纯文本。
-4. **taxonomy 定位盲区**：Cat 对 `instruction_manip`（尤其 `source_agnostic×instruction_manip`）系统性零命中——坐标直接映射到架构盲区。
+4. **taxonomy 定位盲区**：Cat 对**无代码字面的纯指令型**（`source_agnostic×instruction_manip`）系统性零命中（2/5），而含代码字面的 `supply_chain×instruction_manip` 5/5 全检出——坐标精确钉住架构盲区边界。
 5. **taxonomy 与结论**：盲区 = 坐标弱覆盖 = **架构决定盲区**，可归因、可复现、可扩展。
 
 ---

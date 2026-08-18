@@ -16,7 +16,8 @@
 **核心结论**：
 - **Cisco 17 个 null 全部是 skill 内容导致加载失败**（无 frontmatter / YAML 语法错 / 超 10MB），
   已本地 `skill-scanner scan` 17/17 重验。这是**攻击面**：畸形 skill 可让扫描器静默失效。
-- **SS 41 个 score=0 中仅 14 个（4+10）属 LLM/随机失效**，27 个是真实语义漏检（应保留）。
+- **SS 41 个 score=0 精确分类**：4 个 LLM 失败（raw 痕迹）+ 6 个 Cisco 技术失败（SS 无判定，
+  不算 SS 漏检）+ 6 个三家无信号（LLM 失败嫌疑）+ **25 个真实语义漏检（保留）**。
   SS flat 输出格式不记录执行状态，是"失败 vs 判安全"不可区分的根因。
 - **Cat 582/582 零技术失败**：纯正则离线引擎无 LLM 依赖，稳定但能力天花板明确。
 
@@ -70,36 +71,38 @@ Cisco（skill-scanner + LLM）对 582 样本产出 564 个判定，**17 个 null
 
 ---
 
-## 三、SS 41 个 score=0：14 个 LLM/随机失效 vs 27 个真语义漏检
+## 三、SS 41 个 score=0：4 LLM 失败 + 6 Cisco 技术失败 + 6 无信号 + 25 真语义漏检
 
 ### 3.1 划分方法
 
 SS 对 582 样本产出 541 个判定，41 个 `score=0`。SS raw 报告为**平铺格式**（`{score,severity,issues}`），
-**不记录 `execution_successful` / `failed_executions`**——这是划分难点。划分依据：
+**不记录 `execution_successful` / `failed_executions`**——这是划分难点。划分依据（判定顺序：L1 skill 导致 → L2 LLM 痕迹 → 剩余为 L3 真语义漏检）：
 
-1. **raw 含 LLM 失败痕迹**（4 个）：`raw/skillspector/*.json` 中出现 wrapped 格式（含 `batch.inspection_completeness.failed_executions>0`）或 LLM 空响应标记。
-2. **三家无信号 + 内容疑似 LLM 失败**（10 个）：三家全漏且 SKILL.md 无真实恶意载荷，判定 LLM 失败嫌疑。
-3. **剩余 27 个**：无 LLM 痕迹且他家（Cisco/Cat）检出 = **真语义漏检，保留**。
+1. **raw 含 LLM 失败痕迹**（4 个）：`raw/skillspector/*.json` 出现 `LLM analysis failed` 或 Insufficient Balance。
+2. **Cisco 技术失败**（6 个）：这 6 个的 Cisco raw 为 null（skill 内容导致 Cisco 加载失败，见 §二），SS 无判定**不算 SS 漏检**。
+3. **三家无信号 + 内容疑似 LLM 失败**（6 个）：三家全漏且无 LLM 痕迹，判定 LLM 失败嫌疑（数据质量/执行失败类，见 KEY_INSIGHTS）。
+4. **剩余 25 个**：无 LLM 痕迹且他家（Cisco/Cat）检出 = **真语义漏检，保留**。
 
 ### 3.2 划分结果
 
-| 类别 | 数量 | 样本/说明 |
+| 类别 | 数量 | 说明 |
 |---|---|---|
-| LLM 失败（raw 含痕迹） | 4 | agent-browser-6aigix9qi2tu、invelene-daily-oracle、phantom、skill-code_exec-target_agnostic-221e242136（`failed_executions>0` 或空响应） |
-| LLM 失败嫌疑（三家无信号） | 10 | better-polymarket、rbtc、kh3rwa1、dex-arbitrage、get-weather、klaviyoapi、novafon、polymarket-all-in-one、rankaj、skill-privilege_abuse-resource_abuse-25d5120b77（多为数据质量/执行失败类，见 KEY_INSIGHTS） |
-| **真语义漏检（保留）** | **27** | C+P 12 + 仅C 9 + 仅P 6（见下） |
+| LLM 失败（raw 含痕迹） | 4 | agent-browser-6aigix9qi2tu、invelene-daily-oracle、phantom、skill-code_exec-target_agnostic-221e242136（`LLM analysis failed`） |
+| Cisco 技术失败（SS 无判定，不算 SS 漏检） | 6 | rbtc、kh3rwa1、project-hiro、klaviyoapi、novafon、skill-privilege_abuse-system_damage-3c1f878cfd（Cisco null 见 §二；SS 无判定） |
+| LLM 失败嫌疑（三家无信号） | 6 | better-polymarket、dex-arbitrage、get-weather、polymarket-all-in-one、rankaj、skill-privilege_abuse-resource_abuse-25d5120b77 |
+| **真语义漏检（保留）** | **25** | C+P 13 + 仅C 6 + 仅P 6（见下） |
 
-**27 个真语义漏检构成**（按分组）：
+**25 个真语义漏检构成**（按分组，三家判定交叉核实）：
 
 | 分组 | 数量 | 代表样本 |
 |---|---|---|
-| C+P（Cisco+Cat 检出，SS 漏） | 12 | bonero-miner、zkclaw、tron、wallet-tracker、yt-summarize、omnicogg、yt-thumbnail-grabber、polymarket-arb-bot、auto-updater-pb70kpsnfof、skill-code_exec-info_theft-4dcf68f107、skill-mechanism_unknown-info_theft-f26196dd17、skill-privilege_abuse-target_agnostic-3a6f2db506 |
-| 仅C（Cisco 检出） | 9 | insider-wallets-finder、clawhub-aces1up-apify-keys、lost-bitcoin-dbrgt、polymarket-prob-analyzer、clawhub-qiumr-futures-trader、skill-privilege_abuse-resource_abuse-25d5120b77 等 |
-| 仅P（Cat 检出） | 6 | clawhub-purple-flea-casino、project-hiro、skill-code_exec-info_theft-f1e223192b、skill-privilege_abuse-system_damage-3c1f878cfd、skill-state_corruption-target_agnostic-93d34149e2、x-twitter-trends |
+| C+P（Cisco+Cat 检出，SS 漏） | 13 | bonero-miner、zkclaw、tron、wallet-tracker、yt-summarize、omnicogg、yt-thumbnail-grabber、polymarket-arb-bot、auto-updater-pb70kpsnfof、skill-code_exec-info_theft-4dcf68f107、skill-mechanism_unknown-info_theft-f26196dd17、skill-privilege_abuse-target_agnostic-3a6f2db506、project-init |
+| 仅C（Cisco 检出） | 6 | insider-wallets-finder、clawhub-aces1up-apify-keys、lost-bitcoin-dbrgt、polymarket-prob-analyzer、clawhub-qiumr-futures-trader、math-calculator |
+| 仅P（Cat 检出） | 6 | clawhub-purple-flea-casino、skill-code_exec-info_theft-f1e223192b、skill-state_corruption-target_agnostic-93d34149e2、x-twitter-trends、skill-obfuscation-defense_evasion-95c12592da、skill-dependency_manip-target_agnostic-47fb86919f |
 
-> 注：C+P 组内 `insider-wallets-finder` 与其 `-1a7pi` 等变体同源，均为"钱包分析 + curl|python3 管道"模板（见 KEY_INSIGHTS 系统性绕过）。
+> 注：仅 P 组 `skill-obfuscation-defense_evasion-95c12592da`、`skill-dependency_manip-47fb86919f` 的 Cat 检出含 `_provenance.json` 泄漏成分（见 §四注记），归为真语义漏检需谨慎——其 SS 漏检本身成立，但 Cat 侧证据部分失真。
 
-### 3.3 代表样本（SS 真语义漏检）
+### 3.3 代表样本（SS 真语义漏检，全部 wild）
 
 | 样本 | SS（score/severity） | Cisco | Cat | 漏检本质 |
 |---|---|---|---|---|
@@ -114,7 +117,7 @@ SS 对 582 样本产出 541 个判定，41 个 `score=0`。SS raw 报告为**平
 
 SS raw 平铺格式只保留 `{score,severity,issues}`，**丢弃 `execution_successful`/`failed_executions`**。
 因此"LLM 服务失败"与"LLM 判安全"在输出上不可区分（外观都是 `score=0`）。评测时必须回 raw 查
-wrapped 格式或 LLM 痕迹才能把 14 个失效样本与 27 个真漏检分开——**格式缺陷直接掩盖了评测方法陷阱**。
+wrapped 格式或 LLM 痕迹才能把 4 个失效样本与 25 个真漏检分开——**格式缺陷直接掩盖了评测方法陷阱**。
 
 ---
 
@@ -129,7 +132,7 @@ Cat 582/582 全部产出有效判定（`n_findings` / grade / score），无 nul
 ## 五、评测方法论含义
 
 1. **技术失败必须分类，否则污染检出率**：Cisco 17 个 null 若当"未检出"，低估其能力；SS 41 个
-   score=0 若全当"漏检"，则把 14 个 LLM 失效混进 27 个真漏检，高估 SS 漏检率。
+   score=0 若全当"漏检"，则把 10 个 LLM/无信号失效混进 25 个真漏检，高估 SS 漏检率。
 2. **三分法（L1/L2/L3）是统一口径**：先剔 skill 导致（攻击面，单独统计）→ 再剔 LLM 失效 →
    剩余为真漏检。本实验最终口径（Cisco 85.2% / SS 92.8% / Cat 72.5%）即按此修正。
 3. **格式可观测性是前提**：SS flat 无执行状态字段 = 评测盲区；Cisco null 至少可区分"加载失败"，
