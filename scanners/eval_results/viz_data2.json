@@ -1,0 +1,90 @@
+{
+ "gen_by_target": {
+  "info_theft": {
+   "n": 34,
+   "cisco": 88.2,
+   "ss": 91.2,
+   "cat": 82.4
+  },
+  "persistent_control": {
+   "n": 31,
+   "cisco": 80.6,
+   "ss": 100.0,
+   "cat": 80.6
+  },
+  "resource_abuse": {
+   "n": 20,
+   "cisco": 65.0,
+   "ss": 95.0,
+   "cat": 75.0
+  },
+  "system_damage": {
+   "n": 10,
+   "cisco": 60.0,
+   "ss": 90.0,
+   "cat": 50.0
+  },
+  "target_agnostic": {
+   "n": 99,
+   "cisco": 85.9,
+   "ss": 96.0,
+   "cat": 77.8
+  },
+  "defense_evasion": {
+   "n": 27,
+   "cisco": 88.9,
+   "ss": 96.3,
+   "cat": 74.1
+  },
+  "content_safety": {
+   "n": 5,
+   "cisco": 60.0,
+   "ss": 100.0,
+   "cat": 40.0
+  },
+  "financial_theft": {
+   "n": 5,
+   "cisco": 80.0,
+   "ss": 100.0,
+   "cat": 40.0
+  }
+ },
+ "blindspot": {
+  "cisco_miss": {
+   "wild": 44,
+   "source_agnostic×instruction_manip×resource_abuse": 3,
+   "source_agnostic×privilege_abuse×resource_abuse": 3,
+   "source_agnostic×privilege_abuse×system_damage": 3,
+   "source_agnostic×code_exec×persistent_control": 2,
+   "user_input×code_exec×target_agnostic": 2,
+   "source_agnostic×instruction_manip×content_safety": 2,
+   "source_agnostic×obfuscation×info_theft": 2,
+   "supply_chain×state_corruption×persistent_control": 2,
+   "source_agnostic×state_corruption×target_agnostic": 2
+  },
+  "ss_miss": {
+   "wild": 31,
+   "supply_chain×code_exec×info_theft": 1,
+   "runtime_environment×code_exec×info_theft": 1,
+   "supply_chain×code_exec×target_agnostic": 1,
+   "supply_chain×dependency_manip×target_agnostic": 1,
+   "source_agnostic×mechanism_unknown×info_theft": 1,
+   "supply_chain×obfuscation×defense_evasion": 1,
+   "source_agnostic×privilege_abuse×resource_abuse": 1,
+   "source_agnostic×privilege_abuse×system_damage": 1,
+   "supply_chain×privilege_abuse×target_agnostic": 1
+  },
+  "cat_miss": {
+   "wild": 102,
+   "external_content×instruction_manip×target_agnostic": 4,
+   "source_agnostic×code_exec×persistent_control": 3,
+   "source_agnostic×code_exec×system_damage": 3,
+   "source_agnostic×instruction_manip×content_safety": 3,
+   "source_agnostic×instruction_manip×defense_evasion": 3,
+   "source_agnostic×instruction_manip×info_theft": 3,
+   "source_agnostic×instruction_manip×resource_abuse": 3,
+   "source_agnostic×mechanism_unknown×target_agnostic": 3,
+   "source_agnostic×obfuscation×target_agnostic": 3
+  }
+ }
+}
