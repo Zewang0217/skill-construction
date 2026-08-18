@@ -52,7 +52,7 @@
 
 | 类别 | 数量 | 样本 |
 |---|---|---|
-| 真恶意但脚本被剥离 | 2 | better-polymarket（旧 CRITICAL→新 safe，scripts/polymarket.py 的 os.system curl|sh 不在 wild-350）|
+| 真恶意但脚本被剥离 | 2 | better-polymarket（scripts/polymarket.py 的 os.system curl|sh 不在当前 wild-350 快照）|
 | 重复样本（md5 相同）| 4 | rankaj==get-weather、polymarket-all-in-one==better-polymarket |
 | 数据集误分类 | 3 | get-weather/novafon（可能良性）|
 | 生成失败（构造）| 1 | skill-privilege（provenance 声称恶意但 config_parse.py 纯良性 + LLM 超限排除）|
@@ -88,38 +88,8 @@
 
 | 报告 | 覆盖 | 关键证据 |
 |---|---|---|
-| ANALYSIS_NONE_DETECTED.md | 全漏 11 | better-polymarket 旧新对比、md5 重复、kh3rwa1 |
+| ANALYSIS_NONE_DETECTED.md | 全漏 11 | better-polymarket 脚本剥离、md5 重复、kh3rwa1 |
 | ANALYSIS_SINGLE_SS.md | 仅 SS 48 | Cisco is_safe 阈值 models.py:206、LP3 兜底 |
 | ANALYSIS_SINGLE_CISCO_CAT.md | 仅C 7+仅Cat 14 | sk-/sk_ 正则 bug、ncat 缺词边界 |
 | ANALYSIS_DOUBLE_CS_CC.md | C+S 93 + C+Cat 10 | Cat 15 条正则清单、agent-browser 100→0 |
 | ANALYSIS_DOUBLE_SC.md | S+Cat 97 | Cisco LLM 失败 62、阈值 24、12% 泄漏实验 |
-
----
-
-## 七、重扫 + 阈值修正（2026-08-17 晚更新）
-
-### 设施失败已剔除（重扫 133 个 Cisco 失败）
-- Cisco LLM 失败：116 → **17 残留**（全为 clawhub 无 frontmatter，Cisco 拒绝加载——输入格式问题）
-- 恢复的检出：wallet-tracker / deep-research / nano-banana-pro / coding-agent 等 → CRITICAL
-- SS solana-dddhn 重扫 OK（581 恶意 SS 全齐）
-
-### ⚠️ 阈值问题（新增发现，比设施失败影响更大）
-**Cisco `models.py:226`: is_safe = 无 HIGH/CRITICAL finding**
-
-**80 个恶意样本（13.8%）is_safe=True 但有 MEDIUM 危险 finding**：
-- gen 70（占 gen 231 的 **30%**）/ wild 10
-- 规则：TOOL_ABUSE_UNDECLARED_NETWORK 58、DATA_EXFIL_NETWORK_REQUESTS 51、LLM_DATA_EXFILTRATION 19、LLM_COMMAND_INJECTION 5
-- **Cisco 检测到了网络外泄/命令注入，但阈值判 safe**
-
-### 修正后检出率（Cisco）
-| 组 | is_safe 口径 | + 阈值放行（真实检测）|
-|---|---|---|
-| wild | 84.6% | ~87% |
-| gen | 51.9% | **~82%** |
-| 合计 | 71.6% | **~85%** |
-
-### 对论文的最终启示
-1. 漏检四分类：技术失败 / 输入格式失败（无frontmatter）/ 阈值放行 / 真漏检
-2. **Cisco 真实检测 ~85%**，is_safe 阈值吞掉 13.8% 检出（应改 MEDIUM+ 告警）
-3. 全漏组修正后无"真三家全漏"——全是数据质量/设施/阈值问题
-4. gen 检出率失真最大来源 = 阈值放行（30% gen 样本），非生成质量
