@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agent Skill 安全扫描评测报告 · 可视化</title>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+<style>
+  :root {
+    --bg: #0d1420;
+    --bg-card: #141e2e;
+    --bg-card-hover: #1a2740;
+    --border: #24344e;
+    --text: #d7e2f2;
+    --text-dim: #8ba0bd;
+    --accent: #4da3ff;
+    --cisco: #4da3ff;
+    --ss: #35d0a5;
+    --cat: #ff9f43;
+    --warn: #ff5d73;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+      "Microsoft YaHei", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.6;
+    padding-bottom: 60px;
+  }
+  .wrap { max-width: 1280px; margin: 0 auto; padding: 0 20px; }
+
+  /* ===== Header ===== */
+  header {
+    padding: 46px 0 28px;
+    border-bottom: 1px solid var(--border);
+    background: linear-gradient(180deg, #0f1a2c 0%, var(--bg) 100%);
+  }
+  header .kicker {
+    font-size: 13px; letter-spacing: 2px; color: var(--ss);
+    text-transform: uppercase; font-weight: 600;
+  }
+  header h1 {
+    font-size: 30px; font-weight: 700; margin: 8px 0 6px;
+    letter-spacing: .5px;
+  }
+  header .sub {
+    color: var(--text-dim); font-size: 15px; max-width: 760px;
+  }
+
+  /* ===== Key cards ===== */
+  .kpis {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px; margin: 28px 0 10px;
+  }
+  .kpi {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 18px 20px;
+    transition: transform .15s ease, border-color .15s ease, background .15s ease;
+  }
+  .kpi:hover { transform: translateY(-3px); border-color: var(--accent); background: var(--bg-card-hover); }
+  .kpi .label { font-size: 13px; color: var(--text-dim); margin-bottom: 6px; }
+  .kpi .value { font-size: 28px; font-weight: 700; line-height: 1.1; }
+  .kpi .value .unit { font-size: 14px; font-weight: 400; color: var(--text-dim); margin-left: 2px; }
+  .kpi .note { font-size: 12px; color: var(--text-dim); margin-top: 6px; }
+  .kpi.c-cisco .value { color: var(--cisco); }
+  .kpi.c-ss .value { color: var(--ss); }
+  .kpi.c-cat .value { color: var(--cat); }
+  .kpi.c-warn .value { color: var(--warn); }
+
+  /* ===== Sections ===== */
+  section { margin-top: 52px; }
+  .sec-head { margin-bottom: 18px; }
+  .sec-head h2 {
+    font-size: 20px; font-weight: 700; display: flex; align-items: center; gap: 10px;
+  }
+  .sec-head h2 .num {
+    font-size: 13px; color: var(--bg); background: var(--accent);
+    border-radius: 6px; padding: 2px 8px; font-weight: 700;
+  }
+  .sec-head p { color: var(--text-dim); font-size: 13px; margin-top: 4px; }
+
+  .panel {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 14px; padding: 20px; margin-bottom: 20px;
+    transition: border-color .15s ease, background .15s ease;
+  }
+  .panel:hover { border-color: var(--accent); background: var(--bg-card-hover); }
+  .panel .panel-title { font-size: 15px; font-weight: 600; margin-bottom: 12px; }
+  .chart { width: 100%; height: 400px; }
+  .chart.ch-sm { height: 320px; }
+  .chart.ch-lg { height: 460px; }
+  .chart.ch-xl { height: 520px; }
+
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  @media (max-width: 900px) { .grid-2 { grid-template-columns: 1fr; } }
+
+  /* ===== Tables ===== */
+  table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--border); }
+  th { color: var(--text-dim); font-weight: 600; font-size: 12.5px; text-transform: uppercase; letter-spacing: .5px; }
+  tbody tr:hover { background: rgba(77, 163, 255, .06); }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .tag {
+    display: inline-block; padding: 2px 9px; border-radius: 20px; font-size: 12px;
+    font-weight: 600; line-height: 1.5;
+  }
+  .tag.wild { background: rgba(77,163,255,.15); color: var(--cisco); border: 1px solid rgba(77,163,255,.35); }
+  .tag.gen { background: rgba(53,208,165,.12); color: var(--ss); border: 1px solid rgba(53,208,165,.35); }
+  .tag.attr {
+    background: rgba(255,159,67,.12); color: var(--cat); border: 1px solid rgba(255,159,67,.35);
+  }
+  .tag.attr-fail { background: rgba(255,93,115,.12); color: var(--warn); border: 1px solid rgba(255,93,115,.35); }
+  .bar-cell { display: flex; align-items: center; gap: 8px; }
+  .bar-track { flex: 1; height: 8px; background: rgba(255,255,255,.06); border-radius: 4px; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 4px; }
+
+  /* ===== Legend chips ===== */
+  .legend-chips { display: flex; gap: 18px; flex-wrap: wrap; margin-bottom: 12px; font-size: 13px; color: var(--text-dim); }
+  .legend-chips .chip { display: inline-flex; align-items: center; gap: 6px; }
+  .legend-chips .dot { width: 11px; height: 11px; border-radius: 3px; display: inline-block; }
+  .dot-cisco { background: var(--cisco); }
+  .dot-ss { background: var(--ss); }
+  .dot-cat { background: var(--cat); }
+
+  footer {
+    margin-top: 60px; padding-top: 22px; border-top: 1px solid var(--border);
+    color: var(--text-dim); font-size: 12.5px; text-align: center;
+  }
+  footer .src { color: var(--accent); word-break: break-all; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div class="kicker">Security Evaluation · Skill Construction</div>
+    <h1>Agent Skill 恶意样本安全扫描评测报告</h1>
+    <p class="sub">对 581 个恶意 Skill 样本，使用 Cisco / SkillSpector(SS) / Catastrophe(Cat) 三家扫描引擎进行交叉评测，
+      覆盖真实样本（wild）与构造样本（gen），从检出率、标记覆盖、发现类别与漏检归因四个维度展开分析。</p>
+
+    <div class="kpis">
+      <div class="kpi">
+        <div class="label">恶意样本总数</div>
+        <div class="value">581<span class="unit">个</span></div>
+        <div class="note">wild 350 · gen 231</div>
+      </div>
+      <div class="kpi c-ss">
+        <div class="label">SkillSpector 检出率</div>
+        <div class="value">92.9<span class="unit">%</span></div>
+        <div class="note">检出 540 个 · 最优</div>
+      </div>
+      <div class="kpi c-cisco">
+        <div class="label">Cisco 检出率</div>
+        <div class="value">85.4<span class="unit">%</span></div>
+        <div class="note">检出 496 个</div>
+      </div>
+      <div class="kpi c-cat">
+        <div class="label">Catastrophe 检出率</div>
+        <div class="value">72.6<span class="unit">%</span></div>
+        <div class="note">检出 422 个</div>
+      </div>
+      <div class="kpi c-warn">
+        <div class="label">三家全漏</div>
+        <div class="value">10<span class="unit">个</span></div>
+        <div class="note">扫描执行失败 17 个样本</div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- ================= Section 1 ================= -->
+  <section id="s1">
+    <div class="sec-head">
+      <h2><span class="num">一</span>检出率总览</h2>
+      <p>按样本来源（真实 wild / 构造 gen / 全部 total）对比三家引擎的恶意样本检出率（%）。</p>
+    </div>
+    <div class="panel">
+      <div class="panel-title">分组柱状图 · 检出率（%）</div>
+      <div id="chartOverview" class="chart"></div>
+    </div>
+    <div class="panel">
+      <div class="panel-title">总览表格</div>
+      <table>
+        <thead>
+          <tr><th>样本分组</th><th class="num">样本数</th>
+              <th class="num">Cisco 检出</th><th class="num">SkillSpector 检出</th><th class="num">Catastrophe 检出</th></tr>
+        </thead>
+        <tbody id="overviewTable"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ================= Section 2 ================= -->
+  <section id="s2">
+    <div class="sec-head">
+      <h2><span class="num">二</span>标记分布</h2>
+      <p>按被多少家引擎标记（3/2/1/0 家）的样本分布，以及 8 种检测组合的具体数量。</p>
+    </div>
+    <div class="grid-2">
+      <div class="panel">
+        <div class="panel-title">环形图 · 被标记家数分布</div>
+        <div id="chartNmark" class="chart ch-sm"></div>
+      </div>
+      <div class="panel">
+        <div class="panel-title">条形图 · 8 种检测组合</div>
+        <div id="chartCombos" class="chart ch-sm"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= Section 3 ================= -->
+  <section id="s3">
+    <div class="sec-head">
+      <h2><span class="num">三</span>构造样本 · 按来源检出</h2>
+      <p>231 个构造（gen）样本按威胁来源分组的检出率，以及按攻击机制的 Cisco 检出情况。</p>
+    </div>
+    <div class="panel">
+      <div class="panel-title">分组柱状图 · 构造样本按来源检出率（%）</div>
+      <div id="chartGenSource" class="chart"></div>
+    </div>
+    <div class="panel">
+      <div class="panel-title">表格 · 构造样本按攻击机制检出（Cisco）</div>
+      <table>
+        <thead>
+          <tr><th>攻击机制</th><th class="num">样本数</th><th>Cisco 检出率</th></tr>
+        </thead>
+        <tbody id="mechTable"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ================= Section 4 ================= -->
+  <section id="s4">
+    <div class="sec-head">
+      <h2><span class="num">四</span>真实样本 · 按 B 行为标签</h2>
+      <p>350 个真实（wild）样本按 B 行为标签（B1–B15）分组的三家引擎检出率（%）。</p>
+    </div>
+    <div class="panel">
+      <div class="panel-title">分组柱状图 · B 标签检出率（%）</div>
+      <div id="chartWildB" class="chart ch-xl"></div>
+    </div>
+  </section>
+
+  <!-- ================= Section 5 ================= -->
+  <section id="s5">
+    <div class="sec-head">
+      <h2><span class="num">五</span>发现类别</h2>
+      <p>各引擎命中的发现类别统计：Cisco 规则类别（TOP12）与 Catastrophe 威胁类别。</p>
+    </div>
+    <div class="grid-2">
+      <div class="panel">
+        <div class="panel-title">横向条形图 · Cisco 发现类别 TOP12</div>
+        <div id="chartCiscoFindings" class="chart ch-xl"></div>
+      </div>
+      <div class="panel">
+        <div class="panel-title">横向条形图 · Catastrophe 发现类别</div>
+        <div id="chartCatFindings" class="chart ch-xl"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= Section 6 ================= -->
+  <section id="s6">
+    <div class="sec-head">
+      <h2><span class="num">六</span>三家全漏 10 个样本</h2>
+      <p>三家引擎均未检出的样本明细与归因分布（数据污染 / 数据质量 / 扫描执行失败 / 阈值放行）。</p>
+    </div>
+    <div class="grid-2">
+      <div class="panel">
+        <div class="panel-title">表格 · 全漏样本清单</div>
+        <table>
+          <thead>
+            <tr><th>样本名</th><th>来源</th><th>归因</th></tr>
+          </thead>
+          <tbody id="noneTable"></tbody>
+        </table>
+      </div>
+      <div class="panel">
+        <div class="panel-title">饼图 · 漏检归因占比</div>
+        <div id="chartNoneAttr" class="chart ch-sm"></div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <p>数据来源：<span class="src">scanners/eval_results/viz_data.json</span>
+      · 完整文字报告见 <span class="src">FINAL_REPORT_2026-08-17.md</span></p>
+    <p>样本总数 581（真实 350 + 构造 231）；引擎：Cisco · SkillSpector · Catastrophe。图表由 ECharts 渲染，交互支持 tooltip / legend 切换。</p>
+  </div>
+</footer>
+
+<script>
+/* ==================== 嵌入数据 ==================== */
+var DATA = {
+  "total": 581,
+  "detection": {
+    "cisco": 85.4, "cisco_n": 496,
+    "ss": 92.9, "ss_n": 540,
+    "cat": 72.6, "cat_n": 422,
+    "fail": 17
+  },
+  "groups": {
+    "wild": { "n": 350, "cisco": 87.4, "ss": 91.1, "cat": 70.9 },
+    "gen":  { "n": 231, "cisco": 82.3, "ss": 95.7, "cat": 75.3 }
+  },
+  "nmark": { "2": 179, "3": 354, "1": 38, "0": 10 },
+  "combos": {
+    "C+P": 16, "3家": 354, "C+S": 118, "仅SS": 23,
+    "全漏": 10, "S+P": 45, "仅Cisco": 8, "仅Cat": 7
+  },
+  "gen_by_source": {
+    "supply_chain":     { "n": 80,  "cisco": 88.8, "ss": 93.8, "cat": 100.0 },
+    "source_agnostic":  { "n": 115, "cisco": 76.5, "ss": 96.5, "cat": 60.0 },
+    "external_content": { "n": 19,  "cisco": 100.0,"ss": 100.0,"cat": 63.2 },
+    "user_input":       { "n": 9,   "cisco": 77.8, "ss": 100.0,"cat": 88.9 },
+    "runtime_environment": { "n": 3, "cisco": 33.3, "ss": 66.7, "cat": 66.7 },
+    "unknown_source":   { "n": 5,   "cisco": 80.0, "ss": 100.0,"cat": 60.0 }
+  },
+  "gen_by_mech": {
+    "code_exec":          { "n": 54, "cisco": 81.5 },
+    "defense_evasion":    { "n": 5,  "cisco": 80.0 },
+    "dependency_manip":   { "n": 24, "cisco": 95.8 },
+    "instruction_manip":  { "n": 47, "cisco": 85.1 },
+    "mechanism_unknown":  { "n": 20, "cisco": 90.0 },
+    "obfuscation":        { "n": 20, "cisco": 80.0 },
+    "privilege_abuse":    { "n": 30, "cisco": 73.3 },
+    "state_corruption":   { "n": 21, "cisco": 66.7 },
+    "subagent_escalation": { "n": 5, "cisco": 80.0 },
+    "trigger_abuse":      { "n": 5,  "cisco": 100.0 }
+  },
+  "wild_by_b": {
+    "B4":  { "n": 256, "cisco": 93.0, "ss": 98.8, "cat": 77.7 },
+    "B3":  { "n": 7,   "cisco": 14.3, "ss": 57.1, "cat": 42.9 },
+    "B2":  { "n": 33,  "cisco": 81.8, "ss": 57.6, "cat": 48.5 },
+    "B1":  { "n": 18,  "cisco": 61.1, "ss": 72.2, "cat": 61.1 },
+    "B8":  { "n": 5,   "cisco": 60.0, "ss": 60.0, "cat": 40.0 },
+    "B14": { "n": 5,   "cisco": 40.0, "ss": 100.0,"cat": 0.0 },
+    "B10": { "n": 2,   "cisco": 100.0,"ss": 100.0,"cat": 0.0 },
+    "B12": { "n": 3,   "cisco": 66.7, "ss": 66.7, "cat": 0.0 },
+    "B11": { "n": 1,   "cisco": 100.0,"ss": 100.0,"cat": 0.0 },
+    "B5":  { "n": 3,   "cisco": 66.7, "ss": 66.7, "cat": 66.7 },
+    "B15": { "n": 1,   "cisco": 100.0,"ss": 0.0,  "cat": 100.0 },
+    "B6":  { "n": 1,   "cisco": 100.0,"ss": 0.0,  "cat": 0.0 },
+    "B9":  { "n": 15,  "cisco": 100.0,"ss": 100.0,"cat": 93.3 }
+  },
+  "cisco_findings": {
+    "LLM_SUPPLY_CHAIN_ATTACK": 421,
+    "MANIFEST_MISSING_LICENSE": 332,
+    "DATA_EXFIL_NETWORK_REQUESTS": 227,
+    "LLM_COMMAND_INJECTION": 214,
+    "LLM_DATA_EXFILTRATION": 173,
+    "LLM_SKILL_DISCOVERY_ABUSE": 159,
+    "LLM_OBFUSCATION": 158,
+    "TOOL_ABUSE_UNDECLARED_NETWORK": 117,
+    "LLM_HARMFUL_CONTENT": 95,
+    "SUPPLY_CHAIN_UNPINNED_DEPENDENCY": 78,
+    "LLM_PROMPT_INJECTION": 75,
+    "LLM_UNAUTHORIZED_TOOL_USE": 50
+  },
+  "cat_findings": {
+    "Obfuscation": 291,
+    "Supply Chain": 213,
+    "Data Exfiltration": 134,
+    "Persistence": 37,
+    "Credential Theft": 34,
+    "Dangerous Permissions": 33,
+    "Crypto Theft": 17,
+    "Network Attacks": 14
+  },
+  "none_detected": [
+    { "name": "better-polymarket", "src": "wild", "attribution": "数据质量" },
+    { "name": "clawhub-happybigmtn-rbtc__v1.0.0", "src": "wild", "attribution": "扫描执行失败" },
+    { "name": "clawhub-kh3rwa1-autonomous-mobile-builder__v3.6.1", "src": "wild", "attribution": "阈值放行" },
+    { "name": "clawhub-shenmeng-shenmeng-dex-arbitrage__v1.3.1", "src": "wild", "attribution": "阈值放行" },
+    { "name": "get-weather", "src": "wild", "attribution": "数据质量" },
+    { "name": "klaviyoapi", "src": "wild", "attribution": "数据污染" },
+    { "name": "novafon", "src": "wild", "attribution": "扫描执行失败" },
+    { "name": "polymarket-all-in-one", "src": "wild", "attribution": "数据质量" },
+    { "name": "rankaj", "src": "wild", "attribution": "数据质量" },
+    { "name": "skill-privilege_abuse-resource_abuse-25d5120b77", "src": "gen", "attribution": "数据质量" }
+  ]
+};
+
+/* ==================== 主题常量 ==================== */
+var C = {
+  bg: '#141e2e', border: '#24344e',
+  text: '#d7e2f2', dim: '#8ba0bd',
+  cisco: '#4da3ff', ss: '#35d0a5', cat: '#ff9f43',
+  warn: '#ff5d73'
+};
+
+function baseGrid() {
+  return {
+    left: 46, right: 24, top: 56, bottom: 46,
+    containLabel: true
+  };
+}
+
+function tooltipBase() {
+  return {
+    backgroundColor: '#0d1420',
+    borderColor: C.border,
+    textStyle: { color: C.text },
+    confine: true
+  };
+}
+
+function legendBase(extra) {
+  return Object.assign({
+    top: 0, right: 10,
+    textStyle: { color: C.dim },
+    inactiveColor: '#4a5a75'
+  }, extra || {});
+}
+
+function mkChart(id) {
+  var el = document.getElementById(id);
+  return echarts.init(el);
+}
+
+/* 在 ECharts 可用后渲染 */
+function render() {
+  /* ---- 1. 检出率总览 ---- */
+  var g = DATA.groups;
+  var c1 = mkChart('chartOverview');
+  c1.setOption({
+    backgroundColor: 'transparent',
+    tooltip: Object.assign({ trigger: 'axis', axisPointer: { type: 'shadow' } }, tooltipBase()),
+    legend: legendBase(),
+    grid: baseGrid(),
+    xAxis: {
+      type: 'category',
+      data: ['真实样本 (wild)', '构造样本 (gen)', '全部 (total)'],
+      axisLine: { lineStyle: { color: C.border } },
+      axisLabel: { color: C.dim }
+    },
+    yAxis: {
+      type: 'value', min: 0, max: 100,
+      axisLabel: { color: C.dim, formatter: '{value}%' },
+      splitLine: { lineStyle: { color: C.border } }
+    },
+    series: [
+      { name: 'Cisco', type: 'bar', barGap: '10%', data: [g.wild.cisco, g.gen.cisco, DATA.detection.cisco],
+        itemStyle: { color: C.cisco, borderRadius: [4,4,0,0] },
+        label: { show: true, position: 'top', color: C.cisco, formatter: '{c}%' } },
+      { name: 'SkillSpector', type: 'bar', data: [g.wild.ss, g.gen.ss, DATA.detection.ss],
+        itemStyle: { color: C.ss, borderRadius: [4,4,0,0] },
+        label: { show: true, position: 'top', color: C.ss, formatter: '{c}%' } },
+      { name: 'Catastrophe', type: 'bar', data: [g.wild.cat, g.gen.cat, DATA.detection.cat],
+        itemStyle: { color: C.cat, borderRadius: [4,4,0,0] },
+        label: { show: true, position: 'top', color: C.cat, formatter: '{c}%' } }
+    ]
+  });
+
+  /* ---- 总览表格 ---- */
+  var ovRows = [
+    ['真实样本 (wild)', g.wild.n, g.wild.cisco, g.wild.ss, g.wild.cat],
+    ['构造样本 (gen)', g.gen.n, g.gen.cisco, g.gen.ss, g.gen.cat],
+    ['全部 (total)', DATA.total, DATA.detection.cisco, DATA.detection.ss, DATA.detection.cat]
+  ];
+  document.getElementById('overviewTable').innerHTML = ovRows.map(function(r) {
+    return '<tr><td>' + r[0] + '</td><td class="num">' + r[1] + '</td>' +
+      '<td class="num">' + r[2] + '%</td><td class="num">' + r[3] + '%</td><td class="num">' + r[4] + '%</td></tr>';
+  }).join('');
+
+  /* ---- 2. 标记分布：环形图 ---- */
+  var nm = DATA.nmark;
+  var c2 = mkChart('chartNmark');
+  c2.setOption({
+    backgroundColor: 'transparent',
+    tooltip: Object.assign({ trigger: 'item', formatter: '{b}: {c} 个 ({d}%)' }, tooltipBase()),
+    legend: legendBase({ orient: 'vertical', left: 10, top: 'middle' }),
+    color: [C.ss, C.cisco, C.cat, C.warn],
+    series: [{
+      name: '被标记家数', type: 'pie', radius: ['42%', '68%'],
+      center: ['58%', '52%'],
+      itemStyle: { borderColor: C.bg, borderWidth: 2 },
+      label: { color: C.text, formatter: '{b}\n{c} ({d}%)' },
+      data: [
+        { name: '3 家标记', value: nm['3'] },
+        { name: '2 家标记', value: nm['2'] },
+        { name: '1 家标记', value: nm['1'] },
+        { name: '0 家标记(全漏)', value: nm['0'] }
+      ]
+    }]
+  });
+
+  /* ---- 2b. 组合条形图 ---- */
+  var comboOrder = [
+    ['3家', 354], ['C+S', 118], ['S+P', 45], ['仅SS', 23],
+    ['C+P', 16], ['全漏', 10], ['仅Cisco', 8], ['仅Cat', 7]
+  ];
+  var c3 = mkChart('chartCombos');
+  c3.setOption({
+    backgroundColor: 'transparent',
+    tooltip: Object.assign({ trigger: 'axis', axisPointer: { type: 'shadow' } }, tooltipBase()),
+    grid: Object.assign({}, baseGrid(), { left: 70, top: 20, bottom: 30 }),
+    xAxis: {
+      type: 'value',
+      axisLabel: { color: C.dim },
+      splitLine: { lineStyle: { color: C.border } }
+    },
+    yAxis: {
+      type: 'category',
+      data: comboOrder.map(function(d){ return d[0]; }),
+      axisLine: { lineStyle: { color: C.border } },
+      axisLabel: { color: C.text }
+    },
+    series: [{
+      name: '样本数', type: 'bar', barWidth: '58%',
+      data: comboOrder.map(function(d) {
+        var c = d[0] === '全漏' ? C.warn : (d[0] === '3家' ? C.ss : C.cisco);
+        return { value: d[1], itemStyle: { color: c, borderRadius: [0,4,4,0] } };
+      }),
+      label: { show: true, position: 'right', color: C.text }
+    }]
+  });
+
+  /* ---- 3. 构造样本按来源 ---- */
+  var srcOrder = [
+    ['supply_chain', '供应链'],
+    ['source_agnostic', '来源无关'],
+    ['external_content', '外部内容'],
+    ['user_input', '用户输入'],
+    ['runtime_environment', '运行时环境'],
+    ['unknown_source', '未知来源']
+  ];
+  var gs = DATA.gen_by_source;
+  var c4 = mkChart('chartGenSource');
+  c4.setOption({
+    backgroundColor: 'transparent',
+    tooltip: Object.assign({ trigger: 'axis', axisPointer: { type: 'shadow' } }, tooltipBase()),
+    legend: legendBase(),
+    grid: baseGrid(),
+    xAxis: {
+      type: 'category',
+      data: srcOrder.map(function(d){ return d[1] + ' (n=' + gs[d[0]].n + ')'; }),
+      axisLine: { lineStyle: { color: C.border } },
+      axisLabel: { color: C.dim, interval: 0, rotate: 12 }
+    },
+    yAxis: {
+      type: 'value', min: 0, max: 100,
+      axisLabel: { color: C.dim, formatter: '{value}%' },
+      splitLine: { lineStyle: { color: C.border } }
+    },
+    series: [
+      { name: 'Cisco', type: 'bar', data: srcOrder.map(function(d){ return gs[d[0]].cisco; }),
+        itemStyle: { color: C.cisco, borderRadius: [4,4,0,0] },
+        label: { show: true, position: 'top', color: C.cisco, formatter: '{c}%' } },
+      { name: 'SkillSpector', type: 'bar', data: srcOrder.map(function(d){ return gs[d[0]].ss; }),
+        itemStyle: { color: C.ss, borderRadius: [4,4,0,0] },
+        label: { show: true, position: 'top', color: C.ss, formatter: '{c}%' } },
+      { name: 'Catastrophe', type: 'bar', data: srcOrder.map(function(d){ return gs[d[0]].cat; }),
+        itemStyle: { color: C.cat, borderRadius: [4,4,0,0] },
+        label: { show: true, position: 'top', color: C.cat, formatter: '{c}%' } }
+    ]
+  });
+
+  /* ---- 3b. 机制表格 ---- */
+  var mechOrder = [
+    ['code_exec', '代码执行'], ['instruction_manip', '指令操纵'],
+    ['privilege_abuse', '权限滥用'], ['dependency_manip', '依赖操纵'],
+    ['state_corruption', '状态破坏'], ['obfuscation', '混淆'],
+    ['mechanism_unknown', '机制未知'], ['subagent_escalation', '子代理提权'],
+    ['defense_evasion', '防御规避'], ['trigger_abuse', '触发器滥用']
+  ];
+  var gm = DATA.gen_by_mech;
+  var mechRows = mechOrder.map(function(m) {
+    var d = gm[m[0]];
+    return '<tr><td>' + m[1] + ' <span style="color:var(--text-dim)">(' + m[0] + ')</span></td>' +
+      '<td class="num">' + d.n + '</td>' +
+      '<td><div class="bar-cell"><span style="width:46px">' + d.cisco + '%</span>' +
+      '<div class="bar-track"><div class="bar-fill" style="width:' + d.cisco + '%;background:' + C.cisco + '"></div></div></div></td></tr>';
+  }).join('');
+  document.getElementById('mechTable').innerHTML = mechRows;
+
+  /* ---- 4. 真实样本按 B 标签 ---- */
+  var bOrder = ['B1','B2','B3','B4','B5','B6','B8','B9','B10','B11','B12','B14','B15'];
+  var wb = DATA.wild_by_b;
+  var c5 = mkChart('chartWildB');
+  c5.setOption({
+    backgroundColor: 'transparent',
+    tooltip: Object.assign({ trigger: 'axis', axisPointer: { type: 'shadow' } }, tooltipBase()),
+    legend: legendBase(),
+    grid: Object.assign({}, baseGrid(), { left: 40 }),
+    xAxis: {
+      type: 'category',
+      data: bOrder.map(function(b){ return b + ' (n=' + wb[b].n + ')'; }),
+      axisLine: { lineStyle: { color: C.border } },
+      axisLabel: { color: C.dim, interval: 0, rotate: 30 }
+    },
+    yAxis: {
+      type: 'value', min: 0, max: 100,
+      axisLabel: { color: C.dim, formatter: '{value}%' },
+      splitLine: { lineStyle: { color: C.border } }
+    },
+    series: [
+      { name: 'Cisco', type: 'bar', data: bOrder.map(function(b){ return wb[b].cisco; }),
+        itemStyle: { color: C.cisco, borderRadius: [4,4,0,0] } },
+      { name: 'SkillSpector', type: 'bar', data: bOrder.map(function(b){ return wb[b].ss; }),
+        itemStyle: { color: C.ss, borderRadius: [4,4,0,0] } },
+      { name: 'Catastrophe', type: 'bar', data: bOrder.map(function(b){ return wb[b].cat; }),
+        itemStyle: { color: C.cat, borderRadius: [4,4,0,0] } }
+    ]
+  });
+
+  /* ---- 5. Cisco 发现类别 ---- */
+  var cf = DATA.cisco_findings;
+  var cfOrder = Object.keys(cf).sort(function(a,b){ return cf[b]-cf[a]; });
+  var c6 = mkChart('chartCiscoFindings');
+  c6.setOption({
+    backgroundColor: 'transparent',
+    tooltip: Object.assign({ trigger: 'axis', axisPointer: { type: 'shadow' } }, tooltipBase()),
+    grid: Object.assign({}, baseGrid(), { left: 12, top: 20, bottom: 30, right: 40 }),
+    xAxis: {
+      type: 'value',
+      axisLabel: { color: C.dim },
+      splitLine: { lineStyle: { color: C.border } }
+    },
+    yAxis: {
+      type: 'category',
+      data: cfOrder.slice().reverse(),
+      axisLine: { lineStyle: { color: C.border } },
+      axisLabel: { color: C.text, width: 180, overflow: 'truncate' }
+    },
+    series: [{
+      name: '命中数', type: 'bar', barWidth: '58%',
+      data: cfOrder.slice().reverse().map(function(k) {
+        return { value: cf[k], itemStyle: { color: C.cisco, borderRadius: [0,4,4,0] } };
+      }),
+      label: { show: true, position: 'right', color: C.text }
+    }]
+  });
+
+  /* ---- 5b. Cat 发现类别 ---- */
+  var kf = DATA.cat_findings;
+  var kfOrder = Object.keys(kf).sort(function(a,b){ return kf[b]-kf[a]; });
+  var c7 = mkChart('chartCatFindings');
+  c7.setOption({
+    backgroundColor: 'transparent',
+    tooltip: Object.assign({ trigger: 'axis', axisPointer: { type: 'shadow' } }, tooltipBase()),
+    grid: Object.assign({}, baseGrid(), { left: 12, top: 20, bottom: 30, right: 40 }),
+    xAxis: {
+      type: 'value',
+      axisLabel: { color: C.dim },
+      splitLine: { lineStyle: { color: C.border } }
+    },
+    yAxis: {
+      type: 'category',
+      data: kfOrder.slice().reverse(),
+      axisLine: { lineStyle: { color: C.border } },
+      axisLabel: { color: C.text }
+    },
+    series: [{
+      name: '命中数', type: 'bar', barWidth: '58%',
+      data: kfOrder.slice().reverse().map(function(k) {
+        return { value: kf[k], itemStyle: { color: C.cat, borderRadius: [0,4,4,0] } };
+      }),
+      label: { show: true, position: 'right', color: C.text }
+    }]
+  });
+
+  /* ---- 6. 全漏表格 ---- */
+  var nd = DATA.none_detected;
+  var attrTag = {
+    '数据质量': 'attr', '数据污染': 'attr', '阈值放行': 'attr',
+    '扫描执行失败': 'attr-fail'
+  };
+  document.getElementById('noneTable').innerHTML = nd.map(function(s) {
+    return '<tr><td style="word-break:break-all;max-width:280px">' + s.name + '</td>' +
+      '<td><span class="tag ' + (s.src === 'wild' ? 'wild' : 'gen') + '">' + s.src + '</span></td>' +
+      '<td><span class="tag ' + (attrTag[s.attribution] || 'attr') + '">' + s.attribution + '</span></td></tr>';
+  }).join('');
+
+  /* ---- 6b. 归因饼图 ---- */
+  var attrCount = {};
+  nd.forEach(function(s){ attrCount[s.attribution] = (attrCount[s.attribution] || 0) + 1; });
+  var attrColors = {
+    '数据质量': C.cisco, '数据污染': C.ss, '扫描执行失败': C.warn, '阈值放行': C.cat
+  };
+  var c8 = mkChart('chartNoneAttr');
+  c8.setOption({
+    backgroundColor: 'transparent',
+    tooltip: Object.assign({ trigger: 'item', formatter: '{b}: {c} 个 ({d}%)' }, tooltipBase()),
+    legend: legendBase({ bottom: 0, left: 'center' }),
+    series: [{
+      name: '漏检归因', type: 'pie', radius: ['30%', '58%'], center: ['50%', '44%'],
+      itemStyle: { borderColor: C.bg, borderWidth: 2 },
+      label: { color: C.text, formatter: '{b}\n{c} ({d}%)' },
+      data: Object.keys(attrCount).map(function(k) {
+        return { name: k, value: attrCount[k], itemStyle: { color: attrColors[k] || C.cisco } };
+      })
+    }]
+  });
+}
+
+/* ==================== 渲染 + 自适应 ==================== */
+if (window.echarts) {
+  render();
+  window.addEventListener('resize', function() {
+    document.querySelectorAll('.chart').forEach(function(el) {
+      var inst = echarts.getInstanceByDom(el);
+      if (inst) inst.resize();
+    });
+  });
+} else {
+  document.addEventListener('load', function() { render(); });
+}
+</script>
+</body>
+</html>

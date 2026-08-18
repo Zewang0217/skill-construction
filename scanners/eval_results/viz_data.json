@@ -1,0 +1,278 @@
+{
+ "total": 581,
+ "detection": {
+  "cisco": 85.4,
+  "cisco_n": 496,
+  "ss": 92.9,
+  "ss_n": 540,
+  "cat": 72.6,
+  "cat_n": 422,
+  "fail": 17
+ },
+ "groups": {
+  "wild": {
+   "n": 350,
+   "cisco": 87.4,
+   "ss": 91.1,
+   "cat": 70.9
+  },
+  "gen": {
+   "n": 231,
+   "cisco": 82.3,
+   "ss": 95.7,
+   "cat": 75.3
+  }
+ },
+ "nmark": {
+  "2": 179,
+  "3": 354,
+  "1": 38,
+  "0": 10
+ },
+ "combos": {
+  "C+P": 16,
+  "3家": 354,
+  "C+S": 118,
+  "仅SS": 23,
+  "全漏": 10,
+  "S+P": 45,
+  "仅Cisco": 8,
+  "仅Cat": 7
+ },
+ "gen_by_source": {
+  "supply_chain": {
+   "n": 80,
+   "cisco": 88.8,
+   "ss": 93.8,
+   "cat": 100.0
+  },
+  "source_agnostic": {
+   "n": 115,
+   "cisco": 76.5,
+   "ss": 96.5,
+   "cat": 60.0
+  },
+  "external_content": {
+   "n": 19,
+   "cisco": 100.0,
+   "ss": 100.0,
+   "cat": 63.2
+  },
+  "user_input": {
+   "n": 9,
+   "cisco": 77.8,
+   "ss": 100.0,
+   "cat": 88.9
+  },
+  "runtime_environment": {
+   "n": 3,
+   "cisco": 33.3,
+   "ss": 66.7,
+   "cat": 66.7
+  },
+  "unknown_source": {
+   "n": 5,
+   "cisco": 80.0,
+   "ss": 100.0,
+   "cat": 60.0
+  }
+ },
+ "gen_by_mech": {
+  "code_exec": {
+   "n": 54,
+   "cisco": 81.5
+  },
+  "defense_evasion": {
+   "n": 5,
+   "cisco": 80.0
+  },
+  "dependency_manip": {
+   "n": 24,
+   "cisco": 95.8
+  },
+  "instruction_manip": {
+   "n": 47,
+   "cisco": 85.1
+  },
+  "mechanism_unknown": {
+   "n": 20,
+   "cisco": 90.0
+  },
+  "obfuscation": {
+   "n": 20,
+   "cisco": 80.0
+  },
+  "privilege_abuse": {
+   "n": 30,
+   "cisco": 73.3
+  },
+  "state_corruption": {
+   "n": 21,
+   "cisco": 66.7
+  },
+  "subagent_escalation": {
+   "n": 5,
+   "cisco": 80.0
+  },
+  "trigger_abuse": {
+   "n": 5,
+   "cisco": 100.0
+  }
+ },
+ "wild_by_b": {
+  "B4": {
+   "n": 256,
+   "cisco": 93.0,
+   "ss": 98.8,
+   "cat": 77.7
+  },
+  "B3": {
+   "n": 7,
+   "cisco": 14.3,
+   "ss": 57.1,
+   "cat": 42.9
+  },
+  "B2": {
+   "n": 33,
+   "cisco": 81.8,
+   "ss": 57.6,
+   "cat": 48.5
+  },
+  "B1": {
+   "n": 18,
+   "cisco": 61.1,
+   "ss": 72.2,
+   "cat": 61.1
+  },
+  "B8": {
+   "n": 5,
+   "cisco": 60.0,
+   "ss": 60.0,
+   "cat": 40.0
+  },
+  "B14": {
+   "n": 5,
+   "cisco": 40.0,
+   "ss": 100.0,
+   "cat": 0.0
+  },
+  "B10": {
+   "n": 2,
+   "cisco": 100.0,
+   "ss": 100.0,
+   "cat": 0.0
+  },
+  "B12": {
+   "n": 3,
+   "cisco": 66.7,
+   "ss": 66.7,
+   "cat": 0.0
+  },
+  "B11": {
+   "n": 1,
+   "cisco": 100.0,
+   "ss": 100.0,
+   "cat": 0.0
+  },
+  "B5": {
+   "n": 3,
+   "cisco": 66.7,
+   "ss": 66.7,
+   "cat": 66.7
+  },
+  "B15": {
+   "n": 1,
+   "cisco": 100.0,
+   "ss": 0.0,
+   "cat": 100.0
+  },
+  "B6": {
+   "n": 1,
+   "cisco": 100.0,
+   "ss": 0.0,
+   "cat": 0.0
+  },
+  "B9": {
+   "n": 15,
+   "cisco": 100.0,
+   "ss": 100.0,
+   "cat": 93.3
+  }
+ },
+ "cisco_findings": {
+  "LLM_SUPPLY_CHAIN_ATTACK": 421,
+  "MANIFEST_MISSING_LICENSE": 332,
+  "DATA_EXFIL_NETWORK_REQUESTS": 227,
+  "LLM_COMMAND_INJECTION": 214,
+  "LLM_DATA_EXFILTRATION": 173,
+  "LLM_SKILL_DISCOVERY_ABUSE": 159,
+  "LLM_OBFUSCATION": 158,
+  "TOOL_ABUSE_UNDECLARED_NETWORK": 117,
+  "LLM_HARMFUL_CONTENT": 95,
+  "SUPPLY_CHAIN_UNPINNED_DEPENDENCY": 78,
+  "LLM_PROMPT_INJECTION": 75,
+  "LLM_UNAUTHORIZED_TOOL_USE": 50
+ },
+ "cat_findings": {
+  "Obfuscation": 291,
+  "Supply Chain": 213,
+  "Data Exfiltration": 134,
+  "Persistence": 37,
+  "Credential Theft": 34,
+  "Dangerous Permissions": 33,
+  "Crypto Theft": 17,
+  "Network Attacks": 14
+ },
+ "none_detected": [
+  {
+   "name": "better-polymarket",
+   "src": "wild",
+   "attribution": "数据质量"
+  },
+  {
+   "name": "clawhub-happybigmtn-rbtc__v1.0.0",
+   "src": "wild",
+   "attribution": "扫描执行失败"
+  },
+  {
+   "name": "clawhub-kh3rwa1-autonomous-mobile-builder__v3.6.1",
+   "src": "wild",
+   "attribution": "阈值放行"
+  },
+  {
+   "name": "clawhub-shenmeng-shenmeng-dex-arbitrage__v1.3.1",
+   "src": "wild",
+   "attribution": "阈值放行"
+  },
+  {
+   "name": "get-weather",
+   "src": "wild",
+   "attribution": "数据质量"
+  },
+  {
+   "name": "klaviyoapi",
+   "src": "wild",
+   "attribution": "数据污染"
+  },
+  {
+   "name": "novafon",
+   "src": "wild",
+   "attribution": "扫描执行失败"
+  },
+  {
+   "name": "polymarket-all-in-one",
+   "src": "wild",
+   "attribution": "数据质量"
+  },
+  {
+   "name": "rankaj",
+   "src": "wild",
+   "attribution": "数据质量"
+  },
+  {
+   "name": "skill-privilege_abuse-resource_abuse-25d5120b77",
+   "src": "gen",
+   "attribution": "数据质量"
+  }
+ ]
+}
