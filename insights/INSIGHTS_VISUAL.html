@@ -1,0 +1,1558 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>S5 原型构造 — 洞察分析 · 可视化</title>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+<style>
+  :root {
+    --bg: #0d1420;
+    --bg-card: #141e2e;
+    --bg-card-hover: #1a2740;
+    --border: #24344e;
+    --text: #d7e2f2;
+    --text-dim: #8ba0bd;
+    --accent: #4da3ff;
+    --cisco: #4da3ff;
+    --ss: #35d0a5;
+    --cat: #ff9f43;
+    --warn: #ff5d73;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+      "Microsoft YaHei", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.6;
+    padding-bottom: 60px;
+  }
+  .wrap { max-width: 1280px; margin: 0 auto; padding: 0 20px; }
+
+  /* ===== Header ===== */
+  header {
+    padding: 40px 0 24px;
+    border-bottom: 1px solid var(--border);
+    background: linear-gradient(180deg, #0f1a2c 0%, var(--bg) 100%);
+  }
+  header .kicker {
+    font-size: 13px; letter-spacing: 2px; color: var(--ss);
+    text-transform: uppercase; font-weight: 600;
+  }
+  header h1 {
+    font-size: 30px; font-weight: 700; margin: 8px 0 6px;
+    letter-spacing: .5px;
+  }
+  header .sub {
+    color: var(--text-dim); font-size: 15px; max-width: 980px;
+  }
+
+  /* ===== Tab bar ===== */
+  .tabbar {
+    position: sticky; top: 0; z-index: 50;
+    background: rgba(13, 20, 32, .94);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--border);
+  }
+  .tabbar .wrap {
+    display: flex; gap: 4px; overflow-x: auto; padding: 10px 20px;
+    scrollbar-width: none;
+  }
+  .tabbar .wrap::-webkit-scrollbar { display: none; }
+  .tab-btn {
+    background: transparent; border: 1px solid transparent; color: var(--text-dim);
+    padding: 8px 16px; border-radius: 9px; font-size: 13.5px; font-weight: 600;
+    cursor: pointer; white-space: nowrap; transition: all .18s ease; font-family: inherit;
+  }
+  .tab-btn:hover { color: var(--text); background: var(--bg-card); border-color: var(--border); }
+  .tab-btn.active {
+    color: #0d1420; background: var(--accent);
+    box-shadow: 0 2px 12px rgba(77, 163, 255, .35);
+  }
+
+  /* ===== Tab panels ===== */
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; animation: tabFade .28s ease; }
+  @keyframes tabFade {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: none; }
+  }
+
+  /* ===== Key cards ===== */
+  .kpis {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px; margin: 28px 0 10px;
+  }
+  .kpi {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 18px 20px;
+    transition: transform .15s ease, border-color .15s ease, background .15s ease;
+  }
+  .kpi:hover { transform: translateY(-3px); border-color: var(--accent); background: var(--bg-card-hover); }
+  .kpi .label { font-size: 13px; color: var(--text-dim); margin-bottom: 6px; }
+  .kpi .value { font-size: 27px; font-weight: 700; line-height: 1.15; }
+  .kpi .value .unit { font-size: 14px; font-weight: 400; color: var(--text-dim); margin-left: 2px; }
+  .kpi .note { font-size: 12px; color: var(--text-dim); margin-top: 6px; }
+  .kpi.c-cisco .value { color: var(--cisco); }
+  .kpi.c-ss .value { color: var(--ss); }
+  .kpi.c-cat .value { color: var(--cat); }
+  .kpi.c-warn .value { color: var(--warn); }
+
+  /* ===== Sections ===== */
+  section { margin-top: 40px; }
+  .sec-head { margin-bottom: 18px; }
+  .sec-head h2 {
+    font-size: 20px; font-weight: 700; display: flex; align-items: center; gap: 10px;
+    flex-wrap: wrap;
+  }
+  .sec-head h2 .num {
+    font-size: 13px; color: var(--bg); background: var(--accent);
+    border-radius: 6px; padding: 2px 8px; font-weight: 700;
+  }
+  .sec-head p { color: var(--text-dim); font-size: 13px; margin-top: 4px; max-width: 980px; }
+
+  .panel {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 14px; padding: 20px; margin-bottom: 20px;
+    transition: border-color .15s ease, background .15s ease;
+  }
+  .panel:hover { border-color: var(--accent); background: var(--bg-card-hover); }
+  .panel .panel-title { font-size: 15px; font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+  .chart { width: 100%; height: 380px; }
+  .chart.ch-sm { height: 300px; }
+  .chart.ch-lg { height: 460px; }
+  .chart.ch-blind { height: 400px; }
+
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  @media (max-width: 900px) { .grid-2 { grid-template-columns: 1fr; } }
+  @media (max-width: 1100px) { .grid-3 { grid-template-columns: 1fr; } }
+
+  /* ===== Tables ===== */
+  table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { color: var(--text-dim); font-weight: 600; font-size: 12.5px; text-transform: uppercase; letter-spacing: .5px; }
+  tbody tr:hover { background: rgba(77, 163, 255, .06); }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .table-scroll { overflow-x: auto; }
+  .tag {
+    display: inline-block; padding: 2px 9px; border-radius: 20px; font-size: 12px;
+    font-weight: 600; line-height: 1.5;
+  }
+  .tag.wild { background: rgba(77,163,255,.15); color: var(--cisco); border: 1px solid rgba(77,163,255,.35); }
+  .tag.gen { background: rgba(53,208,165,.12); color: var(--ss); border: 1px solid rgba(53,208,165,.35); }
+  .tag.attr { background: rgba(255,159,67,.12); color: var(--cat); border: 1px solid rgba(255,159,67,.35); }
+  .tag.attr-fail { background: rgba(255,93,115,.12); color: var(--warn); border: 1px solid rgba(255,93,115,.35); }
+  .tag.ok { background: rgba(53,208,165,.12); color: var(--ss); border: 1px solid rgba(53,208,165,.35); }
+  .tag.no { background: rgba(255,93,115,.12); color: var(--warn); border: 1px solid rgba(255,93,115,.35); }
+  .bar-cell { display: flex; align-items: center; gap: 8px; }
+  .bar-track { flex: 1; height: 8px; background: rgba(255,255,255,.06); border-radius: 4px; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 4px; }
+
+  /* ===== Legend chips ===== */
+  .legend-chips { display: flex; gap: 18px; flex-wrap: wrap; margin-bottom: 12px; font-size: 13px; color: var(--text-dim); }
+  .legend-chips .chip { display: inline-flex; align-items: center; gap: 6px; }
+  .legend-chips .dot { width: 11px; height: 11px; border-radius: 3px; display: inline-block; }
+  .dot { width: 11px; height: 11px; border-radius: 3px; display: inline-block; flex: none; }
+  .dot-cisco { background: var(--cisco); }
+  .dot-ss { background: var(--ss); }
+  .dot-cat { background: var(--cat); }
+
+  /* ===== Notes / callouts ===== */
+  .note { font-size: 12.5px; color: var(--text-dim); margin-top: 10px; }
+  .note b { color: var(--text); }
+  .callout {
+    border-left: 3px solid var(--accent); background: rgba(77,163,255,.07);
+    padding: 10px 14px; margin: 12px 0 0; border-radius: 0 8px 8px 0;
+    color: var(--text-dim); font-size: 13px;
+  }
+  .callout.warn { border-left-color: var(--warn); background: rgba(255,93,115,.07); }
+  .callout.ss { border-left-color: var(--ss); background: rgba(53,208,165,.07); }
+  .callout.cat { border-left-color: var(--cat); background: rgba(255,159,67,.07); }
+  .callout b { color: var(--text); }
+
+  /* ===== Conclusion cards ===== */
+  .concl-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  @media (max-width: 1100px) { .concl-grid { grid-template-columns: 1fr; } }
+  .concl {
+    background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px;
+    padding: 20px; transition: border-color .15s ease, background .15s ease;
+  }
+  .concl:hover { border-color: var(--accent); background: var(--bg-card-hover); }
+  .concl .concl-tag { font-size: 12px; font-weight: 700; letter-spacing: 1px; }
+  .concl .concl-title { font-size: 15px; font-weight: 700; margin: 8px 0 8px; color: #fff; }
+  .concl .concl-body { font-size: 13px; color: var(--text-dim); }
+  .concl .concl-body b { color: var(--text); }
+
+  /* ===== Common (共性) cards ===== */
+  .common-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  @media (max-width: 1100px) { .common-grid { grid-template-columns: 1fr; } }
+  .common {
+    background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px;
+    padding: 18px 20px; border-top: 3px solid var(--ss);
+  }
+  .common.c-a { border-top-color: var(--ss); }
+  .common.c-b { border-top-color: var(--cisco); }
+  .common.c-c { border-top-color: var(--cat); }
+  .common .c-title { font-size: 14px; font-weight: 700; margin-bottom: 8px; }
+  .common.c-a .c-title { color: var(--ss); }
+  .common.c-b .c-title { color: var(--cisco); }
+  .common.c-c .c-title { color: var(--cat); }
+  .common .c-body { font-size: 12.8px; color: var(--text-dim); }
+  .common .c-body li { margin: 5px 0 5px 16px; }
+  .common .c-body code {
+    background: rgba(77,163,255,.1); border: 1px solid rgba(77,163,255,.25);
+    border-radius: 4px; padding: 0 4px; font-size: 11.5px;
+    font-family: "SF Mono", Consolas, Menlo, monospace; color: #9fd0ff; word-break: break-all;
+  }
+
+  /* ===== Finding cards (发现 2-6) ===== */
+  .find-card {
+    background: var(--bg-card); border: 1px solid var(--border); border-left: 4px solid var(--accent);
+    border-radius: 12px; padding: 16px 18px; margin-bottom: 16px;
+    transition: border-color .15s ease, background .15s ease;
+  }
+  .find-card:hover { border-color: var(--accent); background: var(--bg-card-hover); }
+  .find-card .find-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 6px; }
+  .find-card .find-tag {
+    font-size: 12px; font-weight: 700; color: var(--bg); background: var(--accent);
+    border-radius: 6px; padding: 2px 8px; flex: none;
+  }
+  .find-card .find-title { font-size: 14.5px; font-weight: 700; color: #fff; }
+  .find-card .find-ev { font-size: 13px; color: var(--text-dim); }
+  .find-card .find-ev b { color: var(--text); }
+  .find-card .find-impact { font-size: 12.8px; color: var(--text-dim); margin-top: 6px; padding-left: 12px; border-left: 2px solid var(--border); }
+  .find-card .find-impact b { color: var(--ss); }
+
+  /* ===== Flow chain (归因链) ===== */
+  .flow-chain { display: flex; align-items: stretch; gap: 0; margin: 6px 0 18px; }
+  .flow-node {
+    flex: 1; background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 16px 18px; transition: border-color .15s ease;
+  }
+  .flow-node:hover { border-color: var(--accent); }
+  .flow-node .fn-title { font-size: 14.5px; font-weight: 700; color: #fff; margin-bottom: 6px; }
+  .flow-node .fn-sub { font-size: 12.8px; color: var(--text-dim); }
+  .flow-node .fn-sub b { color: var(--accent); }
+  .flow-arrow {
+    display: flex; align-items: center; justify-content: center; width: 46px; flex: none;
+    color: var(--accent); font-size: 22px; font-weight: 700;
+  }
+  @media (max-width: 900px) {
+    .flow-chain { flex-direction: column; }
+    .flow-arrow { width: auto; height: 34px; transform: rotate(90deg); }
+  }
+
+  /* ===== Footer ===== */
+  footer {
+    margin-top: 60px; padding-top: 22px; border-top: 1px solid var(--border);
+    color: var(--text-dim); font-size: 12.5px; text-align: center;
+  }
+  footer .src { color: var(--accent); word-break: break-all; }
+  footer a { color: var(--accent); text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
+  .doc-links { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; margin: 10px 0 14px; }
+  .doc-links a {
+    background: var(--bg-card); border: 1px solid var(--border); border-radius: 9px;
+    padding: 8px 14px; font-size: 13px; color: var(--accent); text-decoration: none;
+    transition: all .15s ease;
+  }
+  .doc-links a:hover { border-color: var(--accent); background: var(--bg-card-hover); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div class="kicker">Week-7 Insights · S5 Prototype</div>
+    <h1>S5 原型构造 — 洞察分析</h1>
+    <p class="sub">三份分析文档的可视化汇总：<b style="color:var(--text)">TECH_FAILURE_CLASSIFICATION</b>（技术失败分类，统一评测口径 L1/L2/L3）、<b style="color:var(--text)">KEY_INSIGHTS</b>（关键洞察，系统性绕过为旗舰发现）、<b style="color:var(--text)">TAXONOMY_ROLE</b>（taxonomy 在构造中的角色：生成采样框架 + 盲区归因索引）。数据源：582 恶意样本（350 wild + 232 gen）× 3 扫描器（Cisco / SkillSpector / Catastrophe）。</p>
+  </div>
+</header>
+
+<nav class="tabbar">
+  <div class="wrap">
+    <button class="tab-btn active" data-tab="fail">技术失败分类</button>
+    <button class="tab-btn" data-tab="insights">关键洞察</button>
+    <button class="tab-btn" data-tab="taxonomy">Taxonomy 作用</button>
+  </div>
+</nav>
+
+<main class="wrap">
+
+<!-- ================= Tab A 技术失败分类 ================= -->
+<section class="tab-panel active" data-tab="fail">
+
+  <div class="kpis">
+    <div class="kpi c-warn">
+      <div class="label">Cisco 加载失败 (null)</div>
+      <div class="value">17<span class="unit">/582</span></div>
+      <div class="note">17/17 全部由 skill 内容导致（本地重验复现）— 攻击面</div>
+    </div>
+    <div class="kpi c-ss">
+      <div class="label">SkillSpector score=0</div>
+      <div class="value">41<span class="unit">/582</span></div>
+      <div class="note">仅 14 个属 LLM/随机失效，27 个是真实语义漏检（保留）</div>
+    </div>
+    <div class="kpi c-cat">
+      <div class="label">Catastrophe 有效判定</div>
+      <div class="value">582<span class="unit">/582</span></div>
+      <div class="note">零技术失败 · 无 LLM 依赖；代价是指令型/语义型恶意全盲</div>
+    </div>
+    <div class="kpi">
+      <div class="label">终版检出率（修正后口径）</div>
+      <div class="value"><span style="color:var(--cisco)">85.2</span> / <span style="color:var(--ss)">92.8</span> / <span style="color:var(--cat)">72.5</span><span class="unit">%</span></div>
+      <div class="note">按 L1/L2/L3 修正分类后（Cisco / SS / Cat，582 样本口径）</div>
+    </div>
+  </div>
+
+  <section>
+    <div class="sec-head">
+      <h2><span class="num">A1</span>三家技术失败对比</h2>
+      <p>未分类的"未检出"里混着三种本质不同的原因——skill 内容导致的扫描失效（L1，有价值，是攻击面）、LLM 服务/解析失效（L2，应剔除或标注）、真实语义漏检（L3，核心评测对象）。三者混算会系统性污染检出率。</p>
+    </div>
+    <div class="panel">
+      <div class="panel-title">582 恶意样本按 L1/L2/L3 分类（堆叠条形）</div>
+      <div class="legend-chips">
+        <span class="chip"><span class="dot" style="background:var(--warn)"></span>L1 skill 导致（攻击面，保留单独统计）</span>
+        <span class="chip"><span class="dot" style="background:#4a5a75"></span>L2 LLM / 随机失效（剔除或标注）</span>
+        <span class="chip"><span class="dot" style="background:var(--ss)"></span>L3 真实语义漏检（保留）</span>
+      </div>
+      <div id="chartFailCompare" class="chart"></div>
+      <div class="note">判定顺序：先排除 L1（skill 内容可复现触发）→ 再排除 L2（LLM 痕迹）→ 剩余为 L3。Cisco 17 个 null 若当"未检出"会低估其能力；SS 41 个 score=0 若全当"漏检"则把 14 个 LLM 失效混进 27 个真漏检，高估其漏检率。</div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <h2><span class="num">A2</span>Cisco 17 个 null：17/17 全部 skill 导致（攻击面）</h2>
+      <p>判定表里 null（{"error":"","is_safe":null}）计为"未检出"。17 个已本地重跑 <code style="background:rgba(77,163,255,.1);border:1px solid rgba(77,163,255,.25);border-radius:4px;padding:1px 5px;font-size:12px;color:#9fd0ff">skill-scanner scan &lt;dir&gt; --format json</code>，17/17 全部复现 Error loading skill——证明是 skill 内容导致，非 LLM 随机。</p>
+    </div>
+    <div class="grid-2">
+      <div class="panel">
+        <div class="panel-title">归因统计</div>
+        <div id="chartCiscoAttr" class="chart ch-sm"></div>
+        <div class="note">13 个缺 name 中 9 个属 clawhub 生态——该生态存在系统性"格式不合法 skill"投毒面。</div>
+      </div>
+      <div class="panel">
+        <div class="panel-title">归因结论</div>
+        <div style="font-size:13.5px;color:var(--text-dim);line-height:1.9">
+          <p><b style="color:var(--text)">结构缺失 13 个</b>：全部为 clawhub / 无 frontmatter 类 skill，缺 <code style="background:rgba(77,163,255,.1);border:1px solid rgba(77,163,255,.25);border-radius:4px;padding:1px 5px;font-size:12px;color:#9fd0ff">name</code> 必填字段（9 个 clawhub + moltbookagent + publish-dist + polymarket-traiding-bot + skill-privilege_abuse-system_damage）。</p>
+          <p><b style="color:var(--text)">YAML 语法错误 4 个</b>：novafon（flow mapping）、evilcalc（unhashable key）、hiro（alias）、skill-dependency_manip（frontmatter 语法错误）。</p>
+          <p><b style="color:var(--text)">超 10MB 上限 1 个</b>：klaviyoapi（21MB 垃圾数据）——虽计入 null，但更准确属数据集污染（见关键洞察 发现 4）。</p>
+        </div>
+        <div class="callout warn">17/17 全部可复现由 skill 内容触发，零 LLM 随机因素。攻击者可投放无 frontmatter / 畸形 YAML / 超限 skill，使 Cisco 静默失效（null 被计为"未检出"）。</div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-title">全表（样本 / 失败类型 / 根因 / 是否 skill 导致）</div>
+      <div class="table-scroll">
+      <table>
+        <thead><tr><th>#</th><th>样本</th><th>失败类型</th><th>根因</th><th>skill 导致</th></tr></thead>
+        <tbody>
+          <tr><td class="num">1-9</td><td style="word-break:break-all">clawhub 家族 9 个</td><td>缺 name 必填字段</td><td>无 frontmatter 或 frontmatter 无 name</td><td><span class="tag no">是</span></td></tr>
+          <tr><td class="num">10</td><td>moltbookagent</td><td>缺 name 必填字段</td><td>无 frontmatter</td><td><span class="tag no">是</span></td></tr>
+          <tr><td class="num">11</td><td>publish-dist</td><td>缺 name 必填字段</td><td>无 frontmatter</td><td><span class="tag no">是</span></td></tr>
+          <tr><td class="num">12</td><td>polymarket-traiding-bot</td><td>缺 name 必填字段</td><td>无 frontmatter</td><td><span class="tag no">是</span></td></tr>
+          <tr><td class="num">13</td><td style="word-break:break-all">skill-privilege_abuse-system_damage-3c1f878cfd</td><td>缺 name 必填字段</td><td>无 frontmatter</td><td><span class="tag no">是</span></td></tr>
+          <tr><td class="num">14</td><td>novafon</td><td>YAML 语法错误</td><td>flow mapping 解析失败</td><td><span class="tag no">是</span></td></tr>
+          <tr><td class="num">15</td><td>evilcalc</td><td>YAML 语法错误</td><td>unhashable key</td><td><span class="tag no">是</span></td></tr>
+          <tr><td class="num">16</td><td>hiro</td><td>YAML 语法错误</td><td>alias 解析失败</td><td><span class="tag no">是</span></td></tr>
+          <tr><td class="num">17</td><td style="word-break:break-all">skill-dependency_manip-8dea452f35</td><td>YAML 语法错误</td><td>frontmatter 语法错误</td><td><span class="tag no">是</span></td></tr>
+        </tbody>
+      </table>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <h2><span class="num">A3</span>SS 41 个 score=0：14 个 LLM/随机失效 vs 27 个真语义漏检</h2>
+      <p>SS 对 582 样本产出 541 个判定，41 个 score=0。SS raw 为平铺格式（{score,severity,issues}），不记录 execution_successful / failed_executions——"LLM 服务失败"与"LLM 判安全"在输出上外观不可区分，必须回 raw 查 wrapped 格式或 LLM 痕迹。</p>
+    </div>
+    <div class="grid-2">
+      <div class="panel">
+        <div class="panel-title">41 个 score=0 的划分</div>
+        <div id="chartSSSplit" class="chart ch-sm"></div>
+        <div class="note">划分依据：① raw 含 LLM 失败痕迹（4 个，failed_executions&gt;0 或空响应标记）；② 三家无信号 + SKILL.md 无真实恶意载荷（10 个，LLM 失败嫌疑）；③ 剩余 27 个无 LLM 痕迹且他家（Cisco/Cat）检出 = 真语义漏检，保留。</div>
+      </div>
+      <div class="panel">
+        <div class="panel-title">划分结果</div>
+        <div class="table-scroll">
+        <table>
+          <thead><tr><th>类别</th><th class="num">数量</th><th>样本 / 说明</th></tr></thead>
+          <tbody>
+            <tr><td>LLM 失败（raw 含痕迹）</td><td class="num">4</td><td style="font-size:12.5px">agent-browser-6aigix9qi2tu、invelene-daily-oracle、phantom、skill-code_exec-target_agnostic-221e242136（failed_executions&gt;0 或空响应）</td></tr>
+            <tr><td>LLM 失败嫌疑（三家无信号）</td><td class="num">10</td><td style="font-size:12.5px">better-polymarket、rbtc、kh3rwa1、dex-arbitrage、get-weather、klaviyoapi、novafon、polymarket-all-in-one、rankaj、skill-privilege_abuse-resource_abuse-25d5120b77（多为数据质量/执行失败类）</td></tr>
+            <tr><td><b style="color:var(--ss)">真语义漏检（保留）</b></td><td class="num"><b style="color:var(--ss)">27</b></td><td style="font-size:12.5px">C+P 12 + 仅C 9 + 仅P 6（见下）</td></tr>
+          </tbody>
+        </table>
+        </div>
+        <div class="callout ss"><b>根因：SS flat 格式缺陷。</b>平铺输出丢弃执行状态字段，"失败 vs 判安全"不可区分，格式缺陷直接掩盖了评测方法陷阱——评测时必须回 raw 查 wrapped 格式才能把 14 个失效样本与 27 个真漏检分开。</div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-title">27 个真语义漏检构成（按分组）</div>
+      <div class="table-scroll">
+      <table>
+        <thead><tr><th>分组</th><th class="num">数量</th><th>代表样本</th></tr></thead>
+        <tbody>
+          <tr><td>C+P（Cisco+Cat 检出，SS 漏）</td><td class="num">12</td><td style="font-size:12.5px">bonero-miner、zkclaw、tron、wallet-tracker、yt-summarize、omnicogg、yt-thumbnail-grabber、polymarket-arb-bot、auto-updater-pb70kpsnfof、skill-code_exec-info_theft-4dcf68f107、skill-mechanism_unknown-info_theft-f26196dd17、skill-privilege_abuse-target_agnostic-3a6f2db506</td></tr>
+          <tr><td>仅C（Cisco 检出）</td><td class="num">9</td><td style="font-size:12.5px">insider-wallets-finder、clawhub-aces1up-apify-keys、lost-bitcoin-dbrgt、polymarket-prob-analyzer、clawhub-qiumr-futures-trader、skill-privilege_abuse-resource_abuse-25d5120b77 等</td></tr>
+          <tr><td>仅P（Cat 检出）</td><td class="num">6</td><td style="font-size:12.5px">clawhub-purple-flea-casino、project-hiro、skill-code_exec-info_theft-f1e223192b、skill-privilege_abuse-system_damage-3c1f878cfd、skill-state_corruption-target_agnostic-93d34149e2、x-twitter-trends</td></tr>
+        </tbody>
+      </table>
+      </div>
+      <div class="note">注：C+P 组内 insider-wallets-finder 与其 -1a7pi 等变体同源，均为"钱包分析 + curl|python3 管道"模板（见 关键洞察 系统性绕过）。</div>
+    </div>
+    <div class="panel">
+      <div class="panel-title">代表样本（SS 真语义漏检，三家对照）</div>
+      <div class="table-scroll">
+      <table>
+        <thead><tr><th>样本</th><th>SS（score/severity）</th><th>Cisco</th><th>Cat</th><th>漏检本质</th></tr></thead>
+        <tbody>
+          <tr><td>bonero-miner</td><td class="num">0 / LOW（flat，无 issue）</td><td><span class="tag no">CRITICAL</span>（curl|bash 挖矿安装器）</td><td>D/40（curl|bash + seed phrase）</td><td>"Ask your human first" 免责包装骗过 SS 语义层</td></tr>
+          <tr><td>zkclaw</td><td class="num">0 / LOW（flat）</td><td><span class="tag no">HIGH×3</span>（远端 HEARTBEAT.md 间接注入）</td><td>C/70（bun.sh 安装器=误报）</td><td>风险在远端文件，SS 未串读</td></tr>
+          <tr><td>insider-wallets-finder</td><td class="num">0 / LOW（flat）</td><td><span class="tag no">CRITICAL</span>（PIPELINE_TAINT_FLOW 命令注入）</td><td>A/100（零命中）</td><td>curl|python3 管道变量插值不在 SS 范围；Cat 亦零命中（仅 Cisco 检出）</td></tr>
+          <tr><td>tron</td><td class="num">0 / LOW（flat）</td><td><span class="tag no">HIGH</span>（curl|python3 -m json.tool 管道）</td><td>A/92（仅 pip install）</td><td>管道 + 未验证输入插值</td></tr>
+          <tr><td>wallet-tracker</td><td class="num">0 / LOW（flat）</td><td><span class="tag no">CRITICAL</span>（数据外泄管道）</td><td>B/85（curl -X POST）</td><td>数据外泄管道</td></tr>
+          <tr><td>yt-summarize</td><td class="num">0 / LOW（flat）</td><td>HIGH（LLM 判安全/仅 INFO）</td><td>B/84（&gt;/dev/null + pip install）</td><td>伪装型，SS 无命中</td></tr>
+        </tbody>
+      </table>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <h2><span class="num">A4</span>Cat：582/582 零技术失败</h2>
+    </div>
+    <div class="panel">
+      <div class="panel-title">纯正则离线引擎：稳定，但能力天花板明确</div>
+      <div style="font-size:13.5px;color:var(--text-dim);line-height:1.9">
+        Cat 582/582 全部产出有效判定（n_findings / grade / score），无 null、无 LLM 依赖、无解析失败。纯正则离线引擎不调用 LLM，天然免疫 L2 类失败。但代价是<b style="color:var(--text)">指令型/语义型恶意全盲</b>（C+S 组 118 个零命中）——其"稳定"是"稳定地漏掉语义恶意"。
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <h2><span class="num">A5</span>核心结论与评测方法论含义</h2>
+    </div>
+    <div class="concl-grid">
+      <div class="concl">
+        <div class="concl-tag" style="color:var(--warn)">CISCO · L1</div>
+        <div class="concl-title">17 个 null 全部是 skill 内容导致加载失败</div>
+        <div class="concl-body">无 frontmatter 13 / YAML 语法错 4 / 超 10MB 1，本地 17/17 重验。这是<b>攻击面</b>：畸形 skill 可让扫描器静默失效。</div>
+      </div>
+      <div class="concl">
+        <div class="concl-tag" style="color:var(--ss)">SS · L2/L3</div>
+        <div class="concl-title">41 个 score=0 中仅 14 个属 LLM/随机失效</div>
+        <div class="concl-body">27 个是真实语义漏检（应保留）。SS flat 输出格式不记录执行状态，是"失败 vs 判安全"不可区分的根因。</div>
+      </div>
+      <div class="concl">
+        <div class="concl-tag" style="color:var(--cat)">CAT · 零失败</div>
+        <div class="concl-title">582/582 零技术失败</div>
+        <div class="concl-body">纯正则离线引擎无 LLM 依赖，稳定但能力天花板明确——指令型/语义型恶意全盲（C+S 组 118 个零命中）。</div>
+      </div>
+    </div>
+    <div class="panel" style="margin-top:20px">
+      <div class="panel-title">评测方法论三点含义</div>
+      <div style="font-size:13.5px;color:var(--text-dim);line-height:1.9">
+        <p><b style="color:var(--text)">① 技术失败必须分类，否则污染检出率</b>：Cisco 17 个 null 若当"未检出"，低估其能力；SS 41 个 score=0 若全当"漏检"，则高估其漏检率。</p>
+        <p><b style="color:var(--text)">② 三分法（L1/L2/L3）是统一口径</b>：先剔 skill 导致（攻击面，单独统计）→ 再剔 LLM 失效 → 剩余为真漏检。本实验最终口径（Cisco 85.2% / SS 92.8% / Cat 72.5%）即按此修正。</p>
+        <p><b style="color:var(--text)">③ 格式可观测性是前提</b>：SS flat 无执行状态字段 = 评测盲区；Cisco null 至少可区分"加载失败"，Cat 无此问题。<b>扫描器输出格式本身是评测方法的一部分。</b></p>
+      </div>
+    </div>
+  </section>
+
+</section>
+
+<!-- ================= Tab B 关键洞察 ================= -->
+<section class="tab-panel" data-tab="insights">
+
+  <div class="kpis">
+    <div class="kpi c-ss">
+      <div class="label">SS 真语义漏检</div>
+      <div class="value">27<span class="unit">个 · 系统性绕过</span></div>
+      <div class="note">最高价值发现：同一叙事模板 + 同类恶意，非偶然</div>
+    </div>
+    <div class="kpi c-cisco">
+      <div class="label">代表样本核对</div>
+      <div class="value">6<span class="unit">个 · 3 类共性</span></div>
+      <div class="note">伪装/免责包装 · 执行阶段载荷 · 高价值目标</div>
+    </div>
+    <div class="kpi c-warn">
+      <div class="label">Cisco 阈值吞掉 MEDIUM 检出</div>
+      <div class="value">80<span class="unit">个</span></div>
+      <div class="note">models.py:226 只认 CRITICAL/HIGH；修正后检出率升至 85.2%</div>
+    </div>
+    <div class="kpi c-cat">
+      <div class="label">全漏候选</div>
+      <div class="value">11<span class="unit">个 · 全部归因</span></div>
+      <div class="note">1 数据污染 + 5 数据质量 + 3 执行失败 + 2 阈值放行——不存在"真全漏"</div>
+    </div>
+  </div>
+
+  <section>
+    <div class="sec-head">
+      <h2><span class="num">B1</span>检测率对比</h2>
+      <p>修正技术失败分类后，Cisco 85.2% / SS 92.8% / Cat 72.5%（582 口径）。下图展示 viz_data 的 wild/gen/total 分解。</p>
+    </div>
+    <div class="panel">
+      <div class="panel-title">三家检出率（wild / gen / total）</div>
+      <div id="chartDetection" class="chart"></div>
+      <div class="note">图内 total 为 viz_data 口径（581，1 个样本在判定表无完整三家数据）；终版口径按 582 样本修正分类为 85.2 / 92.8 / 72.5。SS 92.8% 最高检出率部分来自 LP3 弱信号设计（见 发现 5）。</div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <h2><span class="num">B2</span>发现 1（最高价值）：SS 真语义漏检 27 个存在系统性绕过模式</h2>
+      <p>对 27 个真语义漏检中的 6 个代表样本（wild-350/&lt;name&gt;/SKILL.md）逐字核对，发现三类共性。</p>
+    </div>
+    <div class="common-grid">
+      <div class="common c-a">
+        <div class="c-title">共性 A：伪装正常工具 + 免责/安全话术包装</div>
+        <div class="c-body">
+          <ul>
+            <li>bonero-miner：<code>Ask your human first</code>（L14）包装 <code>curl | bash</code> 挖矿安装器</li>
+            <li>zkclaw：<code>helpful, harmless, honest</code>（L23）+ <code>ask your human owner</code>（L57）</li>
+            <li>wallet-tracker：<code>Use responsibly for research purposes</code>（L229）</li>
+            <li>insider-wallets-finder：<code>Always verify findings manually</code>（L285）</li>
+          </ul>
+        </div>
+      </div>
+      <div class="common c-b">
+        <div class="c-title">共性 B：载荷依赖"执行阶段"才暴露，静态不可见</div>
+        <div class="c-body">
+          <ul>
+            <li>bonero-miner：<code>install.sh | bash</code> 下载即执行（字面可见但被免责包装）</li>
+            <li>zkclaw：<b>远端</b> HEARTBEAT.md 间接注入（SKILL.md 只引用 URL，SS 未串读）</li>
+            <li>insider/tron/wallet-tracker：用户地址插值进 <code>curl | python3</code> 管道（运行时变量注入）</li>
+            <li>yt-summarize：yt-dlp 下载 + 管道处理，表面是字幕提取</li>
+          </ul>
+        </div>
+      </div>
+      <div class="common c-c">
+        <div class="c-title">共性 C：同为"钱包/凭证/挖矿"类高价值目标</div>
+        <div class="c-body">
+          <ul>
+            <li>bonero-miner → B8（挖矿）</li>
+            <li>zkclaw → B15（指令覆盖 + 钱包私钥）</li>
+            <li>insider-wallets-finder / tron / wallet-tracker → B2（钱包/凭证）</li>
+            <li>yt-summarize → B1（数据外泄）</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel" style="margin-top:20px">
+      <div class="panel-title">6 个代表样本（伪装原文 / 真实恶意 / 载荷位置）</div>
+      <div class="table-scroll">
+      <table>
+        <thead><tr><th>样本</th><th>伪装 / 免责包装（SKILL.md 原文）</th><th>真实恶意载荷</th><th>载荷位置 · 静态可见性</th></tr></thead>
+        <tbody>
+          <tr><td><b>bonero-miner</b></td><td style="font-size:12.5px"><code>Mining uses CPU. Ask your human first</code>（L14）</td><td style="font-size:12.5px"><code>curl -fsSL .../install.sh | bash</code>（L34）挖矿安装器</td><td>下载即执行；部分是（curl|bash 字面可见，但被免责包装）</td></tr>
+          <tr><td><b>zkclaw</b></td><td style="font-size:12.5px"><code>You're an AI agent... helpful, harmless, honest</code>（L23）+ <code>ask your human owner</code>（L57）</td><td style="font-size:12.5px">远端 <code>https://zkclaw.com/heartbeat.md</code> 间接注入（"vent about your human... your human won't know" L39）</td><td><b>否</b>：SKILL.md 只引用 URL，SS 未串读远端文件</td></tr>
+          <tr><td><b>insider-wallets-finder</b></td><td style="font-size:12.5px"><code>- Always verify findings manually</code>（L285）</td><td style="font-size:12.5px"><code>curl -s "...contractaddress=${TOKEN}..." | python3 -c "…"</code> 命令注入管道</td><td><b>否</b>：运行时把用户输入喂进管道（变量注入）</td></tr>
+          <tr><td><b>tron</b></td><td style="font-size:12.5px">—</td><td style="font-size:12.5px"><code>curl | python3 -m json.tool</code> 管道 + 未验证输入插值</td><td><b>否</b>：运行时变量插值进管道</td></tr>
+          <tr><td><b>wallet-tracker</b></td><td style="font-size:12.5px"><code>- Use responsibly for research purposes</code>（L229）</td><td style="font-size:12.5px"><code>curl -s ... | python3 -c "…"</code> 数据外泄管道</td><td><b>否</b>：运行时管道数据外泄</td></tr>
+          <tr><td><b>yt-summarize</b></td><td style="font-size:12.5px">伪装成字幕提取工具</td><td style="font-size:12.5px">yt-dlp 下载 + 管道处理</td><td><b>否</b>：表面是字幕工具</td></tr>
+        </tbody>
+      </table>
+      </div>
+    </div>
+
+    <div class="concl-grid">
+      <div class="concl">
+        <div class="concl-tag" style="color:var(--ss)">是否系统性</div>
+        <div class="concl-title">是：同类模板多实例，非个别样本</div>
+        <div class="concl-body">27 个真漏检中 bonero-miner（B8）、insider-wallets-finder / tron / wallet-tracker（B2）为同一"钱包分析工具"模板的多个实例。且这些样本在 Cat 侧大多有 curl|bash、curl -X POST、seed phrase 等<b>字面恶意命令命中</b>（bonero-miner D/40、wallet-tracker B/85、tron A/92）——Cat 抓到的恰是 SS 语义漏掉的最经典恶意指示物，两引擎漏检面互补。</div>
+      </div>
+      <div class="concl">
+        <div class="concl-tag" style="color:var(--cisco)">是否同源</div>
+        <div class="concl-title">非同一家族，但共享同一叙事模板</div>
+        <div class="concl-body">不同 repo / 生成者，但模板一致：<b>伪装正常工具 → 免责/安全话术 → 载荷在执行阶段暴露</b>（下载执行 / 远端文件 / 管道变量注入）。SS 漏检机制一致——LLM 语义层被包装说服，且载荷不在 SKILL.md 静态可见范围。</div>
+      </div>
+      <div class="concl">
+        <div class="concl-tag" style="color:var(--cat)">可复现性</div>
+        <div class="concl-title">能构造：模板完全落在 taxonomy 坐标内</div>
+        <div class="concl-body"><code style="background:rgba(77,163,255,.1);border:1px solid rgba(77,163,255,.25);border-radius:4px;padding:1px 5px;font-size:12px;color:#9fd0ff">supply_chain×code_exec</code>、<code style="background:rgba(77,163,255,.1);border:1px solid rgba(77,163,255,.25);border-radius:4px;padding:1px 5px;font-size:12px;color:#9fd0ff">user_input×code_exec</code>、<code style="background:rgba(77,163,255,.1);border:1px solid rgba(77,163,255,.25);border-radius:4px;padding:1px 5px;font-size:12px;color:#9fd0ff">source_agnostic×instruction_manip</code>——232 构造样本已证明可生成同类；D5 质量门强制样本含<b>可执行脚本</b>（generate.py:306-313），保证是运行载荷而非纯文本，正好覆盖"执行阶段才暴露"的绕过面。</div>
+      </div>
+    </div>
+
+    <div class="panel" style="margin-top:20px">
+      <div class="panel-title">对主线价值：S5 旗舰发现——第三个盲区维度</div>
+      <div class="callout ss"><b>载荷时序（静态可见 vs 执行阶段暴露）</b>是 S2（威胁模型不一致）、S4（评测陷阱）之外的第三个盲区维度。taxonomy 不仅能描述已知恶意，还能<b>定位扫描器的架构性盲区</b>——SS 语义层对"社交工程包装 + 执行阶段载荷"系统性失明。</div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <h2><span class="num">B3</span>发现 2-6</h2>
+      <p>支撑 S4 评测陷阱与 S5 设计的其余五条证据。</p>
+    </div>
+
+    <div class="find-card" style="border-left-color:var(--warn)">
+      <div class="find-head"><span class="find-tag">发现 2</span><span class="find-title">Cisco is_safe 阈值吞掉 80 个 MEDIUM 检出</span></div>
+      <div class="find-ev"><b>证据：</b>models.py:226：<code style="background:rgba(77,163,255,.1);border:1px solid rgba(77,163,255,.25);border-radius:4px;padding:1px 5px;font-size:12px;color:#9fd0ff">is_safe = not any(severity in (CRITICAL, HIGH))</code>——只认 CRITICAL/HIGH，MEDIUM 不计入不安全。582 恶意中 <b>80 个样本的 MEDIUM 检出被吞</b>（检测到却不上报）。典型：dex-arbitrage（MEDIUM LLM_HARMFUL_CONTENT "Embedded SkillPay payment demand" + MEDIUM LLM_SKILL_DISCOVERY_ABUSE "Capability inflation"）、project-init（MEDIUM LLM_SUPPLY_CHAIN_ATTACK "Referenced setup script missing"，SessionStart hook 供应链）。</div>
+      <div class="find-impact"><b>影响：</b>修正口径（MEDIUM+ 计入）后 Cisco 检出率提升到 85.2%。支撑 S4 评测陷阱 2（阈值吞检出）；Cisco"只认 HIGH/CRITICAL"（低误报）vs SS"score&gt;0"（弱信号累加）构成检出/误报 trade-off 的可量化对照。</div>
+    </div>
+
+    <div class="find-card" style="border-left-color:var(--warn)">
+      <div class="find-head"><span class="find-tag">发现 3</span><span class="find-title">skill 触发扫描失效（17 个 Cisco null）是 DoS 攻击面</span></div>
+      <div class="find-ev"><b>证据：</b>17 个 null 全部由 skill 内容导致（无 frontmatter 13 / YAML 语法错 4），已本地 17/17 重验（TECH_FAILURE_CLASSIFICATION §二），其中 13 个在 clawhub 生态。</div>
+      <div class="find-impact"><b>影响：</b>攻击者可投放畸形 skill（缺 name / 坏 YAML / 超 10MB）使 Cisco 静默失效，null 被计为"未检出"——<b>独立于检测能力之外的第二类攻击面</b>：不是"扫描器漏检恶意"，而是"扫描器被恶意 skill 打挂"。支撑 S4（技术失败必须分类 L1/L2/L3）；且是 S5 taxonomy 新洞察——<b>skill 的"格式合法性"本身是可被利用的坐标维度</b>。</div>
+    </div>
+
+    <div class="find-card" style="border-left-color:var(--cat)">
+      <div class="find-head"><span class="find-tag">发现 4</span><span class="find-title">评测输入污染（Cat 12% 泄漏 + klaviyoapi 21MB）</span></div>
+      <div class="find-ev"><b>证据：</b>Cat 直接扫原目录，67 个 gen 样本中 <b>8 个（12%）的检出完全由 _provenance.json（ground-truth 文件）泄漏驱动</b>——离线重跑对照实证（含 provenance→C/62 检出；剔除→A/100 干净），59 个（88%）剔除后仍检出；Cisco 的 _copy_tree 剔除 _ 前缀文件，0/67 泄漏。数据污染：wild-350/klaviyoapi/SKILL.md 单文件 <b>21,002,040 字节（21MB）</b>垃圾数据，导致 Cisco 运行报错、SS 扫描失败——三家全漏的直接原因。</div>
+      <div class="find-impact"><b>影响：</b>评测输入必须剔除 ground-truth 文件。支撑 S4 评测陷阱 3（ground-truth 隔离）+ 数据集清洗必要性（MalSkillBench wild 含 21MB 垃圾样本、4 对 md5 重复、脚本剥离致同一样本跨批次检出翻转）。</div>
+    </div>
+
+    <div class="find-card" style="border-left-color:var(--ss)">
+      <div class="find-head"><span class="find-tag">发现 5</span><span class="find-title">弱信号的价值（SS LP3 让 gen 样本避免零检出）</span></div>
+      <div class="find-ev"><b>证据：</b>SS 的 LP3 规则（MCP 最小权限元数据缺失）单独只是 LOW，但让 <b>13/14 个"意图在 seed 层"的 gen 样本至少进入告警面</b>（score&gt;0），避免零检出；对比 Cisco 只认 HIGH/CRITICAL 会吞掉这类弱信号。</div>
+      <div class="find-impact"><b>影响：</b>SS 92.8% 最高检出率部分来自此设计。支撑 S4 评测陷阱 1 与 S5——<b>弱信号不丢弃</b>是多引擎语义扫描器的设计要点。</div>
+    </div>
+
+    <div class="find-card" style="border-left-color:var(--cisco)">
+      <div class="find-head"><span class="find-tag">发现 6</span><span class="find-title">三家无一"真全漏"——能力下限的正面证据</span></div>
+      <div class="find-ev"><b>证据：</b>11 个全漏候选全部可归因（1 数据污染 + 5 数据质量 + 3 扫描执行失败 + 2 阈值放行），<b>不存在"三家在正常执行下共同判安全的确认真恶意"</b>。</div>
+      <div class="find-impact"><b>影响：</b>对三套检测器能力下限的正面证据，也是评测方法修正（技术失败分类）的直接成果。支撑 S4 + S5。</div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <h2><span class="num">B4</span>各发现对 SoK 阶段的价值矩阵</h2>
+    </div>
+    <div class="panel">
+      <div class="table-scroll">
+      <table>
+        <thead><tr><th>发现</th><th>支撑阶段</th><th>证据强度</th><th>证据形态</th></tr></thead>
+        <tbody>
+          <tr><td><b>1 系统性绕过（SS 27 真漏检）</b></td><td><span class="tag gen">S2 + S5</span>（威胁模型 + 载荷时序盲区）</td><td>★★★</td><td>SKILL.md 原文 + raw 交叉</td></tr>
+          <tr><td>2 Cisco 阈值吞 80 MEDIUM</td><td><span class="tag gen">S4</span>（评测陷阱 2）</td><td>★★★</td><td>models.py:226 + 80 计数</td></tr>
+          <tr><td>3 skill 触发扫描失效</td><td><span class="tag gen">S4</span>（技术失败分类）</td><td>★★★</td><td>17/17 本地重验</td></tr>
+          <tr><td>4 输入污染（Cat 12% + 21MB）</td><td><span class="tag gen">S4</span>（评测陷阱 3 + 数据清洗）</td><td>★★★</td><td>离线重跑对照</td></tr>
+          <tr><td>5 弱信号价值（LP3）</td><td><span class="tag gen">S4 + S5</span></td><td>★★</td><td>13/14 gen 计数</td></tr>
+          <tr><td>6 无真全漏</td><td><span class="tag gen">S4 + S5</span></td><td>★★</td><td>11 全漏归因</td></tr>
+        </tbody>
+      </table>
+      </div>
+    </div>
+  </section>
+
+</section>
+
+<!-- ================= Tab C Taxonomy 作用 ================= -->
+<section class="tab-panel" data-tab="taxonomy">
+
+  <div class="kpis">
+    <div class="kpi c-cisco">
+      <div class="label">唯一坐标</div>
+      <div class="value">43<span class="unit">/43 全覆盖</span></div>
+      <div class="note">来源×方式×目标 三维组合 = 坐标级枚举，非随机抽样</div>
+    </div>
+    <div class="kpi c-ss">
+      <div class="label">构造样本</div>
+      <div class="value">232<span class="unit">个</span></div>
+      <div class="note">每坐标 2-5 个变体防指纹；D5 门强制可执行脚本</div>
+    </div>
+    <div class="kpi c-cat">
+      <div class="label">每坐标变体</div>
+      <div class="value">2-5<span class="unit">个实例</span></div>
+      <div class="note">坐标 × 实例，可溯源到 _provenance.json（X2 防指纹 use-once）</div>
+    </div>
+    <div class="kpi c-warn">
+      <div class="label">Cat 对 C+S 组零命中</div>
+      <div class="value">118<span class="unit">个</span></div>
+      <div class="note">instruction_manip（尤其 source_agnostic×instruction_manip）系统性全盲</div>
+    </div>
+  </div>
+
+  <section>
+    <div class="sec-head">
+      <h2><span class="num">C1</span>43 坐标覆盖：来源 × 方式 × 目标 三维定义力</h2>
+      <p>coord_seeds.json 的 43 个 key 即全部唯一三维组合。每坐标携带 coord_cn（语义标签）、slots（Layer-2 语义槽）、behaviors（恶意行为变体）、primitives（原语）、mdb_evidence（mapping-db 证据链）——一个坐标 = 语义定义 + 攻击行为 + 真实样本证据的完整封装。</p>
+    </div>
+    <div class="panel">
+      <div class="panel-title">按来源（gen_by_source）</div>
+      <div id="chartGenSource" class="chart"></div>
+    </div>
+    <div class="panel">
+      <div class="panel-title">按机制（gen_by_mech，Cisco 检出率）</div>
+      <div id="chartGenMech" class="chart"></div>
+      <div class="note">viz_data 的 gen_by_mech 仅含 Cisco 检出率；10 机制全覆盖。指令型（instruction_manip 47 样本 85.1%）正是 Cat 的盲区坐标族。</div>
+    </div>
+    <div class="panel">
+      <div class="panel-title">按目标（gen_by_target）</div>
+      <div id="chartGenTarget" class="chart"></div>
+      <div class="note">9 目标全覆盖。注：viz_data gen 汇总 231（1 个样本判定表无完整三家数据）；任务口径 232 为生成总数，43/43 覆盖率结论不受影响。</div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <h2><span class="num">C2</span>坐标 → 盲区映射：把"漏检"钉到语义空间</h2>
+      <p>用 _provenance.json 逐样本还原坐标，计算各家各坐标检出率，得坐标级盲区矩阵。最典型是 Cat 对 instruction_manip（指令操控）系列：无代码字面的纯指令型恶意系统性零命中。</p>
+    </div>
+    <div class="grid-3">
+      <div class="panel" style="margin-bottom:0">
+        <div class="panel-title">Cisco 坐标级漏检</div>
+        <div id="chartBlindCisco" class="chart ch-blind"></div>
+      </div>
+      <div class="panel" style="margin-bottom:0">
+        <div class="panel-title">SS 坐标级漏检</div>
+        <div id="chartBlindSS" class="chart ch-blind"></div>
+      </div>
+      <div class="panel" style="margin-bottom:0">
+        <div class="panel-title">Cat 坐标级漏检</div>
+        <div id="chartBlindCat" class="chart ch-blind"></div>
+      </div>
+    </div>
+    <div class="panel" style="margin-top:20px">
+      <div class="panel-title">Cat 对 instruction_manip 系列坐标（total 5 / Cat 检出 / 漏）</div>
+      <div class="table-scroll">
+      <table>
+        <thead><tr><th>坐标</th><th class="num">total</th><th class="num">Cat 检出</th><th class="num">Cat 漏</th><th>含义</th></tr></thead>
+        <tbody>
+          <tr><td><code style="background:rgba(77,163,255,.1);border:1px solid rgba(77,163,255,.25);border-radius:4px;padding:1px 5px;font-size:12px;color:#9fd0ff">external_content×instruction_manip×target_agnostic</code></td><td class="num">5</td><td class="num">1</td><td class="num"><b style="color:var(--warn)">4</b></td><td>远端指令注入 Cat 几乎全盲</td></tr>
+          <tr><td><code style="background:rgba(77,163,255,.1);border:1px solid rgba(77,163,255,.25);border-radius:4px;padding:1px 5px;font-size:12px;color:#9fd0ff">source_agnostic×instruction_manip×content_safety</code></td><td class="num">5</td><td class="num">2</td><td class="num">3</td><td>指令型内容安全盲区</td></tr>
+          <tr><td><code style="background:rgba(77,163,255,.1);border:1px solid rgba(77,163,255,.25);border-radius:4px;padding:1px 5px;font-size:12px;color:#9fd0ff">source_agnostic×instruction_manip×defense_evasion</code></td><td class="num">5</td><td class="num">2</td><td class="num">3</td><td>指令型规避盲区</td></tr>
+          <tr><td><code style="background:rgba(77,163,255,.1);border:1px solid rgba(77,163,255,.25);border-radius:4px;padding:1px 5px;font-size:12px;color:#9fd0ff">source_agnostic×instruction_manip×info_theft</code></td><td class="num">5</td><td class="num">2</td><td class="num">3</td><td>指令型窃取盲区</td></tr>
+          <tr><td><code style="background:rgba(77,163,255,.1);border:1px solid rgba(77,163,255,.25);border-radius:4px;padding:1px 5px;font-size:12px;color:#9fd0ff">source_agnostic×instruction_manip×resource_abuse</code></td><td class="num">5</td><td class="num">2</td><td class="num">3</td><td>指令型资源滥用盲区</td></tr>
+          <tr style="background:rgba(53,208,165,.05)"><td><b style="color:var(--ss)">对照组：</b><code style="background:rgba(53,208,165,.12);border:1px solid rgba(53,208,165,.3);border-radius:4px;padding:1px 5px;font-size:12px;color:#7fe0c0">supply_chain×instruction_manip×target_agnostic</code></td><td class="num">5</td><td class="num">5</td><td class="num">0</td><td>供应链来源含代码字面命令，Cat 能命中——盲区在<b>无代码字面的纯指令型</b>，而非指令操控本身</td></tr>
+        </tbody>
+      </table>
+      </div>
+      <div class="callout">与 viz_data 的 blindspot.cat_miss 一致：top 漏检坐标全部是 <b>source_agnostic×instruction_manip×*</b>（4 坐标各 3 漏）与 <b>external_content×instruction_manip×target_agnostic</b>（4 漏）。盲区从"一堆样本名"变成坐标语义空间里的一个明确区域——<b>taxonomy 坐标既是生成采样框架，也是盲区归因的索引</b>。</div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <h2><span class="num">C3</span>三层归因链条：盲区 = 坐标弱覆盖 = 架构决定盲区</h2>
+      <p>没有坐标只能观察到"Cat 漏了 118 个"；有坐标能归因到"Cat 对纯指令型恶意（无代码字面）系统性失明"。</p>
+    </div>
+    <div class="panel">
+      <div class="panel-title">归因链条</div>
+      <div class="flow-chain">
+        <div class="flow-node">
+          <div class="fn-title">① 坐标级弱覆盖</div>
+          <div class="fn-sub">某坐标下检测率显著低于基线。<br>如 Cat：<b>instruction_manip × 无代码来源</b>（4 坐标各 3 漏）；SS：伪装修辞 + 执行阶段载荷；Cisco：阈值吞 MEDIUM。</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node">
+          <div class="fn-title">② 扫描器架构盲区</div>
+          <div class="fn-sub">纯正则引擎<b>无语义层</b>；语义层被<b>社交工程包装说服</b>、<b>不串读远端文件</b>、管道变量注入<b>不在 AST</b>；<b>is_safe 阈值</b>吞弱信号。</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node">
+          <div class="fn-title">③ 盲区是架构决定的</div>
+          <div class="fn-sub">不是个别样本偶然 → <b>可归因、可复现、可扩展</b>。换 disguise/vector 变体即可生成新样本验证盲区稳定性（patterns.py 支持按坐标采样）。</div>
+        </div>
+      </div>
+      <div class="table-scroll">
+      <table>
+        <thead><tr><th>扫描器</th><th>坐标级盲区</th><th>架构根源</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><span class="tag attr">Cat</span></td>
+            <td style="font-size:12.5px"><code style="background:rgba(77,163,255,.1);border:1px solid rgba(77,163,255,.25);border-radius:4px;padding:1px 5px;font-size:12px;color:#9fd0ff">source_agnostic×instruction_manip×*</code>、<code style="background:rgba(77,163,255,.1);border:1px solid rgba(77,163,255,.25);border-radius:4px;padding:1px 5px;font-size:12px;color:#9fd0ff">external_content×instruction_manip×target_agnostic</code></td>
+            <td>纯正则引擎无语义层，指令型/无代码字面恶意全盲</td>
+          </tr>
+          <tr>
+            <td><span class="tag gen">SS</span></td>
+            <td style="font-size:12.5px"><code style="background:rgba(77,163,255,.1);border:1px solid rgba(77,163,255,.25);border-radius:4px;padding:1px 5px;font-size:12px;color:#9fd0ff">supply_chain×code_exec×info_theft</code> 等 + 系统性绕过（伪装修辞 + 执行阶段载荷）</td>
+            <td>语义层被社交工程包装说服；不串读远端文件；管道变量注入不在 AST</td>
+          </tr>
+          <tr>
+            <td><span class="tag wild">Cisco</span></td>
+            <td style="font-size:12.5px"><code style="background:rgba(77,163,255,.1);border:1px solid rgba(77,163,255,.25);border-radius:4px;padding:1px 5px;font-size:12px;color:#9fd0ff">source_agnostic×privilege_abuse×system_damage</code>（3 漏）、<code style="background:rgba(77,163,255,.1);border:1px solid rgba(77,163,255,.25);border-radius:4px;padding:1px 5px;font-size:12px;color:#9fd0ff">source_agnostic×state_corruption×target_agnostic</code>（2 漏）等</td>
+            <td>is_safe 阈值吞 MEDIUM + LLM 失败退化静态</td>
+          </tr>
+        </tbody>
+      </table>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <h2><span class="num">C4</span>生成器质量门（D5）与结论</h2>
+      <p>D5 门保证构造的恶意不是"写在 SKILL.md 里喊恶意"的纯文本，而是 scripts/ 下的真实可执行载荷——与真实恶意（wild，同为"指令 + 脚本载荷"结构）对齐，让代码级/AST 规则有真实输入可匹配、评测公平。</p>
+    </div>
+    <div class="panel">
+      <div class="panel-title">质量门设计（generate.py:277-322）</div>
+      <div class="table-scroll">
+      <table>
+        <thead><tr><th>门</th><th>逻辑</th><th>保证</th></tr></thead>
+        <tbody>
+          <tr><td>Q1</td><td>SKILL.md 长度 ≥ 200 字节（L292）</td><td>排除 LLM 偶发只回散文</td></tr>
+          <tr><td>Q2</td><td>自白检测：SKILL.md/脚本出现自首词即重生成（L297，CONFESSION_PATTERNS L87）</td><td>样本与真实工具不可区分</td></tr>
+          <tr><td><b style="color:var(--ss)">Q3 / D5</b></td><td><b>强制样本含可执行脚本</b>（L302-313）："至少 1 个非 .md 可执行文件"</td><td><b>载荷可运行，非纯文本</b></td></tr>
+          <tr><td>重试</td><td>最多 5 次，重试耗尽才保底落盘并打 confession_flag（L316-321）</td><td>拒绝脏样本</td></tr>
+        </tbody>
+      </table>
+      </div>
+      <div class="callout cat"><b>反例验证（D5 边界）：</b>skill-privilege_abuse-resource_abuse-25d5120b77（gen）——config_parse.py 344 行通读为<b>良性 config 解析器</b>，callback 仅残留占位符 cdn-metrics.example.com:1337，无真实载荷 → 三家全漏。这证明 <b>D5 保证"有可执行文件"，但不保证"是真恶意"</b>——生成质量仍需 provenance 对照与二次扫描复核（该样本归入"数据质量/生成失败"）。</div>
+    </div>
+    <div class="concl-grid">
+      <div class="concl">
+        <div class="concl-tag" style="color:var(--cisco)">生成</div>
+        <div class="concl-title">生成采样框架</div>
+        <div class="concl-body">43 坐标 × 多实例 → 232 可执行恶意样本（D5 门保证有效性），坐标级枚举而非随机抽样，每样本可溯源到 _provenance.json。</div>
+      </div>
+      <div class="concl">
+        <div class="concl-tag" style="color:var(--ss)">归因</div>
+        <div class="concl-title">盲区归因索引</div>
+        <div class="concl-body">坐标级检出率矩阵 → 把"漏检"钉到语义空间的具体区域（Cat 指令型全盲、SS 伪装修辞绕过、Cisco 阈值吞检出）。</div>
+      </div>
+      <div class="concl">
+        <div class="concl-tag" style="color:var(--cat)">结论</div>
+        <div class="concl-title">结论推广的锚</div>
+        <div class="concl-body">盲区是架构决定的，可归因、可复现、可扩展——S5 "lightweight prototype 验证 taxonomy 可生成可检测"的完成形态。</div>
+      </div>
+    </div>
+  </section>
+
+</section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="doc-links">
+      <a href="TECH_FAILURE_CLASSIFICATION.md" download>TECH_FAILURE_CLASSIFICATION.md · 技术失败分类（统一评测口径）</a>
+      <a href="KEY_INSIGHTS.md" download>KEY_INSIGHTS.md · 关键洞察（系统性绕过）</a>
+      <a href="TAXONOMY_ROLE.md" download>TAXONOMY_ROLE.md · taxonomy 作用（43 坐标覆盖）</a>
+    </div>
+    <div>三份 Markdown 文档与本章同目录，可直接在文件系统中打开 / 下载。</div>
+    <div>数据源：<span class="src">scanners/eval_results/viz_data.json</span>（内嵌于本页 DATA 对象）· 版本 2026-08-18 终版 · 单文件自包含（ECharts 走 CDN）</div>
+  </div>
+</footer>
+
+<script>
+var DATA = {
+ "total": 581,
+ "detection": {
+  "cisco": 85.4,
+  "cisco_n": 496,
+  "ss": 92.9,
+  "ss_n": 540,
+  "cat": 72.6,
+  "cat_n": 422,
+  "fail": 17
+ },
+ "groups": {
+  "wild": {
+   "n": 350,
+   "cisco": 87.4,
+   "ss": 91.1,
+   "cat": 70.9
+  },
+  "gen": {
+   "n": 231,
+   "cisco": 82.3,
+   "ss": 95.7,
+   "cat": 75.3
+  }
+ },
+ "nmark": {
+  "0": 10,
+  "1": 38,
+  "2": 179,
+  "3": 354
+ },
+ "combos": {
+  "C+P": 16,
+  "3家": 354,
+  "C+S": 118,
+  "仅SS": 23,
+  "全漏": 10,
+  "S+P": 45,
+  "仅Cisco": 8,
+  "仅Cat": 7
+ },
+ "gen_by_source": {
+  "supply_chain": {
+   "n": 80,
+   "cisco": 88.8,
+   "ss": 93.8,
+   "cat": 100
+  },
+  "source_agnostic": {
+   "n": 115,
+   "cisco": 76.5,
+   "ss": 96.5,
+   "cat": 60
+  },
+  "external_content": {
+   "n": 19,
+   "cisco": 100,
+   "ss": 100,
+   "cat": 63.2
+  },
+  "user_input": {
+   "n": 9,
+   "cisco": 77.8,
+   "ss": 100,
+   "cat": 88.9
+  },
+  "runtime_environment": {
+   "n": 3,
+   "cisco": 33.3,
+   "ss": 66.7,
+   "cat": 66.7
+  },
+  "unknown_source": {
+   "n": 5,
+   "cisco": 80,
+   "ss": 100,
+   "cat": 60
+  }
+ },
+ "gen_by_mech": {
+  "code_exec": {
+   "n": 54,
+   "cisco": 81.5
+  },
+  "defense_evasion": {
+   "n": 5,
+   "cisco": 80
+  },
+  "dependency_manip": {
+   "n": 24,
+   "cisco": 95.8
+  },
+  "instruction_manip": {
+   "n": 47,
+   "cisco": 85.1
+  },
+  "mechanism_unknown": {
+   "n": 20,
+   "cisco": 90
+  },
+  "obfuscation": {
+   "n": 20,
+   "cisco": 80
+  },
+  "privilege_abuse": {
+   "n": 30,
+   "cisco": 73.3
+  },
+  "state_corruption": {
+   "n": 21,
+   "cisco": 66.7
+  },
+  "subagent_escalation": {
+   "n": 5,
+   "cisco": 80
+  },
+  "trigger_abuse": {
+   "n": 5,
+   "cisco": 100
+  }
+ },
+ "wild_by_b": {
+  "B4": {
+   "n": 256,
+   "cisco": 93,
+   "ss": 98.8,
+   "cat": 77.7
+  },
+  "B3": {
+   "n": 7,
+   "cisco": 14.3,
+   "ss": 57.1,
+   "cat": 42.9
+  },
+  "B2": {
+   "n": 33,
+   "cisco": 81.8,
+   "ss": 57.6,
+   "cat": 48.5
+  },
+  "B1": {
+   "n": 18,
+   "cisco": 61.1,
+   "ss": 72.2,
+   "cat": 61.1
+  },
+  "B8": {
+   "n": 5,
+   "cisco": 60,
+   "ss": 60,
+   "cat": 40
+  },
+  "B14": {
+   "n": 5,
+   "cisco": 40,
+   "ss": 100,
+   "cat": 0
+  },
+  "B10": {
+   "n": 2,
+   "cisco": 100,
+   "ss": 100,
+   "cat": 0
+  },
+  "B12": {
+   "n": 3,
+   "cisco": 66.7,
+   "ss": 66.7,
+   "cat": 0
+  },
+  "B11": {
+   "n": 1,
+   "cisco": 100,
+   "ss": 100,
+   "cat": 0
+  },
+  "B5": {
+   "n": 3,
+   "cisco": 66.7,
+   "ss": 66.7,
+   "cat": 66.7
+  },
+  "B15": {
+   "n": 1,
+   "cisco": 100,
+   "ss": 0,
+   "cat": 100
+  },
+  "B6": {
+   "n": 1,
+   "cisco": 100,
+   "ss": 0,
+   "cat": 0
+  },
+  "B9": {
+   "n": 15,
+   "cisco": 100,
+   "ss": 100,
+   "cat": 93.3
+  }
+ },
+ "cisco_findings": {
+  "LLM_SUPPLY_CHAIN_ATTACK": 421,
+  "MANIFEST_MISSING_LICENSE": 332,
+  "DATA_EXFIL_NETWORK_REQUESTS": 227,
+  "LLM_COMMAND_INJECTION": 214,
+  "LLM_DATA_EXFILTRATION": 173,
+  "LLM_SKILL_DISCOVERY_ABUSE": 159,
+  "LLM_OBFUSCATION": 158,
+  "TOOL_ABUSE_UNDECLARED_NETWORK": 117,
+  "LLM_HARMFUL_CONTENT": 95,
+  "SUPPLY_CHAIN_UNPINNED_DEPENDENCY": 78,
+  "LLM_PROMPT_INJECTION": 75,
+  "LLM_UNAUTHORIZED_TOOL_USE": 50
+ },
+ "cat_findings": {
+  "Obfuscation": 291,
+  "Supply Chain": 213,
+  "Data Exfiltration": 134,
+  "Persistence": 37,
+  "Credential Theft": 34,
+  "Dangerous Permissions": 33,
+  "Crypto Theft": 17,
+  "Network Attacks": 14
+ },
+ "none_detected": [
+  {
+   "name": "better-polymarket",
+   "src": "wild",
+   "attribution": "数据质量"
+  },
+  {
+   "name": "clawhub-happybigmtn-rbtc__v1.0.0",
+   "src": "wild",
+   "attribution": "扫描执行失败"
+  },
+  {
+   "name": "clawhub-kh3rwa1-autonomous-mobile-builder__v3.6.1",
+   "src": "wild",
+   "attribution": "阈值放行"
+  },
+  {
+   "name": "clawhub-shenmeng-shenmeng-dex-arbitrage__v1.3.1",
+   "src": "wild",
+   "attribution": "阈值放行"
+  },
+  {
+   "name": "get-weather",
+   "src": "wild",
+   "attribution": "数据质量"
+  },
+  {
+   "name": "klaviyoapi",
+   "src": "wild",
+   "attribution": "数据污染"
+  },
+  {
+   "name": "novafon",
+   "src": "wild",
+   "attribution": "扫描执行失败"
+  },
+  {
+   "name": "polymarket-all-in-one",
+   "src": "wild",
+   "attribution": "数据质量"
+  },
+  {
+   "name": "rankaj",
+   "src": "wild",
+   "attribution": "数据质量"
+  },
+  {
+   "name": "skill-privilege_abuse-resource_abuse-25d5120b77",
+   "src": "gen",
+   "attribution": "数据质量"
+  }
+ ],
+ "gen_by_target": {
+  "info_theft": {
+   "n": 34,
+   "cisco": 88.2,
+   "ss": 91.2,
+   "cat": 82.4
+  },
+  "persistent_control": {
+   "n": 31,
+   "cisco": 80.6,
+   "ss": 100,
+   "cat": 80.6
+  },
+  "resource_abuse": {
+   "n": 20,
+   "cisco": 65,
+   "ss": 95,
+   "cat": 75
+  },
+  "system_damage": {
+   "n": 10,
+   "cisco": 60,
+   "ss": 90,
+   "cat": 50
+  },
+  "target_agnostic": {
+   "n": 99,
+   "cisco": 85.9,
+   "ss": 96,
+   "cat": 77.8
+  },
+  "defense_evasion": {
+   "n": 27,
+   "cisco": 88.9,
+   "ss": 96.3,
+   "cat": 74.1
+  },
+  "content_safety": {
+   "n": 5,
+   "cisco": 60,
+   "ss": 100,
+   "cat": 40
+  },
+  "financial_theft": {
+   "n": 5,
+   "cisco": 80,
+   "ss": 100,
+   "cat": 40
+  }
+ },
+ "blindspot": {
+  "cisco_miss": {
+   "wild": 44,
+   "source_agnostic×instruction_manip×resource_abuse": 3,
+   "source_agnostic×privilege_abuse×resource_abuse": 3,
+   "source_agnostic×privilege_abuse×system_damage": 3,
+   "source_agnostic×code_exec×persistent_control": 2,
+   "user_input×code_exec×target_agnostic": 2,
+   "source_agnostic×instruction_manip×content_safety": 2,
+   "source_agnostic×obfuscation×info_theft": 2,
+   "supply_chain×state_corruption×persistent_control": 2,
+   "source_agnostic×state_corruption×target_agnostic": 2
+  },
+  "ss_miss": {
+   "wild": 31,
+   "supply_chain×code_exec×info_theft": 1,
+   "runtime_environment×code_exec×info_theft": 1,
+   "supply_chain×code_exec×target_agnostic": 1,
+   "supply_chain×dependency_manip×target_agnostic": 1,
+   "source_agnostic×mechanism_unknown×info_theft": 1,
+   "supply_chain×obfuscation×defense_evasion": 1,
+   "source_agnostic×privilege_abuse×resource_abuse": 1,
+   "source_agnostic×privilege_abuse×system_damage": 1,
+   "supply_chain×privilege_abuse×target_agnostic": 1
+  },
+  "cat_miss": {
+   "wild": 102,
+   "external_content×instruction_manip×target_agnostic": 4,
+   "source_agnostic×code_exec×persistent_control": 3,
+   "source_agnostic×code_exec×system_damage": 3,
+   "source_agnostic×instruction_manip×content_safety": 3,
+   "source_agnostic×instruction_manip×defense_evasion": 3,
+   "source_agnostic×instruction_manip×info_theft": 3,
+   "source_agnostic×instruction_manip×resource_abuse": 3,
+   "source_agnostic×mechanism_unknown×target_agnostic": 3,
+   "source_agnostic×obfuscation×target_agnostic": 3
+  }
+ }
+};
+
+/* ==================== 主题常量 ==================== */
+var C = {
+  bg: '#141e2e', border: '#24344e',
+  text: '#d7e2f2', dim: '#8ba0bd',
+  cisco: '#4da3ff', ss: '#35d0a5', cat: '#ff9f43',
+  warn: '#ff5d73'
+};
+
+function baseGrid() {
+  return {
+    left: 46, right: 24, top: 56, bottom: 46,
+    containLabel: true
+  };
+}
+
+function tooltipBase() {
+  return {
+    backgroundColor: '#0d1420',
+    borderColor: C.border,
+    textStyle: { color: C.text },
+    confine: true
+  };
+}
+
+function legendBase(extra) {
+  return Object.assign({
+    top: 0, right: 10,
+    textStyle: { color: C.dim },
+    inactiveColor: '#4a5a75'
+  }, extra || {});
+}
+
+function mkChart(id) {
+  var el = document.getElementById(id);
+  return echarts.init(el);
+}
+
+/* ==================== Tab 切换（懒渲染：图表在可见时才 init） ==================== */
+var RENDERED = {};
+function renderTab(id) {
+  if (RENDERED[id]) return;
+  RENDERED[id] = true;
+  var fns = {
+    fail: renderFail,
+    insights: renderInsights,
+    taxonomy: renderTaxonomy
+  };
+  if (fns[id]) fns[id]();
+}
+function activateTab(id) {
+  document.querySelectorAll('.tab-btn').forEach(function (b) {
+    b.classList.toggle('active', b.getAttribute('data-tab') === id);
+  });
+  document.querySelectorAll('.tab-panel').forEach(function (p) {
+    var on = p.getAttribute('data-tab') === id;
+    p.classList.toggle('active', on);
+    if (on) renderTab(id);
+  });
+}
+document.querySelectorAll('.tab-btn').forEach(function (b) {
+  b.addEventListener('click', function () { activateTab(b.getAttribute('data-tab')); });
+});
+
+/* ==================== Tab A 技术失败分类 ==================== */
+function renderFail() {
+  var c1 = mkChart('chartFailCompare');
+  c1.setOption({
+    backgroundColor: 'transparent',
+    tooltip: Object.assign({ trigger: 'axis', axisPointer: { type: 'shadow' } }, tooltipBase()),
+    legend: legendBase(),
+    grid: Object.assign({}, baseGrid(), { left: 60, right: 30 }),
+    xAxis: {
+      type: 'category',
+      data: ['Cisco (17)', 'SkillSpector (41)', 'Catastrophe (0)'],
+      axisLine: { lineStyle: { color: C.border } },
+      axisLabel: { color: C.text }
+    },
+    yAxis: {
+      type: 'value',
+      axisLabel: { color: C.dim },
+      splitLine: { lineStyle: { color: C.border } }
+    },
+    series: [
+      {
+        name: 'L1 skill 导致（攻击面）', type: 'bar', stack: 't', barWidth: 88,
+        data: [17, 0, 0],
+        itemStyle: { color: C.warn },
+        label: { show: true, position: 'inside', color: '#0d1420', fontWeight: 700, fontSize: 13 }
+      },
+      {
+        name: 'L2 LLM / 随机失效（剔除）', type: 'bar', stack: 't',
+        data: [0, 14, 0],
+        itemStyle: { color: '#4a5a75' },
+        label: { show: true, position: 'inside', color: '#d7e2f2', fontWeight: 700, fontSize: 13 }
+      },
+      {
+        name: 'L3 真语义漏检（保留）', type: 'bar', stack: 't',
+        data: [0, 27, 0],
+        itemStyle: { color: C.ss, borderRadius: [4, 4, 0, 0] },
+        label: { show: true, position: 'inside', color: '#0d1420', fontWeight: 700, fontSize: 13 }
+      }
+    ]
+  });
+
+  var c2 = mkChart('chartCiscoAttr');
+  var attrData = [
+    { name: '缺 name 必填字段', value: 13, color: C.cisco },
+    { name: 'YAML 语法错误', value: 4, color: C.cat },
+    { name: '超 10MB 上限', value: 1, color: C.warn }
+  ];
+  c2.setOption({
+    backgroundColor: 'transparent',
+    tooltip: Object.assign({ trigger: 'axis', axisPointer: { type: 'shadow' } }, tooltipBase()),
+    grid: Object.assign({}, baseGrid(), { left: 12, top: 12, bottom: 20, right: 46 }),
+    xAxis: {
+      type: 'value',
+      axisLabel: { color: C.dim },
+      splitLine: { lineStyle: { color: C.border } }
+    },
+    yAxis: {
+      type: 'category',
+      data: attrData.map(function (d) { return d.name; }).reverse(),
+      axisLine: { lineStyle: { color: C.border } },
+      axisLabel: { color: C.text, width: 130 }
+    },
+    series: [{
+      name: '数量', type: 'bar', barWidth: '55%',
+      data: attrData.slice().reverse().map(function (d) {
+        return { value: d.value, itemStyle: { color: d.color, borderRadius: [0, 4, 4, 0] } };
+      }),
+      label: { show: true, position: 'right', color: C.text }
+    }]
+  });
+
+  var c3 = mkChart('chartSSSplit');
+  c3.setOption({
+    backgroundColor: 'transparent',
+    tooltip: Object.assign({ trigger: 'item', formatter: '{b}: {c} 个 ({d}%)' }, tooltipBase()),
+    legend: legendBase({ orient: 'vertical', left: 8, top: 'middle' }),
+    color: [C.warn, '#4a5a75', C.ss],
+    series: [{
+      name: 'SS 41 个 score=0', type: 'pie', radius: ['40%', '64%'],
+      center: ['58%', '50%'],
+      itemStyle: { borderColor: C.bg, borderWidth: 2 },
+      label: { color: C.text, formatter: '{b}\n{c} 个 ({d}%)' },
+      data: [
+        { name: 'LLM 失败（raw 含痕迹）', value: 4 },
+        { name: 'LLM 失败嫌疑（三家无信号）', value: 10 },
+        { name: '真语义漏检（保留）', value: 27 }
+      ]
+    }]
+  });
+}
+
+/* ==================== Tab B 关键洞察 ==================== */
+function renderInsights() {
+  var g = DATA.groups;
+  var c1 = mkChart('chartDetection');
+  c1.setOption({
+    backgroundColor: 'transparent',
+    tooltip: Object.assign({ trigger: 'axis', axisPointer: { type: 'shadow' } }, tooltipBase()),
+    legend: legendBase(),
+    grid: baseGrid(),
+    xAxis: {
+      type: 'category',
+      data: ['真实样本 (wild)', '构造样本 (gen)', '全部 (total)'],
+      axisLine: { lineStyle: { color: C.border } },
+      axisLabel: { color: C.dim }
+    },
+    yAxis: {
+      type: 'value', min: 0, max: 100,
+      axisLabel: { color: C.dim, formatter: '{value}%' },
+      splitLine: { lineStyle: { color: C.border } }
+    },
+    series: [
+      { name: 'Cisco', type: 'bar', barGap: '10%', data: [g.wild.cisco, g.gen.cisco, DATA.detection.cisco],
+        itemStyle: { color: C.cisco, borderRadius: [4, 4, 0, 0] },
+        label: { show: true, position: 'top', color: C.cisco, formatter: '{c}%' } },
+      { name: 'SkillSpector', type: 'bar', data: [g.wild.ss, g.gen.ss, DATA.detection.ss],
+        itemStyle: { color: C.ss, borderRadius: [4, 4, 0, 0] },
+        label: { show: true, position: 'top', color: C.ss, formatter: '{c}%' } },
+      { name: 'Catastrophe', type: 'bar', data: [g.wild.cat, g.gen.cat, DATA.detection.cat],
+        itemStyle: { color: C.cat, borderRadius: [4, 4, 0, 0] },
+        label: { show: true, position: 'top', color: C.cat, formatter: '{c}%' } }
+    ]
+  });
+}
+
+/* ==================== Tab C Taxonomy 作用 ==================== */
+var SRCS = [
+  ['supply_chain', '供应链'],
+  ['source_agnostic', '来源无关'],
+  ['external_content', '外部内容'],
+  ['user_input', '用户输入'],
+  ['runtime_environment', '运行时环境'],
+  ['unknown_source', '未知来源']
+];
+var MECHS = [
+  ['code_exec', '代码执行'], ['instruction_manip', '指令操纵'],
+  ['privilege_abuse', '权限滥用'], ['dependency_manip', '依赖操纵'],
+  ['state_corruption', '状态破坏'], ['obfuscation', '混淆'],
+  ['mechanism_unknown', '机制未知'], ['subagent_escalation', '子代理提权'],
+  ['defense_evasion', '防御规避'], ['trigger_abuse', '触发器滥用']
+];
+var TARGETS = [
+  ['target_agnostic', '目标无关'], ['info_theft', '信息窃取'],
+  ['persistent_control', '持久控制'], ['defense_evasion', '防御规避'],
+  ['resource_abuse', '资源滥用'], ['system_damage', '系统破坏'],
+  ['content_safety', '内容安全'], ['financial_theft', '金融窃取']
+];
+
+function rateSeries(name, key, color, getter) {
+  return {
+    name: name, type: 'bar',
+    data: key.map(function (d) { return getter(d); }),
+    itemStyle: { color: color, borderRadius: [4, 4, 0, 0] },
+    label: { show: true, position: 'top', color: color, formatter: '{c}%' }
+  };
+}
+
+function renderTaxonomy() {
+  var gs = DATA.gen_by_source;
+  var c1 = mkChart('chartGenSource');
+  c1.setOption({
+    backgroundColor: 'transparent',
+    tooltip: Object.assign({ trigger: 'axis', axisPointer: { type: 'shadow' } }, tooltipBase()),
+    legend: legendBase(),
+    grid: baseGrid(),
+    xAxis: {
+      type: 'category',
+      data: SRCS.map(function (d) { return d[1] + ' (n=' + gs[d[0]].n + ')'; }),
+      axisLine: { lineStyle: { color: C.border } },
+      axisLabel: { color: C.dim, interval: 0, rotate: 12 }
+    },
+    yAxis: {
+      type: 'value', min: 0, max: 100,
+      axisLabel: { color: C.dim, formatter: '{value}%' },
+      splitLine: { lineStyle: { color: C.border } }
+    },
+    series: [
+      rateSeries('Cisco', SRCS, C.cisco, function (d) { return gs[d[0]].cisco; }),
+      rateSeries('SkillSpector', SRCS, C.ss, function (d) { return gs[d[0]].ss; }),
+      rateSeries('Catastrophe', SRCS, C.cat, function (d) { return gs[d[0]].cat; })
+    ]
+  });
+
+  var gm = DATA.gen_by_mech;
+  var c2 = mkChart('chartGenMech');
+  c2.setOption({
+    backgroundColor: 'transparent',
+    tooltip: Object.assign({ trigger: 'axis', axisPointer: { type: 'shadow' } }, tooltipBase()),
+    grid: Object.assign({}, baseGrid(), { left: 60, right: 30 }),
+    xAxis: {
+      type: 'category',
+      data: MECHS.map(function (d) { return d[1] + ' (n=' + gm[d[0]].n + ')'; }),
+      axisLine: { lineStyle: { color: C.border } },
+      axisLabel: { color: C.dim, interval: 0, rotate: 30 }
+    },
+    yAxis: {
+      type: 'value', min: 0, max: 100,
+      axisLabel: { color: C.dim, formatter: '{value}%' },
+      splitLine: { lineStyle: { color: C.border } }
+    },
+    series: [{
+      name: 'Cisco 检出率', type: 'bar', barWidth: '52%',
+      data: MECHS.map(function (d) { return gm[d[0]].cisco; }),
+      itemStyle: { color: C.cisco, borderRadius: [4, 4, 0, 0] },
+      label: { show: true, position: 'top', color: C.cisco, formatter: '{c}%' }
+    }]
+  });
+
+  var gt = DATA.gen_by_target;
+  var c3 = mkChart('chartGenTarget');
+  c3.setOption({
+    backgroundColor: 'transparent',
+    tooltip: Object.assign({ trigger: 'axis', axisPointer: { type: 'shadow' } }, tooltipBase()),
+    legend: legendBase(),
+    grid: baseGrid(),
+    xAxis: {
+      type: 'category',
+      data: TARGETS.map(function (d) { return d[1] + ' (n=' + gt[d[0]].n + ')'; }),
+      axisLine: { lineStyle: { color: C.border } },
+      axisLabel: { color: C.dim, interval: 0, rotate: 12 }
+    },
+    yAxis: {
+      type: 'value', min: 0, max: 100,
+      axisLabel: { color: C.dim, formatter: '{value}%' },
+      splitLine: { lineStyle: { color: C.border } }
+    },
+    series: [
+      rateSeries('Cisco', TARGETS, C.cisco, function (d) { return gt[d[0]].cisco; }),
+      rateSeries('SkillSpector', TARGETS, C.ss, function (d) { return gt[d[0]].ss; }),
+      rateSeries('Catastrophe', TARGETS, C.cat, function (d) { return gt[d[0]].cat; })
+    ]
+  });
+
+  blindChart('chartBlindCisco', 'cisco_miss', C.cisco);
+  blindChart('chartBlindSS', 'ss_miss', C.ss);
+  blindChart('chartBlindCat', 'cat_miss', C.cat);
+}
+
+function blindChart(id, key, color) {
+  var m = DATA.blindspot[key];
+  var coords = Object.keys(m).filter(function (k) { return k !== 'wild'; })
+    .sort(function (a, b) { return m[b] - m[a]; });
+  var entries = [['真实样本 wild', m.wild]].concat(coords.map(function (k) { return [k, m[k]]; }));
+  var ch = mkChart(id);
+  ch.setOption({
+    backgroundColor: 'transparent',
+    tooltip: Object.assign({
+      trigger: 'axis', axisPointer: { type: 'shadow' },
+      formatter: function (ps) {
+        var d = ps[0];
+        return d.name + '<br/>漏检样本数: <b>' + d.value + '</b>';
+      }
+    }, tooltipBase()),
+    grid: Object.assign({}, baseGrid(), { left: 12, top: 24, bottom: 30, right: 46 }),
+    xAxis: {
+      type: 'value',
+      axisLabel: { color: C.dim },
+      splitLine: { lineStyle: { color: C.border } }
+    },
+    yAxis: {
+      type: 'category',
+      data: entries.map(function (e) { return e[0]; }).reverse(),
+      axisLine: { lineStyle: { color: C.border } },
+      axisLabel: { color: C.text, width: 200, overflow: 'truncate' }
+    },
+    series: [{
+      name: '漏检样本数', type: 'bar', barWidth: '55%',
+      data: entries.map(function (e) { return { value: e[1], itemStyle: { color: color, borderRadius: [0, 4, 4, 0] } }; }).reverse(),
+      label: { show: true, position: 'right', color: C.text }
+    }]
+  });
+}
+
+/* ==================== 渲染 + 自适应 ==================== */
+if (window.echarts) {
+  renderTab('fail');
+  window.addEventListener('resize', function () {
+    document.querySelectorAll('.chart').forEach(function (el) {
+      var inst = echarts.getInstanceByDom(el);
+      if (inst) inst.resize();
+    });
+  });
+} else {
+  document.addEventListener('load', function () { renderTab('fail'); });
+}
+</script>
+</body>
+</html>
