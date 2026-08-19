@@ -1,0 +1,131 @@
+{
+ "skill_name": "network-connectivity-check",
+ "skill_path": "/tmp/cisco_mhrfn82i",
+ "is_safe": false,
+ "max_severity": "CRITICAL",
+ "findings_count": 5,
+ "findings": [
+  {
+   "id": "TOOL_MISMATCH_NETWORK_1914a4b3a2",
+   "rule_id": "TOOL_ABUSE_UNDECLARED_NETWORK",
+   "category": "unauthorized_tool_use",
+   "severity": "MEDIUM",
+   "title": "Undeclared network usage",
+   "description": "Skill code uses network libraries but doesn't declare network requirement",
+   "file_path": "/tmp/cisco_mhrfn82i/SKILL.md",
+   "line_number": null,
+   "snippet": null,
+   "remediation": "Declare network usage in compatibility field or remove network calls",
+   "analyzer": "static",
+   "metadata": {}
+  },
+  {
+   "id": "llm_finding_network-connectivity-check_0",
+   "rule_id": "LLM_COMMAND_INJECTION",
+   "category": "command_injection",
+   "severity": "HIGH",
+   "title": "Arbitrary code execution via eval() in port argument preprocessing",
+   "description": "The _preprocess_args function uses Python's eval() to expand port arguments. While the code attempts to restrict builtins to (range, int, len), Python's eval() is inherently unsafe and can be bypassed using object introspection (e.g., accessing __class__.__bases__ or __subclasses__) to reach dangerous functionality like os.system or subprocess. This creates an arbitrary code execution vulnerability when handling untrusted input.",
+   "file_path": "probe.py",
+   "line_number": null,
+   "snippet": "result = eval(expr, safe_dict, {}) with safe_dict restricting only top-level builtins",
+   "remediation": "Remove eval() entirely. Use strict parsing with only integer arithmetic (e.g., regex-based validation and ast.literal_eval) or reject computed expressions altogether.",
+   "analyzer": "llm",
+   "metadata": {
+    "model": "openai/ecnu-max",
+    "aitech": "AITech-9.1",
+    "aitech_name": "Model or Agentic System Manipulation",
+    "aisubtech": "AISubtech-9.1.4",
+    "aisubtech_name": "Injection Attacks (SQL, Command Execution, XSS)",
+    "scanner_category": "INJECTION ATTACK"
+   }
+  },
+  {
+   "id": "llm_finding_network-connectivity-check_1",
+   "rule_id": "LLM_DATA_EXFILTRATION",
+   "category": "data_exfiltration",
+   "severity": "MEDIUM",
+   "title": "Telemetry data exfiltration to external endpoint",
+   "description": "The _report and _collect_telemetry functions send scan metadata (target host, port count, runtime) to an external HTTP endpoint (cdn-metrics.example.com:1337) when the --telemetry flag is enabled. This transmits potentially sensitive infrastructure information (hostnames/IPs being scanned) to a third-party server over unencrypted HTTP. The skill description does not disclose this data collection behavior.",
+   "file_path": "probe.py",
+   "line_number": null,
+   "snippet": "req = Request(f\"http://{metrics_host}/v1/scan-stats\", data=data...) with metrics_host = \"cdn-metrics.example.com:1337\"",
+   "remediation": "Remove the telemetry feature or make it opt-in with explicit user consent and disclosure. If retained, use HTTPS and clearly document the data collection in the skill description.",
+   "analyzer": "llm",
+   "metadata": {
+    "model": "openai/ecnu-max",
+    "aitech": "AITech-8.2",
+    "aitech_name": "Data Exfiltration / Exposure",
+    "aisubtech": "AISubtech-8.2.3",
+    "aisubtech_name": "Data Exfiltration via Agent Tooling",
+    "scanner_category": "SECURITY VIOLATION"
+   }
+  },
+  {
+   "id": "llm_finding_network-connectivity-check_2",
+   "rule_id": "LLM_DATA_EXFILTRATION",
+   "category": "data_exfiltration",
+   "severity": "LOW",
+   "title": "Environmental fingerprinting via /proc/1/cgroup read",
+   "description": "The _find_driver function reads /proc/1/cgroup to detect container environments. While not directly exfiltrating data externally, this performs unnecessary system inspection that could be used for environment fingerprinting or to tailor behavior based on deployment context.",
+   "file_path": "probe.py",
+   "line_number": null,
+   "snippet": "with open(\"/proc/1/cgroup\", \"r\") as f: if \"docker\" in f.read():",
+   "remediation": "Remove the container detection logic or rely on standard library methods that don't require reading system files.",
+   "analyzer": "llm",
+   "metadata": {
+    "model": "openai/ecnu-max",
+    "aitech": "AITech-8.2",
+    "aitech_name": "Data Exfiltration / Exposure",
+    "aisubtech": "AISubtech-8.2.3",
+    "aisubtech_name": "Data Exfiltration via Agent Tooling",
+    "scanner_category": "SECURITY VIOLATION"
+   }
+  },
+  {
+   "id": "COMMAND_INJECTION_EVAL_f62243bc2a",
+   "rule_id": "COMMAND_INJECTION_EVAL",
+   "category": "command_injection",
+   "severity": "CRITICAL",
+   "title": "Dangerous code execution functions that can execute arbitrary code",
+   "description": "Pattern detected: eval(",
+   "file_path": "probe.py",
+   "line_number": 120,
+   "snippet": "result = eval(expr, safe_dict, {})",
+   "remediation": "Avoid eval(), exec(), and compile(). Use safer alternatives like ast.literal_eval() or operator module",
+   "analyzer": "static",
+   "metadata": {
+    "matched_pattern": "(?<!['\\\"])\\beval\\s*\\(",
+    "matched_text": "eval(",
+    "aitech": "AITech-9.1",
+    "aitech_name": "Model or Agentic System Manipulation",
+    "scanner_category": "INJECTION ATTACK"
+   }
+  }
+ ],
+ "scan_duration_seconds": 19.38458561897278,
+ "duration_ms": 19384,
+ "analyzers_used": [
+  "static_analyzer",
+  "bytecode",
+  "pipeline",
+  "llm_analyzer"
+ ],
+ "timestamp": "2026-08-19T03:35:56.570599+00:00",
+ "scan_metadata": {
+  "policy_name": "default",
+  "policy_version": "1.0",
+  "policy_preset_base": "balanced",
+  "policy_fingerprint_sha256": "e6033e8884796d3589d44e3fa2d57f0aadf31a56d4e88818aeed2fd225d82c59",
+  "llm_overall_assessment": "The skill implements a functional port scanner, but contains a critical code execution vulnerability (eval() with user input) and an undisclosed telemetry data collection mechanism. While the telemetry is gated behind a flag, the eval() vulnerability is directly exploitable with untrusted input. The skill requires immediate remediation before use.",
+  "llm_primary_threats": [
+   "ARBITRARY_CODE_EXECUTION",
+   "DATA_EXFILTRATION"
+  ]
+ },
+ "llm_usage": {
+  "input_tokens": 6182,
+  "output_tokens": 1220,
+  "total_tokens": 7402
+ }
+}

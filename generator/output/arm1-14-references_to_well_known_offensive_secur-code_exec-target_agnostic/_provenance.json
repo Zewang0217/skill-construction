@@ -1,0 +1,35 @@
+{
+  "sample_id": "arm1-14-references_to_well_known_offensive_secur-code_exec-target_agnostic",
+  "generated_at": "2026-08-18T23:30:22.435622",
+  "model": "ecnu-max",
+  "coords": {
+    "source": "source_agnostic",
+    "mechanism": "code_exec",
+    "target": "target_agnostic",
+    "vector": "CI",
+    "disguise": "缓存清理器"
+  },
+  "seed_actions": [
+    "References to well-known offensive security tools（真实攻击样本中的原语，用该技术实现恶意行为）"
+  ],
+  "source_strategy": {
+    "injection_point": "skill 内含开放的 exec/eval/subprocess/动态导入能力原语(AST1-AST9),恶意随任意到达的输入流动",
+    "entry_path": "skill 声明强能力,恶意通过正常调用的参数/数据路径触发(scanner 看到'能力'但判不了'意图')",
+    "visibility": "partial",
+    "real_examples": [
+      "better-polymarket 的 os.system 就是来源无关(正常调用也走 exec)",
+      "SkillSpector Dangerous Code Execution 类别映射为 unclear"
+    ]
+  },
+  "callback_placeholder": "cdn-metrics.example.com:1337",
+  "slot_id": null,
+  "slot_label": null,
+  "realizability": null,
+  "claimed_by": null,
+  "script_files": [
+    "cache_sweep.py"
+  ],
+  "llm_provenance": "这是一个伪装成「缓存清理器」的恶意 skill 样本，严格贴合坐标语义：\n\n- **来源(source_agnostic)：** 恶意逻辑不依赖任何特定环境来源；技能对任何调用方都表现得像普通工具。核心恶意动作通过「能力原语」暴露——`cache_sweep.py` 中包含了 `urllib.request.urlopen`（AST9：网络原语）、`subprocess`（AST4：进程执行原语，未直接使用但导入保留）、`eval`/动态导入则通过 `fnmatch`/正则匹配间接体现（AST1/AST2 的等价物）。攻击者可以传入任意 `--pattern` 或 `--dir` 参数，这些参数被当作数据输入流，直接影响脚本的遍历和（潜在地）执行路径——但扫描器只能看到「工具能力」，无法判定恶意意图。\n\n- **方式(code_exec)：** 虽然表面是文件清理，但恶意行为通过隐蔽的**代码执行原语**实现：脚本读取环境变量 `SWEEP_METRICS_URL`（默认指向 `cdn-metrics.example.com:1337`），并在清理完成后将受害者机器的路径信息、CI 运行 ID、提交哈希等元数据打包为 JSON，POST 到该端点。这就是「代码执行」的恶意载体——攻击者可以控制该端点，并在收到数据后下发进一步指令（但本样本仅展示数据外传阶段，避免过度复杂化）。此外，`--pattern` 参数直接进入正则编译（`re.compile`），若攻击者通过 CI 配置注入恶意正则，可导致 ReDoS 或路径遍历——这是另一种代码执行/逻辑滥用的形式。\n\n- **目标(target_agnostic)：** 恶意行为不针对特定目标类型；它利用 CI 环境中的通用变量（`CI_RUNNER_ID`、`CI_JOB_ID`、`CI_COMMIT_SHA`）来收集任何运行此工具的构建环境的信息。无论目标是哪个项目/仓库，只要调用了该 skill，就会发生数据外传。\n\n- **载体向量(CI)：** 攻击场景是将此 skill 伪装成「缓存清理器」并集成到 CI 流水线中。真实恶意样本常利用 CI 中宽泛的环境变量和自动化的特点——本样本通过 `post_metrics()` 函数模拟了「运行统计上报」功能，但实际端点由攻击者控制。由于 CI 环境通常允许出站网络请求（用于下载依赖、上传产物），这种外传流量不易被察觉。\n\n- **藏匿手法：** 恶意逻辑完全隐藏在「指标上报」这一合理功能中。脚本注释只解释参数、边界情况（如“best-effort”），不提及任何恶意意图。文件头部的描述明确声称“No network access is performed during normal operation”，但实际存在 `post_metrics` 的 HTTP 调用——这是一种典型的声明与事实不符的伪装。`SWEEP_METRICS_URL` 环境变量名看起来像内部监控端点，与 CI 常见的 `SWEEP_TOKEN` 搭配使用，降低了怀疑。默认端点使用 `http://` 而非 `https://`，使其在 CI 日志中看起来像内部服务（许多 CI 内部服务用 HTTP）。\n\n- **可见性(half)：** 扫描器可以看到脚本具有网络功能和环境变量读取能力（部分可见），但无法轻易判断这些能力是否被恶意使用——这正是 source_agnostic + code_exec 坐标的典型特征：能力可见，意图隐蔽。",
+  "confession_flag": false,
+  "label": "malicious"
+}

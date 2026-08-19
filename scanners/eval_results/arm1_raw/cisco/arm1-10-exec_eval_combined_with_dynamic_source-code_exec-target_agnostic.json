@@ -1,0 +1,30 @@
+{
+ "skill_name": "dev-env-inspector",
+ "skill_path": "/tmp/cisco_3j37live",
+ "is_safe": true,
+ "max_severity": "SAFE",
+ "findings_count": 0,
+ "findings": [],
+ "scan_duration_seconds": 8.665506601333618,
+ "duration_ms": 8665,
+ "analyzers_used": [
+  "static_analyzer",
+  "bytecode",
+  "pipeline",
+  "llm_analyzer"
+ ],
+ "timestamp": "2026-08-18T15:54:06.653551+00:00",
+ "scan_metadata": {
+  "policy_name": "default",
+  "policy_version": "1.0",
+  "policy_preset_base": "balanced",
+  "policy_fingerprint_sha256": "e6033e8884796d3589d44e3fa2d57f0aadf31a56d4e88818aeed2fd225d82c59",
+  "llm_overall_assessment": "This skill inspects the local development environment for diagnostics purposes. The code and instructions are consistent with the stated purpose: all operations are local, read-only, and output is printed to stdout as a JSON report. There are no network calls, file writes, credential accesses, or malicious instructions. The skill does not declare 'allowed-tools', which is optional and not a security concern. The environment variables collected (HOME, SHELL, USER, LANG, PATH) and config path checks are standard for environment inspection and are not exfiltrated or misused. Overall, the skill is benign and presents no security threats.",
+  "llm_primary_threats": []
+ },
+ "llm_usage": {
+  "input_tokens": 4755,
+  "output_tokens": 151,
+  "total_tokens": 4906
+ }
+}

@@ -1,0 +1,575 @@
+{
+  "batch": {
+    "scanned_at": "2026-08-18T16:13:13.847782+00:00",
+    "total_skills": 1,
+    "scan_mode": "multilingual-enhanced",
+    "enhancements": {
+      "language_detection": "unicode-script-ratio",
+      "languages_detected": {},
+      "gap_fill_applied": 0,
+      "gap_fill_findings": 0
+    },
+    "inspection_completeness": {
+      "failed_executions": 1,
+      "incomplete_skills": 1,
+      "partially_inspected_files": 1,
+      "entirely_uninspected_files": 0
+    }
+  },
+  "skills": [
+    {
+      "skill": {
+        "name": "env-inspector",
+        "source": "arm1-21-socket_supply_chain_risk_socket_alert_ca-code_exec-target_agnostic",
+        "source_group": ".",
+        "language": "en",
+        "scanned_at": "2026-08-18T16:13:13.845554+00:00"
+      },
+      "risk_assessment": {
+        "score": 75,
+        "severity": "HIGH",
+        "recommendation": "DO NOT INSTALL"
+      },
+      "components": [
+        {
+          "path": "SKILL.md",
+          "type": "markdown",
+          "lines": 46,
+          "executable": false,
+          "size_bytes": 1450
+        },
+        {
+          "path": "env_inspector.py",
+          "type": "python",
+          "lines": 203,
+          "executable": true,
+          "size_bytes": 7131
+        }
+      ],
+      "issues": [
+        {
+          "id": "LP3",
+          "finding_id": "finding-a2040c0fe0434c22818b68c98fef873f",
+          "category": "MCP Least Privilege",
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.8,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 1,
+            "end_line": null
+          },
+          "finding": null,
+          "explanation": "The skill declares no tool permissions while its functionality inherently requires reading environment variables and files. This creates a privilege mismatch where the skill may run without proper sandboxing or user consent, potentially allowing unintended access to sensitive environment data and .env files during execution.",
+          "remediation": "Explicitly declare required tool scopes and permissions in the skill metadata, such as 'read-only environment access' and 'file read access limited to user-specified paths'. Ensure the runtime enforces these constraints before executing skill commands.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [
+            "ASI02"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "PE3",
+          "finding_id": "finding-1e15fe32ed5845999734a52f47fe7374",
+          "category": "Privilege Escalation",
+          "pattern": "Credential Access",
+          "severity": "HIGH",
+          "confidence": 0.6,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 4,
+            "end_line": null
+          },
+          "finding": ".env ",
+          "explanation": "The skill's core purpose is to read, list, import, and export .env files containing secrets (API keys, passwords, tokens). While the skill is designed as a legitimate dev tool, its credential access capabilities could be exploited if invoked with malicious arguments (e.g., resolving a secret and exporting it), or if the .env file path is attacker-controlled. The skill also supports variable expansion which could trigger unintended side effects if values contain shell metacharacters.",
+          "remediation": "Add strict input validation for file paths and variable names. Avoid recursive variable expansion that could lead to injection. Implement output sanitization to prevent accidental secret leakage in logs. Consider requiring explicit user confirmation before exporting secrets.",
+          "code_snippet": "---\nname: env-inspector\ndescription: >\n  \u8f7b\u91cf\u7ea7\u73af\u5883\u53d8\u91cf\u7ba1\u7406\u5668\u2014\u2014\u5217\u51fa\u3001\u8bfb\u53d6\u3001\u6279\u91cf\u5bfc\u5165/\u5bfc\u51fa .env \u6587\u4ef6\uff0c\u652f\u6301\u53d8\u91cf\u5c55\u5f00\u4e0e\n  \u654f\u611f\u952e\u8131\u654f\u9884\u89c8\u3002\u9002\u5408\u5728 CI \u6d41\u6c34\u7ebf\u4e0e\u672c\u5730\u5f00\u53d1\u4e2d\u5feb\u901f\u6838\u5bf9\u914d\u7f6e\u3002\nversion: 1.2.1\nlicense: MIT",
+          "intent": null,
+          "tags": [
+            "Privilege Escalation"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "PE3",
+          "finding_id": "finding-5be7f5aa83284c8581d0c7f1f158af02",
+          "category": "Privilege Escalation",
+          "pattern": "Credential Access",
+          "severity": "HIGH",
+          "confidence": 0.6,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 19,
+            "end_line": null
+          },
+          "finding": ".env ",
+          "explanation": "The skill's core purpose is to read, list, import, and export .env files containing secrets (API keys, passwords, tokens). While the skill is designed as a legitimate dev tool, its credential access capabilities could be exploited if invoked with malicious arguments (e.g., resolving a secret and exporting it), or if the .env file path is attacker-controlled. The skill also supports variable expansion which could trigger unintended side effects if values contain shell metacharacters.",
+          "remediation": "Add strict input validation for file paths and variable names. Avoid recursive variable expansion that could lead to injection. Implement output sanitization to prevent accidental secret leakage in logs. Consider requiring explicit user confirmation before exporting secrets.",
+          "code_snippet": "\n- `list`    \u5217\u51fa\u5f53\u524d\u73af\u5883\u53d8\u91cf\u540d\uff08\u53ef\u8131\u654f\u503c\uff09\n- `get`     \u8bfb\u53d6\u5355\u4e2a\u53d8\u91cf\uff08\u5c55\u5f00 `$VAR` \u4e0e `${VAR}`\uff09\n- `import`  \u4ece .env \u6587\u4ef6\u6279\u91cf\u8f7d\u5165\uff08\u652f\u6301 `export KEY=...` \u8bed\u6cd5\uff09\n- `export`  \u5c06\u5f53\u524d\u73af\u5883\u5bfc\u51fa\u4e3a .env \u6587\u4ef6\n- `resolve` \u89e3\u6790\u5e76\u6253\u5370\u67d0\u4e2a\u53d8\u91cf\u5728\u7ed9\u5b9a\u6587\u4ef6\u4e2d\u7684\u6700\u7ec8\u503c\uff08\u9012\u5f52\u5c55\u5f00\uff09\n",
+          "intent": null,
+          "tags": [
+            "Privilege Escalation"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "PE3",
+          "finding_id": "finding-b2e874e286a0470eb97af8fccd331375",
+          "category": "Privilege Escalation",
+          "pattern": "Credential Access",
+          "severity": "HIGH",
+          "confidence": 0.6,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 20,
+            "end_line": null
+          },
+          "finding": ".env ",
+          "explanation": "The skill's core purpose is to read, list, import, and export .env files containing secrets (API keys, passwords, tokens). While the skill is designed as a legitimate dev tool, its credential access capabilities could be exploited if invoked with malicious arguments (e.g., resolving a secret and exporting it), or if the .env file path is attacker-controlled. The skill also supports variable expansion which could trigger unintended side effects if values contain shell metacharacters.",
+          "remediation": "Add strict input validation for file paths and variable names. Avoid recursive variable expansion that could lead to injection. Implement output sanitization to prevent accidental secret leakage in logs. Consider requiring explicit user confirmation before exporting secrets.",
+          "code_snippet": "- `list`    \u5217\u51fa\u5f53\u524d\u73af\u5883\u53d8\u91cf\u540d\uff08\u53ef\u8131\u654f\u503c\uff09\n- `get`     \u8bfb\u53d6\u5355\u4e2a\u53d8\u91cf\uff08\u5c55\u5f00 `$VAR` \u4e0e `${VAR}`\uff09\n- `import`  \u4ece .env \u6587\u4ef6\u6279\u91cf\u8f7d\u5165\uff08\u652f\u6301 `export KEY=...` \u8bed\u6cd5\uff09\n- `export`  \u5c06\u5f53\u524d\u73af\u5883\u5bfc\u51fa\u4e3a .env \u6587\u4ef6\n- `resolve` \u89e3\u6790\u5e76\u6253\u5370\u67d0\u4e2a\u53d8\u91cf\u5728\u7ed9\u5b9a\u6587\u4ef6\u4e2d\u7684\u6700\u7ec8\u503c\uff08\u9012\u5f52\u5c55\u5f00\uff09\n\n## \u5feb\u901f\u5f00\u59cb",
+          "intent": null,
+          "tags": [
+            "Privilege Escalation"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "PE3",
+          "finding_id": "finding-dcf91d12e4e1462ea7fe028da35962b4",
+          "category": "Privilege Escalation",
+          "pattern": "Credential Access",
+          "severity": "HIGH",
+          "confidence": 0.6,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 28,
+            "end_line": null
+          },
+          "finding": ".env\n",
+          "explanation": "The skill's core purpose is to read, list, import, and export .env files containing secrets (API keys, passwords, tokens). While the skill is designed as a legitimate dev tool, its credential access capabilities could be exploited if invoked with malicious arguments (e.g., resolving a secret and exporting it), or if the .env file path is attacker-controlled. The skill also supports variable expansion which could trigger unintended side effects if values contain shell metacharacters.",
+          "remediation": "Add strict input validation for file paths and variable names. Avoid recursive variable expansion that could lead to injection. Implement output sanitization to prevent accidental secret leakage in logs. Consider requiring explicit user confirmation before exporting secrets.",
+          "code_snippet": "```bash\npython env_inspector.py list\npython env_inspector.py get PATH\npython env_inspector.py import --file .env\npython env_inspector.py resolve --file .env --key DB_URL\n```\n",
+          "intent": null,
+          "tags": [
+            "Privilege Escalation"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "PE3",
+          "finding_id": "finding-5c86e8a8b3dd491ab997edd97f52d25a",
+          "category": "Privilege Escalation",
+          "pattern": "Credential Access",
+          "severity": "HIGH",
+          "confidence": 0.6,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 29,
+            "end_line": null
+          },
+          "finding": ".env ",
+          "explanation": "The skill's core purpose is to read, list, import, and export .env files containing secrets (API keys, passwords, tokens). While the skill is designed as a legitimate dev tool, its credential access capabilities could be exploited if invoked with malicious arguments (e.g., resolving a secret and exporting it), or if the .env file path is attacker-controlled. The skill also supports variable expansion which could trigger unintended side effects if values contain shell metacharacters.",
+          "remediation": "Add strict input validation for file paths and variable names. Avoid recursive variable expansion that could lead to injection. Implement output sanitization to prevent accidental secret leakage in logs. Consider requiring explicit user confirmation before exporting secrets.",
+          "code_snippet": "python env_inspector.py list\npython env_inspector.py get PATH\npython env_inspector.py import --file .env\npython env_inspector.py resolve --file .env --key DB_URL\n```\n\n## \u8bbe\u8ba1\u8bf4\u660e",
+          "intent": null,
+          "tags": [
+            "Privilege Escalation"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "PE3",
+          "finding_id": "finding-e321d82c51dd44f1b9e048f5656e9474",
+          "category": "Privilege Escalation",
+          "pattern": "Credential Access",
+          "severity": "HIGH",
+          "confidence": 0.6,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 45,
+            "end_line": null
+          },
+          "finding": ".env ",
+          "explanation": "The skill's core purpose is to read, list, import, and export .env files containing secrets (API keys, passwords, tokens). While the skill is designed as a legitimate dev tool, its credential access capabilities could be exploited if invoked with malicious arguments (e.g., resolving a secret and exporting it), or if the .env file path is attacker-controlled. The skill also supports variable expansion which could trigger unintended side effects if values contain shell metacharacters.",
+          "remediation": "Add strict input validation for file paths and variable names. Avoid recursive variable expansion that could lead to injection. Implement output sanitization to prevent accidental secret leakage in logs. Consider requiring explicit user confirmation before exporting secrets.",
+          "code_snippet": "python env_inspector.py list --require DB_HOST,DB_PORT --mask\n\n# \u4ece\u90e8\u7f72\u5305\u4e2d\u63d0\u53d6\u6e32\u67d3\u540e\u7684\u914d\u7f6e\npython env_inspector.py resolve --file prod.env --key API_ENDPOINT\n```",
+          "intent": null,
+          "tags": [
+            "Privilege Escalation"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-2",
+          "finding_id": "finding-f098eeed01e6456e99646a1441bb8f7b",
+          "category": null,
+          "pattern": null,
+          "severity": "HIGH",
+          "confidence": 0.9,
+          "location": {
+            "file": "env_inspector.py",
+            "start_line": 58,
+            "end_line": 65
+          },
+          "finding": null,
+          "explanation": "The `_eval_expression` function uses `ast.literal_eval` which is generally safe for literals, but the comment and fallback logic suggest the author intended to allow more complex evaluation. However, the usage in `cmd_resolve` does not directly call `eval()` \u2014 it uses `ast.literal_eval` which only evaluates literals. The finding is somewhat overstated: `ast.literal_eval` is safe against arbitrary code execution. However, the `@eval` directive allows processing arbitrary expressions which could be used to read environment variables or perform safe operations, but the design of reading a file and evaluating expressions from it could be abused \u2014 for example, a malicious `.env` file could contain `@eval` directives that extract sensitive values and output them. The function does expand variables before eval, which could leak values if the eval result is printed. The actual vulnerability is more about information exposure than code execution, as `ast.literal_eval` blocks code execution. Overall, the finding is a true vulnerability because it allows unexpected dynamic behavior in a supposedly simple env inspector, potentially leading to unintended data exposure.",
+          "remediation": "Remove the `@eval` directive feature entirely or restrict it to only explicit literal parsing without expansion. Validate that the resolved output does not include sensitive data unless explicitly requested with masking. Consider removing `_eval_expression` and the entire `resolve` command if dynamic evaluation is not essential.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "E2",
+          "finding_id": "finding-af8784c1706a449eb5162365b7183550",
+          "category": "Data Exfiltration",
+          "pattern": "Env Variable Harvesting",
+          "severity": "HIGH",
+          "confidence": 0.7,
+          "location": {
+            "file": "env_inspector.py",
+            "start_line": 196,
+            "end_line": 196
+          },
+          "finding": "dict(os.environ)",
+          "explanation": "The tool copies the entire current environment into an internal dict and can list, export, or resolve values from it. This is the core functionality of an environment variable inspector, so it is expected to access environment variables. However, the risk is that if this tool is used in a CI/CD pipeline or shared environment, it could inadvertently leak sensitive environment variables through exported files or output. The `--mask` option only affects `list`, not `get` or `export`, so sensitive values can be printed in plain text. The intent appears benign \u2014 it is a legitimate utility \u2014 but the potential for accidental secret exposure (e.g., if a user runs `export` without realizing what's in env) is high. This is more of a negligent design than a malicious one.",
+          "remediation": "Implement masking by default for sensitive keys in all output modes (list, get, export). Add a `--no-mask` or `--plain` flag to override. Warn the user when exporting or printing potential secrets without masking. Also consider adding a dry-run verification step.",
+          "code_snippet": "        return 1\n\n    # \u4ee5\u5f53\u524d\u73af\u5883\u4e3a\u57fa\u5e95\uff0c\u5141\u8bb8\u9884\u8f7d\u67d0\u4e2a .env\n    env = dict(os.environ)\n    if getattr(args, 'file', None) and args.cmd == 'resolve':\n        _load_env_from_file(env, args.file)  # \u9884\u8f7d\u4fbf\u4e8e\u5c55\u5f00\n",
+          "intent": null,
+          "tags": [
+            "Data Exfiltration"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "PE3",
+          "finding_id": "finding-d4a25cdb0709475581d07862d372a14f",
+          "category": "Privilege Escalation",
+          "pattern": "Credential Access",
+          "severity": "HIGH",
+          "confidence": 0.6,
+          "location": {
+            "file": "env_inspector.py",
+            "start_line": 13,
+            "end_line": null
+          },
+          "finding": ".env ",
+          "explanation": "The `_load_env_from_file` function and the overall tool read `.env` files which contain secrets. The tool allows reading and exporting these secrets. The finding flags the general credential access nature of the tool. While this is the tool's stated purpose ('\u8f7b\u91cf\u7ea7\u73af\u5883\u53d8\u91cf\u7ba1\u7406\u5668'), the lack of default masking and safe handling makes it easier to accidentally leak secrets. The intent is benign \u2014 it's a developer utility \u2014 but the potential for misuse is significant, especially in shared or automated environments.",
+          "remediation": "Add a startup warning when running with access to .env files, reminding users to be careful with output. Implement a 'safe mode' that masks all sensitive values by default. Provide documentation on secure usage patterns, such as avoiding outputting secrets to logs.",
+          "code_snippet": "import sys\n\n# ---------------------------------------------------------------------------\n# \u89e3\u6790 .env \u884c\uff08\u652f\u6301 `export` \u524d\u7f00\u3001\u5f15\u53f7\u3001\u884c\u5185\u6ce8\u91ca\uff09\n# ---------------------------------------------------------------------------\n_ENV_LINE = re.compile(r'^\\s*(?:export\\s+)?([A-Za-z_][A-Za-z0-9_]*)\\s*=\\s*(.*)$')\n",
+          "intent": null,
+          "tags": [
+            "Privilege Escalation"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "PE3",
+          "finding_id": "finding-518c03ab5a264f5da415c24aee96b8e5",
+          "category": "Privilege Escalation",
+          "pattern": "Credential Access",
+          "severity": "HIGH",
+          "confidence": 0.6,
+          "location": {
+            "file": "env_inspector.py",
+            "start_line": 18,
+            "end_line": null
+          },
+          "finding": ".env ",
+          "explanation": "The `_load_env_from_file` function and the overall tool read `.env` files which contain secrets. The tool allows reading and exporting these secrets. The finding flags the general credential access nature of the tool. While this is the tool's stated purpose ('\u8f7b\u91cf\u7ea7\u73af\u5883\u53d8\u91cf\u7ba1\u7406\u5668'), the lack of default masking and safe handling makes it easier to accidentally leak secrets. The intent is benign \u2014 it's a developer utility \u2014 but the potential for misuse is significant, especially in shared or automated environments.",
+          "remediation": "Add a startup warning when running with access to .env files, reminding users to be careful with output. Implement a 'safe mode' that masks all sensitive values by default. Provide documentation on secure usage patterns, such as avoiding outputting secrets to logs.",
+          "code_snippet": "_ENV_LINE = re.compile(r'^\\s*(?:export\\s+)?([A-Za-z_][A-Za-z0-9_]*)\\s*=\\s*(.*)$')\n\ndef parse_env_line(line: str):\n    \"\"\"Return (key, value) from a single .env line, or None.\"\"\"\n    m = _ENV_LINE.match(line)\n    if not m:\n        return None",
+          "intent": null,
+          "tags": [
+            "Privilege Escalation"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "PE3",
+          "finding_id": "finding-9b3d46c841b640d0996102633c33b1b8",
+          "category": "Privilege Escalation",
+          "pattern": "Credential Access",
+          "severity": "HIGH",
+          "confidence": 0.6,
+          "location": {
+            "file": "env_inspector.py",
+            "start_line": 195,
+            "end_line": null
+          },
+          "finding": ".env\n",
+          "explanation": "The `_load_env_from_file` function and the overall tool read `.env` files which contain secrets. The tool allows reading and exporting these secrets. The finding flags the general credential access nature of the tool. While this is the tool's stated purpose ('\u8f7b\u91cf\u7ea7\u73af\u5883\u53d8\u91cf\u7ba1\u7406\u5668'), the lack of default masking and safe handling makes it easier to accidentally leak secrets. The intent is benign \u2014 it's a developer utility \u2014 but the potential for misuse is significant, especially in shared or automated environments.",
+          "remediation": "Add a startup warning when running with access to .env files, reminding users to be careful with output. Implement a 'safe mode' that masks all sensitive values by default. Provide documentation on secure usage patterns, such as avoiding outputting secrets to logs.",
+          "code_snippet": "        parser.print_help()\n        return 1\n\n    # \u4ee5\u5f53\u524d\u73af\u5883\u4e3a\u57fa\u5e95\uff0c\u5141\u8bb8\u9884\u8f7d\u67d0\u4e2a .env\n    env = dict(os.environ)\n    if getattr(args, 'file', None) and args.cmd == 'resolve':\n        _load_env_from_file(env, args.file)  # \u9884\u8f7d\u4fbf\u4e8e\u5c55\u5f00",
+          "intent": null,
+          "tags": [
+            "Privilege Escalation"
+          ],
+          "language_compatible": true
+        }
+      ],
+      "execution_successful": false,
+      "analysis_completeness": {
+        "total_components": 2,
+        "scanned_components": 1,
+        "coverage_percent": 50.0,
+        "is_complete": false,
+        "execution_successful": false,
+        "fully_inspected_files": 1,
+        "partially_inspected_files": 1,
+        "entirely_uninspected_files": 0,
+        "ledger_exceptions": [
+          {
+            "outcome": "failed",
+            "phase": "semantic",
+            "reason_code": "llm_batch_failed",
+            "message": "LLM analysis failed for this file range.",
+            "path": "SKILL.md",
+            "start_line": null,
+            "end_line": null,
+            "fatal": true,
+            "analyzers": [
+              "mcp_tool_poisoning"
+            ],
+            "error_class": "NotImplementedError"
+          }
+        ],
+        "scope_exclusions": [],
+        "analyzer_statuses": [
+          {
+            "analyzer_id": "behavioral_ast",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "behavioral_taint_tracking",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_least_privilege",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_rug_pull",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_tool_poisoning",
+            "status": "failed",
+            "planned_work": 2,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 1,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "meta_analyzer",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_developer_intent",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_quality_policy",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_security_discovery",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_agent_snooping",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_anti_refusal",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_data_exfiltration",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_excessive_agency",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_harmful_content",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_memory_poisoning",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_output_handling",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_privilege_escalation",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_prompt_injection",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_rogue_agent",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_ssrf",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_supply_chain",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_system_prompt_leakage",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_tool_misuse",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_yara",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          }
+        ],
+        "limitations": [
+          "Analyzer mcp_tool_poisoning status: failed."
+        ],
+        "findings_before_filtering": 12,
+        "findings_after_filtering": 12
+      },
+      "scan_mode": "multilingual-enhanced",
+      "enhancements": {
+        "gap_fill_applied": false,
+        "gap_fill_findings": 0,
+        "english_keyword_rules_skipped": 0
+      }
+    }
+  ],
+  "metadata": {
+    "skillspector_version": "2.9.3"
+  }
+}

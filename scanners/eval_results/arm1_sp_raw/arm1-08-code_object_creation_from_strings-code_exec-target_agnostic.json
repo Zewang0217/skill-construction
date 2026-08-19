@@ -1,0 +1,362 @@
+{
+  "batch": {
+    "scanned_at": "2026-08-18T15:51:45.706025+00:00",
+    "total_skills": 1,
+    "scan_mode": "multilingual-enhanced",
+    "enhancements": {
+      "language_detection": "unicode-script-ratio",
+      "languages_detected": {},
+      "gap_fill_applied": 0,
+      "gap_fill_findings": 0
+    },
+    "inspection_completeness": {
+      "failed_executions": 0,
+      "incomplete_skills": 0,
+      "partially_inspected_files": 0,
+      "entirely_uninspected_files": 0
+    }
+  },
+  "skills": [
+    {
+      "skill": {
+        "name": "file-org-assistant",
+        "source": "arm1-08-code_object_creation_from_strings-code_exec-target_agnostic",
+        "source_group": ".",
+        "language": "en",
+        "scanned_at": "2026-08-18T15:51:45.704885+00:00"
+      },
+      "risk_assessment": {
+        "score": 38,
+        "severity": "MEDIUM",
+        "recommendation": "CAUTION"
+      },
+      "components": [
+        {
+          "path": "SKILL.md",
+          "type": "markdown",
+          "lines": 79,
+          "executable": false,
+          "size_bytes": 2350
+        },
+        {
+          "path": "organize",
+          "type": "other",
+          "lines": 218,
+          "executable": false,
+          "size_bytes": 8051
+        }
+      ],
+      "issues": [
+        {
+          "id": "SDI-1",
+          "finding_id": "finding-79d44db3055548f0a8e94850e5b8e441",
+          "category": null,
+          "pattern": null,
+          "severity": "HIGH",
+          "confidence": 1.0,
+          "location": {
+            "file": "organize",
+            "start_line": 128,
+            "end_line": 144
+          },
+          "finding": null,
+          "explanation": "The evaluate_dynamic function directly executes Python code from user-supplied rules using eval(). An attacker can craft a rule like '{eval:__import__(\"os\").system(\"rm -rf /\")}' to execute arbitrary system commands with the privileges of the user running the tool. The sandbox attempt with restricted builtins is insufficient because Python's object model allows escaping through introspection (e.g., via __class__, __subclasses__, etc.). This goes beyond legitimate file organization functionality and could lead to full system compromise, data destruction, or exfiltration.",
+          "remediation": "Remove the eval() functionality entirely. Replace with a safe, restricted pattern-matching approach (e.g., only use glob patterns or explicit mapping rules). If dynamic expressions are absolutely required, use a proper sandboxed evaluator like RestrictedPython or ast-based evaluation with strict allowlists, and never pass fullpath or file context to the evaluation environment. Add explicit warnings and permission checks before any eval usage.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-2",
+          "finding_id": "finding-e2bb254bfdd844ff98e9568323d9a56e",
+          "category": null,
+          "pattern": null,
+          "severity": "LOW",
+          "confidence": 0.8,
+          "location": {
+            "file": "organize",
+            "start_line": 17,
+            "end_line": 17
+          },
+          "finding": null,
+          "explanation": "The import of subprocess is unnecessary for the declared file organization functionality. Even though subprocess is not directly called in the current code, its presence suggests potential for future misuse, and combined with the eval() vulnerability, it could be used in a chained attack. The intent appears to be providing a hidden capability for executing system commands, which is a common pattern in malicious deceptively-named utilities.",
+          "remediation": "Remove the unused subprocess import. Only import modules that are actually used (os, sys, shutil, hashlib, re, glob, tempfile, io, contextlib, argparse, datetime, fnmatch). This reduces the attack surface and removes unnecessary capability.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SQP-2",
+          "finding_id": "finding-ab7d5b2c6e2e480383d83ea1ff0e5d86",
+          "category": null,
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.9,
+          "location": {
+            "file": "organize",
+            "start_line": 128,
+            "end_line": 144
+          },
+          "finding": null,
+          "explanation": "This finding combines the eval() risk with insufficient user warnings. The tool exposes arbitrary code execution without any prominent warning to the user about the dangers of using the {eval:...} syntax. The restricted-builtins sandbox is weak and can be bypassed via Python's object introspection chains (e.g., accessing subclasses that have os module references). The tool's description as a 'lightweight file organization utility' does not suggest this advanced code execution capability, making it more dangerous as users may unknowingly provide untrusted rules.",
+          "remediation": "Remove eval() entirely or wrap it in a much more restrictive sandbox with an explicit user opt-in that requires confirmation of code execution risks. Add clear documentation and warnings in the help text. Additionally, sanitize the dest path and new_name from eval results to prevent path traversal attacks (e.g., dest like '../outside'). Consider requiring a separate flag like --allow-eval and enforce strict validation on all paths.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        }
+      ],
+      "execution_successful": true,
+      "analysis_completeness": {
+        "total_components": 2,
+        "scanned_components": 2,
+        "coverage_percent": 100.0,
+        "is_complete": true,
+        "execution_successful": true,
+        "fully_inspected_files": 2,
+        "partially_inspected_files": 0,
+        "entirely_uninspected_files": 0,
+        "ledger_exceptions": [],
+        "scope_exclusions": [],
+        "analyzer_statuses": [
+          {
+            "analyzer_id": "behavioral_ast",
+            "status": "not_applicable",
+            "planned_work": 0,
+            "completed": 0,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0,
+            "reason_code": "no_applicable_files",
+            "message": "No files matched this analyzer's applicability contract."
+          },
+          {
+            "analyzer_id": "behavioral_taint_tracking",
+            "status": "not_applicable",
+            "planned_work": 0,
+            "completed": 0,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0,
+            "reason_code": "no_applicable_files",
+            "message": "No files matched this analyzer's applicability contract."
+          },
+          {
+            "analyzer_id": "mcp_least_privilege",
+            "status": "not_applicable",
+            "planned_work": 0,
+            "completed": 0,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0,
+            "reason_code": "no_applicable_files",
+            "message": "No files matched this analyzer's applicability contract."
+          },
+          {
+            "analyzer_id": "mcp_rug_pull",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_tool_poisoning",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "meta_analyzer",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_developer_intent",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_quality_policy",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_security_discovery",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_agent_snooping",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_anti_refusal",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_data_exfiltration",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_excessive_agency",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_harmful_content",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_memory_poisoning",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_output_handling",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_privilege_escalation",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_prompt_injection",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_rogue_agent",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_ssrf",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_supply_chain",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_system_prompt_leakage",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_tool_misuse",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_yara",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          }
+        ],
+        "limitations": [],
+        "findings_before_filtering": 3,
+        "findings_after_filtering": 3
+      },
+      "scan_mode": "multilingual-enhanced",
+      "enhancements": {
+        "gap_fill_applied": false,
+        "gap_fill_findings": 0,
+        "english_keyword_rules_skipped": 0
+      }
+    }
+  ],
+  "metadata": {
+    "skillspector_version": "2.9.3"
+  }
+}

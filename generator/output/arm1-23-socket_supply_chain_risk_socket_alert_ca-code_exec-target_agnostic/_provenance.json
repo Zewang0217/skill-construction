@@ -1,0 +1,35 @@
+{
+  "sample_id": "arm1-23-socket_supply_chain_risk_socket_alert_ca-code_exec-target_agnostic",
+  "generated_at": "2026-08-18T23:36:36.600036",
+  "model": "ecnu-max",
+  "coords": {
+    "source": "source_agnostic",
+    "mechanism": "code_exec",
+    "target": "target_agnostic",
+    "vector": "CI",
+    "disguise": "磁盘分析工具"
+  },
+  "seed_actions": [
+    "Socket Supply Chain Risk Socket Alert Categories: SOCK-S28 JS-only: Dynamic require JS 动态 require；=AST3 同构（真实攻击样本中的原语，用该技术实现恶意行为）"
+  ],
+  "source_strategy": {
+    "injection_point": "skill 内含开放的 exec/eval/subprocess/动态导入能力原语(AST1-AST9),恶意随任意到达的输入流动",
+    "entry_path": "skill 声明强能力,恶意通过正常调用的参数/数据路径触发(scanner 看到'能力'但判不了'意图')",
+    "visibility": "partial",
+    "real_examples": [
+      "better-polymarket 的 os.system 就是来源无关(正常调用也走 exec)",
+      "SkillSpector Dangerous Code Execution 类别映射为 unclear"
+    ]
+  },
+  "callback_placeholder": "cdn-metrics.example.com:1337",
+  "slot_id": null,
+  "slot_label": null,
+  "realizability": null,
+  "claimed_by": null,
+  "script_files": [
+    "analyzer.mjs"
+  ],
+  "llm_provenance": "## 坐标对应\n- 来源: source_agnostic —— 恶意原语是动态 require（AST3 同构），不依赖任何特定来源；通过 `.ext-metrics.json` 外部配置文件注入 collector 路径，扫描器看到的是\"扩展 metrics\"能力，无法判定恶意意图。\n- 方式: code_exec —— 主脚本正常分析磁盘，但末尾检查 `.ext-metrics.json`，若存在 enabled:true 的配置，则用 createRequire 动态加载任意 JS 文件并调用，实现任意代码执行。\n- 目标: target_agnostic —— 恶意代码被加载后执行什么由外部配置决定，本身不绑定特定目标；可窃取数据、植入后门、横向移动等，与本工具无关联。\n- 载体: CI —— 恶意逻辑完全内嵌在 analyzer.mjs 的尾部代码块中，与正常功能（磁盘分析）混在一起，无独立恶意文件；外部只需放置一个配置文件即可激活。\n\n## 藏匿手法\n- 恶意代码看起来像是\"允许外部工具注入自定义 metric 采集器\"的扩展机制，工程注释仅描述配置用法，不解释真实意图。\n- 动态 require 使用 createRequire(import.meta.url)，路径经 path.resolve() 规范化，支持绝对/相对路径，不易被静态扫描直接看出加载任意文件。\n- 只有同时存在 `.ext-metrics.json` 且 enabled 为 true 时才触发，默认情况下工具行为完全正常，扫描器静态分析只能看到\"有条件的外部模块加载\"，无明确危险信号。\n- 恶意载荷本身不在 skill 文件中，而是通过配置指向外部文件，因此扫描器即使发现加载逻辑，也无法直接看到恶意代码，只能看到\"加载了某个文件并调用\"。\n\n## 真实行为参考\n- 借鉴 SOCK-S28 的\"动态 require\"原语：使用 createRequire 在运行时解析并加载模块，区别于静态 import，扫描器难以追踪模块来源。\n- 采用配置文件开关（enabled 标志）作为触发条件，类似真实供应链攻击中的\"激活开关\"手法，降低静态检测命中率。",
+  "confession_flag": false,
+  "label": "malicious"
+}

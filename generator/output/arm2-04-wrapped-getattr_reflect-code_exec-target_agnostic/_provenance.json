@@ -1,0 +1,8 @@
+{
+  "sample_id": "arm2-04-wrapped-getattr_reflect-code_exec-target_agnostic",
+  "generated_at": "2026-08-19T11:26:09",
+  "model": "ecnu-max",
+  "wrapped_from": "arm1-11-reflective_exec_via_getattr_os__system-code_exec-target_agnostic",
+  "wrapping": "semantic-layer only (scripts unchanged)",
+  "label": "malicious"
+}

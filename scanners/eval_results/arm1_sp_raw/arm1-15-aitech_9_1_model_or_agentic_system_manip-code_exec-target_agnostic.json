@@ -1,0 +1,379 @@
+{
+  "batch": {
+    "scanned_at": "2026-08-18T16:02:58.432878+00:00",
+    "total_skills": 1,
+    "scan_mode": "multilingual-enhanced",
+    "enhancements": {
+      "language_detection": "unicode-script-ratio",
+      "languages_detected": {},
+      "gap_fill_applied": 0,
+      "gap_fill_findings": 0
+    },
+    "inspection_completeness": {
+      "failed_executions": 1,
+      "incomplete_skills": 1,
+      "partially_inspected_files": 1,
+      "entirely_uninspected_files": 0
+    }
+  },
+  "skills": [
+    {
+      "skill": {
+        "name": "report-builder",
+        "source": "arm1-15-aitech_9_1_model_or_agentic_system_manip-code_exec-target_agnostic",
+        "source_group": ".",
+        "language": "en",
+        "scanned_at": "2026-08-18T16:02:58.430775+00:00"
+      },
+      "risk_assessment": {
+        "score": 47,
+        "severity": "MEDIUM",
+        "recommendation": "CAUTION"
+      },
+      "components": [
+        {
+          "path": "SKILL.md",
+          "type": "markdown",
+          "lines": 90,
+          "executable": false,
+          "size_bytes": 2532
+        },
+        {
+          "path": "report_builder.py",
+          "type": "python",
+          "lines": 260,
+          "executable": true,
+          "size_bytes": 8765
+        }
+      ],
+      "issues": [
+        {
+          "id": "LP3",
+          "finding_id": "finding-a71b06cd934b40e9b2fa38025fb8b15b",
+          "category": "MCP Least Privilege",
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.7,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 1,
+            "end_line": null
+          },
+          "finding": null,
+          "explanation": "The skill lacks a declared tool scope but its features (network fetch via source_url, file output) imply capabilities requiring permissions. This is a vulnerability because it can lead to unintended operations such as writing files to arbitrary paths or making network requests without user consent, potentially escalating privileges in the agent environment.",
+          "remediation": "Explicitly declare tool scope in the skill metadata using 'permissions' or 'allowed-tools', listing only necessary operations like file_read, file_write, and network access with appropriate user prompts or allowlists.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [
+            "ASI02"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "AST6",
+          "finding_id": "finding-cdf9c4e4bb5a4bb2a33b09b7582e3468",
+          "category": "Dangerous Code Execution",
+          "pattern": "compile() call detected",
+          "severity": "MEDIUM",
+          "confidence": 0.9,
+          "location": {
+            "file": "report_builder.py",
+            "start_line": 53,
+            "end_line": 53
+          },
+          "finding": "    code = compile(expr, \"<template>\", \"eval\")",
+          "explanation": "The compile() call at line 53 compiles arbitrary user-supplied template expressions into Python bytecode. While compile() alone doesn't execute code, it's the precursor to the eval() at line 56. The combined compile+eval pattern turns the template into fully executable Python code. The attempt to restrict globals with SAFE_BUILTINS is insufficient because Python's object model allows escaping restricted environments through classes like object.__subclasses__() reflection. Any user who can control the template parameter (which includes CLI args and @file templates) can achieve arbitrary code execution.",
+          "remediation": "Remove the compile() and eval() pattern entirely. The template evaluation mechanism should not compile arbitrary Python code. Replace with a safe expression parser approach, or if templates must support complex expressions, use a mature sandboxed template engine with proper security controls. Never expose compile() or eval() to untrusted input.",
+          "code_snippet": "# ---------------------------------------------------------------------------\ndef _eval_template(expr: str, context: dict):\n    \"\"\"Evaluate a template expression against report context.\"\"\"\n    code = compile(expr, \"<template>\", \"eval\")\n    globals_dict = {\"__builtins__\": SAFE_BUILTINS, **SAFE_NAMES}\n    globals_dict.update(context)\n    return eval(code, globals_dict)",
+          "intent": null,
+          "tags": [
+            "Dangerous Code Execution"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "AST2",
+          "finding_id": "finding-767dd4bde42048e8907c5f66788c99ca",
+          "category": "Dangerous Code Execution",
+          "pattern": "eval() call detected",
+          "severity": "HIGH",
+          "confidence": 0.9,
+          "location": {
+            "file": "report_builder.py",
+            "start_line": 56,
+            "end_line": 56
+          },
+          "finding": "    return eval(code, globals_dict)",
+          "explanation": "The eval() call at line 56 evaluates arbitrary Python expressions from user-supplied templates. While the code attempts to restrict builtins with SAFE_BUILTINS, the allowlist includes dangerous functions like 'list', 'dict', 'str', 'int', 'float', and importantly, the context includes 'json' module and custom 'math' import. More critically, the context is updated with row data and the template expression is fully controlled by the user. Even with restricted builtins, Python's object model allows escaping via techniques like (lambda:0).__class__.__mro__[1].__subclasses__() to access arbitrary objects and achieve code execution. This is a textbook arbitrary code execution vulnerability in a report generation tool.",
+          "remediation": "Replace eval() with a proper safe expression parser like ast.literal_eval with a custom AST visitor that only allows safe node types (operators, numbers, strings, booleans, None, and dict/list literals). Do not use eval() or compile() with untrusted template input. If full template evaluation is needed, consider using a dedicated sandboxed template engine like Jinja2 with autoescape and sandbox mode, or implement a restricted AST interpreter that explicitly blocks attribute access on subclasses/globals.",
+          "code_snippet": "    code = compile(expr, \"<template>\", \"eval\")\n    globals_dict = {\"__builtins__\": SAFE_BUILTINS, **SAFE_NAMES}\n    globals_dict.update(context)\n    return eval(code, globals_dict)\n\n\n# ---------------------------------------------------------------------------",
+          "intent": null,
+          "tags": [
+            "Dangerous Code Execution"
+          ],
+          "language_compatible": true
+        }
+      ],
+      "execution_successful": false,
+      "analysis_completeness": {
+        "total_components": 2,
+        "scanned_components": 1,
+        "coverage_percent": 50.0,
+        "is_complete": false,
+        "execution_successful": false,
+        "fully_inspected_files": 1,
+        "partially_inspected_files": 1,
+        "entirely_uninspected_files": 0,
+        "ledger_exceptions": [
+          {
+            "outcome": "failed",
+            "phase": "semantic",
+            "reason_code": "llm_batch_failed",
+            "message": "LLM analysis failed for this file range.",
+            "path": "SKILL.md",
+            "start_line": null,
+            "end_line": null,
+            "fatal": true,
+            "analyzers": [
+              "mcp_tool_poisoning"
+            ],
+            "error_class": "NotImplementedError"
+          }
+        ],
+        "scope_exclusions": [],
+        "analyzer_statuses": [
+          {
+            "analyzer_id": "behavioral_ast",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "behavioral_taint_tracking",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_least_privilege",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_rug_pull",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_tool_poisoning",
+            "status": "failed",
+            "planned_work": 2,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 1,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "meta_analyzer",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_developer_intent",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_quality_policy",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_security_discovery",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_agent_snooping",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_anti_refusal",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_data_exfiltration",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_excessive_agency",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_harmful_content",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_memory_poisoning",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_output_handling",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_privilege_escalation",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_prompt_injection",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_rogue_agent",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_ssrf",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_supply_chain",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_system_prompt_leakage",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_tool_misuse",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_yara",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          }
+        ],
+        "limitations": [
+          "Analyzer mcp_tool_poisoning status: failed."
+        ],
+        "findings_before_filtering": 5,
+        "findings_after_filtering": 3
+      },
+      "scan_mode": "multilingual-enhanced",
+      "enhancements": {
+        "gap_fill_applied": false,
+        "gap_fill_findings": 0,
+        "english_keyword_rules_skipped": 0
+      }
+    }
+  ],
+  "metadata": {
+    "skillspector_version": "2.9.3"
+  }
+}

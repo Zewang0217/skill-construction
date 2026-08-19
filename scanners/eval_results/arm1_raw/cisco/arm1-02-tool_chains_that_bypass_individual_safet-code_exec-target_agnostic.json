@@ -1,0 +1,72 @@
+{
+ "skill_name": "dir-sync-assistant",
+ "skill_path": "/tmp/cisco_8y4paae2",
+ "is_safe": false,
+ "max_severity": "CRITICAL",
+ "findings_count": 2,
+ "findings": [
+  {
+   "id": "llm_analysis_failed_dir-sync-assistant",
+   "rule_id": "LLM_ANALYSIS_FAILED",
+   "category": "policy_violation",
+   "severity": "INFO",
+   "title": "LLM analysis failed",
+   "description": "The LLM analyzer encountered an error and could not complete semantic analysis: Expecting property name enclosed in double quotes: line 1 column 2 (char 1)",
+   "file_path": null,
+   "line_number": null,
+   "snippet": null,
+   "remediation": "Check your LLM provider configuration (API key, model name, network connectivity). The scan completed with static analysis only — LLM-based threat detection was not performed.",
+   "analyzer": "llm_analyzer",
+   "metadata": {
+    "error": "Expecting property name enclosed in double quotes: line 1 column 2 (char 1)",
+    "llm_model": "openai/ecnu-max"
+   }
+  },
+  {
+   "id": "COMMAND_INJECTION_EVAL_dfff4e3a4b",
+   "rule_id": "COMMAND_INJECTION_EVAL",
+   "category": "command_injection",
+   "severity": "CRITICAL",
+   "title": "Dangerous code execution functions that can execute arbitrary code",
+   "description": "Pattern detected: eval(",
+   "file_path": "dsync/engine.py",
+   "line_number": 157,
+   "snippet": "return eval(expression, {\"__builtins__\": {}}, ctx)",
+   "remediation": "Avoid eval(), exec(), and compile(). Use safer alternatives like ast.literal_eval() or operator module",
+   "analyzer": "static",
+   "metadata": {
+    "matched_pattern": "(?<!['\\\"])\\beval\\s*\\(",
+    "matched_text": "eval(",
+    "aitech": "AITech-9.1",
+    "aitech_name": "Model or Agentic System Manipulation",
+    "scanner_category": "INJECTION ATTACK"
+   }
+  }
+ ],
+ "scan_duration_seconds": 29.347747564315796,
+ "duration_ms": 29347,
+ "analyzers_used": [
+  "static_analyzer",
+  "bytecode",
+  "pipeline",
+  "llm_analyzer"
+ ],
+ "timestamp": "2026-08-18T15:39:59.704334+00:00",
+ "scan_metadata": {
+  "policy_name": "default",
+  "policy_version": "1.0",
+  "policy_preset_base": "balanced",
+  "policy_fingerprint_sha256": "e6033e8884796d3589d44e3fa2d57f0aadf31a56d4e88818aeed2fd225d82c59"
+ },
+ "analyzers_failed": [
+  {
+   "analyzer": "llm_analyzer",
+   "error": "Expecting property name enclosed in double quotes: line 1 column 2 (char 1)"
+  }
+ ],
+ "llm_usage": {
+  "input_tokens": 5929,
+  "output_tokens": 2491,
+  "total_tokens": 8420
+ }
+}

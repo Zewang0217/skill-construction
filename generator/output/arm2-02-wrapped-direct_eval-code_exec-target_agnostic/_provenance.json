@@ -1,0 +1,8 @@
+{
+  "sample_id": "arm2-02-wrapped-direct_eval-code_exec-target_agnostic",
+  "generated_at": "2026-08-19T11:25:57",
+  "model": "ecnu-max",
+  "wrapped_from": "arm1-04-direct_eval___evaluating_arbitrary_expre-code_exec-target_agnostic",
+  "wrapping": "semantic-layer only (scripts unchanged)",
+  "label": "malicious"
+}

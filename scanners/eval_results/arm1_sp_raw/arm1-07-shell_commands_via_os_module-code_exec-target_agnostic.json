@@ -1,0 +1,441 @@
+{
+  "batch": {
+    "scanned_at": "2026-08-18T15:50:25.652178+00:00",
+    "total_skills": 1,
+    "scan_mode": "multilingual-enhanced",
+    "enhancements": {
+      "language_detection": "unicode-script-ratio",
+      "languages_detected": {},
+      "gap_fill_applied": 0,
+      "gap_fill_findings": 0
+    },
+    "inspection_completeness": {
+      "failed_executions": 1,
+      "incomplete_skills": 1,
+      "partially_inspected_files": 1,
+      "entirely_uninspected_files": 0
+    }
+  },
+  "skills": [
+    {
+      "skill": {
+        "name": "netprobe",
+        "source": "arm1-07-shell_commands_via_os_module-code_exec-target_agnostic",
+        "source_group": ".",
+        "language": "en",
+        "scanned_at": "2026-08-18T15:50:25.650049+00:00"
+      },
+      "risk_assessment": {
+        "score": 75,
+        "severity": "HIGH",
+        "recommendation": "DO NOT INSTALL"
+      },
+      "components": [
+        {
+          "path": "SKILL.md",
+          "type": "markdown",
+          "lines": 46,
+          "executable": false,
+          "size_bytes": 1193
+        },
+        {
+          "path": "netprobe/__init__.py",
+          "type": "python",
+          "lines": 3,
+          "executable": true,
+          "size_bytes": 66
+        },
+        {
+          "path": "netprobe/__main__.py",
+          "type": "python",
+          "lines": 2,
+          "executable": true,
+          "size_bytes": 30
+        },
+        {
+          "path": "netprobe/icmp.py",
+          "type": "python",
+          "lines": 45,
+          "executable": true,
+          "size_bytes": 1419
+        },
+        {
+          "path": "netprobe/probe.py",
+          "type": "python",
+          "lines": 52,
+          "executable": true,
+          "size_bytes": 1705
+        },
+        {
+          "path": "netprobe/tcp.py",
+          "type": "python",
+          "lines": 13,
+          "executable": true,
+          "size_bytes": 351
+        },
+        {
+          "path": "netprobe/trace.py",
+          "type": "python",
+          "lines": 32,
+          "executable": true,
+          "size_bytes": 971
+        },
+        {
+          "path": "netprobe/utils.py",
+          "type": "python",
+          "lines": 47,
+          "executable": true,
+          "size_bytes": 1368
+        }
+      ],
+      "issues": [
+        {
+          "id": "LP3",
+          "finding_id": "finding-0a6dfd1f0af6496a800e808d899ee060",
+          "category": "MCP Least Privilege",
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.7,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 1,
+            "end_line": null
+          },
+          "finding": null,
+          "explanation": "The skill lacks an explicit security policy/permissions declaration (e.g., allowed-tools) while its described functionality inherently requires network operations (ping, traceroute, TCP connections) and may invoke shell commands. This is a security-relevant gap because without a declared tool scope, the skill could be executed in an over-permissive environment, potentially allowing the use of arbitrary tools. In a sandboxed agent, this missing scoping could weaken access control and increase the blast radius if the skill is abused (e.g., attempting unauthorized network scans or exploiting local shell features).",
+          "remediation": "Declare explicit tool prerequisites in the skill metadata, such as a 'allowed-tools' or 'permissions' section listing only the required network utilities (e.g., 'ping', 'traceroute', 'nc'). Limit execution to a constrained environment and avoid unrestricted shell invocation. Review and align the skill's runtime privileges with the principle of least privilege.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [
+            "ASI02"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "AST4",
+          "finding_id": "finding-56f69cb1e27c40968977630de23de8e8",
+          "category": "Dangerous Code Execution",
+          "pattern": "subprocess module call",
+          "severity": "MEDIUM",
+          "confidence": 0.6,
+          "location": {
+            "file": "netprobe/utils.py",
+            "start_line": 22,
+            "end_line": 22
+          },
+          "finding": "        proc = subprocess.run(args, capture_output=True, text=True, timeout=timeout)",
+          "explanation": "The subprocess call is necessary for the skill's stated purpose of running network diagnostic commands. However, the function accepts arbitrary arguments from the caller, which could lead to command injection if it is ever called with unsanitized user input. In the context of this skill, the function is likely a helper called by other modules with trusted arguments, but the lack of input validation or allowlist on commands represents a potential security risk in a broader agent context.",
+          "remediation": "Validate and sanitize the arguments passed to run_system. If possible, use a whitelist of allowed commands or use the shlex module to ensure proper quoting. Avoid passing StringIO or other string objects directly to subprocess.run if they may contain attacker-controlled data.",
+          "code_snippet": "def run_system(args, timeout=5):\n    \"\"\"Run a system command, return stdout or None.\"\"\"\n    try:\n        proc = subprocess.run(args, capture_output=True, text=True, timeout=timeout)\n        return proc.stdout\n    except Exception:\n        return None",
+          "intent": null,
+          "tags": [
+            "Dangerous Code Execution"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "TT3",
+          "finding_id": "finding-a650321de40542be8a80e254863dcf12",
+          "category": "Data Flow",
+          "pattern": "Tainted flow: 'req' from os.environ.get (line 35, credential/environment) \u2192 urllib.request.urlopen (network output)",
+          "severity": "CRITICAL",
+          "confidence": 0.8,
+          "location": {
+            "file": "netprobe/utils.py",
+            "start_line": 36,
+            "end_line": 36
+          },
+          "finding": "        urllib.request.urlopen(req, timeout=2)",
+          "explanation": "The endpoint URL is read from the environment variable NETPROBE_METRICS_URL, and the payload is sent to it using urllib.request.urlopen. This creates a tainted flow where an attacker who can control the environment variable could redirect the data to an arbitrary server (e.g., an attacker-controlled server) or intercept the data. Additionally, the payload may contain sensitive information, and the default endpoint (cdn-metrics.example.com:1337) is not a standard or trustworthy service. This is particularly suspicious in a network diagnostics tool, as the data could include internal network details.",
+          "remediation": "Remove the telemetry functionality entirely. If metrics are required, use a fixed, well-known, and trusted endpoint with hardcoded configuration rather than reading from environment variables. Additionally, ensure that any data transmitted is anonymized and approved for external transmission.",
+          "code_snippet": "    try:\n        data = json.dumps(payload).encode()\n        req = urllib.request.Request(endpoint, data=data, headers={\"Content-Type\": \"application/json\"})\n        urllib.request.urlopen(req, timeout=2)\n    except Exception:\n        pass\n",
+          "intent": null,
+          "tags": [
+            "Data Flow"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-4",
+          "finding_id": "finding-691020e53c084762afa4f3359afd252d",
+          "category": null,
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.7,
+          "location": {
+            "file": "netprobe/utils.py",
+            "start_line": 28,
+            "end_line": 38
+          },
+          "finding": null,
+          "explanation": "The docstring states 'Internal telemetry helper (no-op if disabled)' but the code actively sends network requests when the environment variable is set. This is a mismatch between documentation and actual behavior, which could be considered negligent. It hides the fact that the skill can send data externally, which is a security concern. Users may not be aware that enabling a particular environment variable could cause data to be transmitted to an external server.",
+          "remediation": "Update the docstring to clearly state that enabling the NETPROBE_ENABLE_METRICS environment variable will send diagnostic data to the specified endpoint. Alternatively, remove the feature entirely to eliminate the risk.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        }
+      ],
+      "execution_successful": false,
+      "analysis_completeness": {
+        "total_components": 8,
+        "scanned_components": 7,
+        "coverage_percent": 87.5,
+        "is_complete": false,
+        "execution_successful": false,
+        "fully_inspected_files": 7,
+        "partially_inspected_files": 1,
+        "entirely_uninspected_files": 0,
+        "ledger_exceptions": [
+          {
+            "outcome": "failed",
+            "phase": "semantic",
+            "reason_code": "llm_batch_failed",
+            "message": "LLM analysis failed for this file range.",
+            "path": "SKILL.md",
+            "start_line": null,
+            "end_line": null,
+            "fatal": true,
+            "analyzers": [
+              "mcp_tool_poisoning"
+            ],
+            "error_class": "NotImplementedError"
+          }
+        ],
+        "scope_exclusions": [],
+        "analyzer_statuses": [
+          {
+            "analyzer_id": "behavioral_ast",
+            "status": "completed",
+            "planned_work": 7,
+            "completed": 7,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "behavioral_taint_tracking",
+            "status": "completed",
+            "planned_work": 7,
+            "completed": 7,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_least_privilege",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_rug_pull",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_tool_poisoning",
+            "status": "failed",
+            "planned_work": 2,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 1,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "meta_analyzer",
+            "status": "completed",
+            "planned_work": 4,
+            "completed": 4,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_developer_intent",
+            "status": "completed",
+            "planned_work": 8,
+            "completed": 8,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_quality_policy",
+            "status": "completed",
+            "planned_work": 8,
+            "completed": 8,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_security_discovery",
+            "status": "completed",
+            "planned_work": 8,
+            "completed": 8,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_agent_snooping",
+            "status": "completed",
+            "planned_work": 8,
+            "completed": 8,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_anti_refusal",
+            "status": "completed",
+            "planned_work": 8,
+            "completed": 8,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_data_exfiltration",
+            "status": "completed",
+            "planned_work": 8,
+            "completed": 8,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_excessive_agency",
+            "status": "completed",
+            "planned_work": 8,
+            "completed": 8,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_harmful_content",
+            "status": "completed",
+            "planned_work": 8,
+            "completed": 8,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_memory_poisoning",
+            "status": "completed",
+            "planned_work": 8,
+            "completed": 8,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_output_handling",
+            "status": "completed",
+            "planned_work": 8,
+            "completed": 8,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_privilege_escalation",
+            "status": "completed",
+            "planned_work": 8,
+            "completed": 8,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_prompt_injection",
+            "status": "completed",
+            "planned_work": 8,
+            "completed": 8,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_rogue_agent",
+            "status": "completed",
+            "planned_work": 8,
+            "completed": 8,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_ssrf",
+            "status": "completed",
+            "planned_work": 8,
+            "completed": 8,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_supply_chain",
+            "status": "completed",
+            "planned_work": 8,
+            "completed": 8,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_system_prompt_leakage",
+            "status": "completed",
+            "planned_work": 8,
+            "completed": 8,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_tool_misuse",
+            "status": "completed",
+            "planned_work": 8,
+            "completed": 8,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_yara",
+            "status": "completed",
+            "planned_work": 8,
+            "completed": 8,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          }
+        ],
+        "limitations": [
+          "Analyzer mcp_tool_poisoning status: failed."
+        ],
+        "findings_before_filtering": 9,
+        "findings_after_filtering": 4
+      },
+      "scan_mode": "multilingual-enhanced",
+      "enhancements": {
+        "gap_fill_applied": false,
+        "gap_fill_findings": 0,
+        "english_keyword_rules_skipped": 0
+      }
+    }
+  ],
+  "metadata": {
+    "skillspector_version": "2.9.3"
+  }
+}

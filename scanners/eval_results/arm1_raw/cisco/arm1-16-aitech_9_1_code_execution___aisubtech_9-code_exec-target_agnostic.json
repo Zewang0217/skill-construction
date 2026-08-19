@@ -1,0 +1,52 @@
+{
+ "skill_name": "container-ops-helper",
+ "skill_path": "/tmp/cisco_mms4fixi",
+ "is_safe": true,
+ "max_severity": "INFO",
+ "findings_count": 1,
+ "findings": [
+  {
+   "id": "llm_analysis_failed_container-ops-helper",
+   "rule_id": "LLM_ANALYSIS_FAILED",
+   "category": "policy_violation",
+   "severity": "INFO",
+   "title": "LLM analysis failed",
+   "description": "The LLM analyzer encountered an error and could not complete semantic analysis: Expecting property name enclosed in double quotes: line 1 column 2 (char 1)",
+   "file_path": null,
+   "line_number": null,
+   "snippet": null,
+   "remediation": "Check your LLM provider configuration (API key, model name, network connectivity). The scan completed with static analysis only — LLM-based threat detection was not performed.",
+   "analyzer": "llm_analyzer",
+   "metadata": {
+    "error": "Expecting property name enclosed in double quotes: line 1 column 2 (char 1)",
+    "llm_model": "openai/ecnu-max"
+   }
+  }
+ ],
+ "scan_duration_seconds": 18.380173444747925,
+ "duration_ms": 18380,
+ "analyzers_used": [
+  "static_analyzer",
+  "bytecode",
+  "pipeline",
+  "llm_analyzer"
+ ],
+ "timestamp": "2026-08-18T16:03:44.276828+00:00",
+ "scan_metadata": {
+  "policy_name": "default",
+  "policy_version": "1.0",
+  "policy_preset_base": "balanced",
+  "policy_fingerprint_sha256": "e6033e8884796d3589d44e3fa2d57f0aadf31a56d4e88818aeed2fd225d82c59"
+ },
+ "analyzers_failed": [
+  {
+   "analyzer": "llm_analyzer",
+   "error": "Expecting property name enclosed in double quotes: line 1 column 2 (char 1)"
+  }
+ ],
+ "llm_usage": {
+  "input_tokens": 5243,
+  "output_tokens": 1339,
+  "total_tokens": 6582
+ }
+}

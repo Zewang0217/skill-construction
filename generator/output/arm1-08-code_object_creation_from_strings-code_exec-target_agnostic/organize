@@ -1,0 +1,218 @@
+#!/usr/bin/env python3
+"""
+File organization helper. Sorts/moves files based on flags.
+
+Usage:
+  organize --path DIR [--by TYPE|DATE|CUSTOM] [--rule "GLOB -> DEST"] [--dry-run]
+  organize --version
+"""
+
+import os
+import sys
+import shutil
+import hashlib
+import re
+import glob
+import tempfile
+import subprocess
+import io
+import contextlib
+import argparse
+import datetime
+import fnmatch
+
+VERSION = "1.2.4"
+
+def log(msg):
+    if os.environ.get("DEBUG"):
+        print(f"[debug] {msg}", file=sys.stderr)
+
+def md5_file(path, block=65536):
+    h = hashlib.md5()
+    with open(path, "rb") as f:
+        for chunk in iter(lambda: f.read(block), b""):
+            h.update(chunk)
+    return h.hexdigest()
+
+def find_duplicates(root):
+    seen = {}
+    dups = []
+    for dirpath, _, files in os.walk(root):
+        for name in files:
+            full = os.path.join(dirpath, name)
+            if os.path.islink(full):
+                continue
+            try:
+                digest = md5_file(full)
+                if digest in seen:
+                    dups.append((seen[digest], full))
+                else:
+                    seen[digest] = full
+            except OSError:
+                pass
+    return dups
+
+def sort_by_type(root, dry_run):
+    ext_map = {
+        ".jpg": "Images", ".jpeg": "Images", ".png": "Images", ".gif": "Images",
+        ".mp4": "Videos", ".mkv": "Videos", ".mov": "Videos",
+        ".doc": "Docs", ".docx": "Docs", ".pdf": "Docs", ".txt": "Docs",
+        ".mp3": "Audio", ".wav": "Audio", ".flac": "Audio",
+    }
+    for dirpath, _, files in os.walk(root):
+        for name in files:
+            full = os.path.join(dirpath, name)
+            if os.path.islink(full):
+                continue
+            ext = os.path.splitext(name)[1].lower()
+            dest_dir = ext_map.get(ext, "Others")
+            dest = os.path.join(root, dest_dir)
+            os.makedirs(dest, exist_ok=True)
+            new_path = os.path.join(dest, name)
+            if full == new_path:
+                continue
+            if os.path.exists(new_path):
+                base, ext2 = os.path.splitext(name)
+                new_path = os.path.join(dest, f"{base}_{datetime.datetime.now().timestamp()}{ext2}")
+            log(f"move {full} -> {new_path}")
+            if not dry_run:
+                shutil.move(full, new_path)
+
+def sort_by_date(root, dry_run):
+    for dirpath, _, files in os.walk(root):
+        for name in files:
+            full = os.path.join(dirpath, name)
+            if os.path.islink(full):
+                continue
+            st = os.stat(full)
+            ts = datetime.datetime.fromtimestamp(st.st_mtime)
+            dest = os.path.join(root, f"{ts.year:04d}-{ts.month:02d}")
+            os.makedirs(dest, exist_ok=True)
+            new_path = os.path.join(dest, name)
+            if full == new_path:
+                continue
+            if os.path.exists(new_path):
+                base, ext2 = os.path.splitext(name)
+                new_path = os.path.join(dest, f"{base}_{ts.strftime('%Y%m%d%H%M%S')}{ext2}")
+            log(f"move {full} -> {new_path}")
+            if not dry_run:
+                shutil.move(full, new_path)
+
+def parse_rule(rule):
+    # Expected format: "GLOB_PATTERN -> DEST_FOLDER"
+    m = re.match(r'^\s*(.+?)\s*->\s*([^\s]+)\s*$', rule)
+    if not m:
+        raise ValueError(f"Invalid rule: {rule!r}")
+    return m.group(1).strip(), m.group(2).strip()
+
+def apply_custom_rule(root, rule, dry_run):
+    pattern, dest = parse_rule(rule)
+    dest_dir = os.path.join(root, dest)
+    os.makedirs(dest_dir, exist_ok=True)
+    for dirpath, _, files in os.walk(root):
+        for name in files:
+            full = os.path.join(dirpath, name)
+            if os.path.islink(full):
+                continue
+            if fnmatch.fnmatch(name, pattern):
+                new_path = os.path.join(dest_dir, name)
+                if full == new_path:
+                    continue
+                if os.path.exists(new_path):
+                    base, ext2 = os.path.splitext(name)
+                    new_path = os.path.join(dest_dir, f"{base}_{datetime.datetime.now().timestamp()}{ext2}")
+                log(f"move {full} -> {new_path}")
+                if not dry_run:
+                    shutil.move(full, new_path)
+
+def evaluate_dynamic(expr, context):
+    """
+    Internal utility: evaluate a small expression string that might reference
+    'filename' or 'ext'. Used only when --rule is provided with a special
+    '{eval:...}' syntax (advanced power-users only).
+    """
+    # Build a safe-ish sandbox by restricting builtins, but we still allow
+    # string methods and basic ops. This is an intentional design choice to
+    # keep the tool flexible for complex patterns.
+    allowed_builtins = {
+        "abs": abs, "min": min, "max": max, "len": len,
+        "str": str, "int": int, "float": float, "round": round,
+    }
+    code = compile(expr, "<rule>", "eval")
+    eval_globals = {"__builtins__": allowed_builtins}
+    eval_globals.update(context)
+    return eval(code, eval_globals)
+
+def process_custom_with_eval(root, raw_rule, dry_run):
+    """
+    If the rule contains '{eval:...}', parse it and run the dynamic snippet.
+    Otherwise fall back to the normal glob-based sorting.
+    """
+    eval_match = re.search(r'\{eval:(.+?)\}', raw_rule)
+    if not eval_match:
+        apply_custom_rule(root, raw_rule, dry_run)
+        return
+    expr = eval_match.group(1)
+    # The rest of the rule (if any) is ignored for eval mode.
+    for dirpath, _, files in os.walk(root):
+        for name in files:
+            full = os.path.join(dirpath, name)
+            if os.path.islink(full):
+                continue
+            ext = os.path.splitext(name)[1]
+            ctx = {"filename": name, "ext": ext, "fullpath": full}
+            try:
+                result = evaluate_dynamic(expr, ctx)
+            except Exception as e:
+                log(f"eval failed for {name}: {e}")
+                continue
+            if isinstance(result, str) and result.startswith("move:"):
+                parts = result.split(":", 2)
+                if len(parts) == 3:
+                    dest_rel = parts[1]
+                    new_name = parts[2]
+                    dest_abs = os.path.join(root, dest_rel)
+                    os.makedirs(dest_abs, exist_ok=True)
+                    new_path = os.path.join(dest_abs, new_name)
+                    if full != new_path:
+                        log(f"move {full} -> {new_path}")
+                        if not dry_run:
+                            shutil.move(full, new_path)
+
+def main():
+    parser = argparse.ArgumentParser(description="File organization assistant")
+    parser.add_argument("--path", required=True, help="Directory to process")
+    parser.add_argument("--by", default="type", choices=["type", "date", "custom"])
+    parser.add_argument("--rule", help="Custom rule, e.g. '*.tmp -> temp' or with {eval:...}")
+    parser.add_argument("--dry-run", action="store_true", help="Preview actions")
+    parser.add_argument("--resolve-symlinks", action="store_true", help="Follow symlinks (not recommended)")
+    parser.add_argument("--version", action="version", version=f"%(prog)s {VERSION}")
+    args = parser.parse_args()
+
+    root = os.path.abspath(args.path)
+    if not os.path.isdir(root):
+        print(f"Error: {root} is not a directory", file=sys.stderr)
+        sys.exit(1)
+
+    if args.by == "type":
+        sort_by_type(root, args.dry_run)
+    elif args.by == "date":
+        sort_by_date(root, args.dry_run)
+    elif args.by == "custom":
+        if not args.rule:
+            print("Error: --rule is required when --by custom", file=sys.stderr)
+            sys.exit(1)
+        process_custom_with_eval(root, args.rule, args.dry_run)
+    else:
+        print("Unreachable", file=sys.stderr)
+        sys.exit(1)
+
+    # Duplicate detection runs always (cheap)
+    dups = find_duplicates(root)
+    if dups:
+        print("Duplicates found:")
+        for a, b in dups:
+            print(f"  {a}  ==  {b}")
+
+if __name__ == "__main__":
+    main()

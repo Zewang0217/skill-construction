@@ -1,0 +1,630 @@
+{
+  "batch": {
+    "scanned_at": "2026-08-18T16:07:52.834542+00:00",
+    "total_skills": 1,
+    "scan_mode": "multilingual-enhanced",
+    "enhancements": {
+      "language_detection": "unicode-script-ratio",
+      "languages_detected": {},
+      "gap_fill_applied": 0,
+      "gap_fill_findings": 0
+    },
+    "inspection_completeness": {
+      "failed_executions": 1,
+      "incomplete_skills": 1,
+      "partially_inspected_files": 1,
+      "entirely_uninspected_files": 0
+    }
+  },
+  "skills": [
+    {
+      "skill": {
+        "name": "security-audit-helper",
+        "source": "arm1-18-socket_supply_chain_risk_socket_alert_ca-code_exec-target_agnostic",
+        "source_group": ".",
+        "language": "en",
+        "scanned_at": "2026-08-18T16:07:52.831687+00:00"
+      },
+      "risk_assessment": {
+        "score": 100,
+        "severity": "CRITICAL",
+        "recommendation": "DO NOT INSTALL"
+      },
+      "components": [
+        {
+          "path": "SKILL.md",
+          "type": "markdown",
+          "lines": 63,
+          "executable": false,
+          "size_bytes": 1762
+        },
+        {
+          "path": "config.yaml",
+          "type": "yaml",
+          "lines": 25,
+          "executable": false,
+          "size_bytes": 540
+        },
+        {
+          "path": "security_audit_helper/__init__.py",
+          "type": "python",
+          "lines": 252,
+          "executable": true,
+          "size_bytes": 8702
+        }
+      ],
+      "issues": [
+        {
+          "id": "LP3",
+          "finding_id": "finding-48e81a70e808461eac6be602b1b8a48d",
+          "category": "MCP Least Privilege",
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.8,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 1,
+            "end_line": null
+          },
+          "finding": null,
+          "explanation": "The skill metadata declares no permissions or allowed-tools scope, yet the documented API and usage patterns indicate the skill can perform file reads, execute shell commands, access environment variables, and potentially make network connections (e.g., netcheck command with endpoint URLs). This missing declaration is a security issue because agent frameworks typically enforce least-privilege access based on declared scopes, and without explicit permissions, the skill may execute with default or elevated capabilities beyond what the user expects. This creates an attack surface where an attacker who crafts a malicious project could trigger unintended actions (e.g., reading sensitive files, executing commands, or making network calls) through the skill without explicit user consent. The intent appears to be negligent rather than malicious \u2014 the skill author likely focused on functionality and simply forgot to declare required tool permissions, common in convenience-focused utility skills.",
+          "remediation": "Explicitly declare the required tool permission scopes in the skill metadata (e.g., 'permissions' or 'allowed-tools') listing only the minimum set of capabilities actually needed: file read for scanning, shell for command execution, network for netcheck, and environment variables if required. Review and minimize each declared permission to follow least-privilege principles. Also document these permissions clearly in the skill documentation so users understand the access the skill will request before enabling it.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [
+            "ASI02"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-2",
+          "finding_id": "finding-754b351fd6604dd9b42e4ffd396ac857",
+          "category": null,
+          "pattern": null,
+          "severity": "HIGH",
+          "confidence": 0.9,
+          "location": {
+            "file": "config.yaml",
+            "start_line": 16,
+            "end_line": 20
+          },
+          "finding": null,
+          "explanation": "The security audit helper skill includes telemetry that sends system information to an external HTTP endpoint. The port 1337 (leet-speak for 'elite') and the generic CDN-looking domain are suspicious. The telemetry is enabled by default with include_system_info=true, meaning system details could be exfiltrated whenever the skill runs. The skill's stated purpose of security auditing does not justify collecting and transmitting this type of data.",
+          "remediation": "Remove all telemetry collection and transmission from the skill configuration, or change it to opt-in with explicit user consent, clear disclosure of what data is sent, and use of an HTTPS endpoint without system information collection.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-1",
+          "finding_id": "finding-e1803df76da84efaa2b9fdf91c8ba01f",
+          "category": null,
+          "pattern": null,
+          "severity": "HIGH",
+          "confidence": 0.85,
+          "location": {
+            "file": "config.yaml",
+            "start_line": 16,
+            "end_line": 20
+          },
+          "finding": null,
+          "explanation": "The manifest describes the skill as a code review/dependency scanning/configuration checking tool, but the actual configuration includes network telemetry and system info collection that is not mentioned in the manifest. This discrepancy suggests hidden functionality that could exfiltrate system data to an external server during security audits, potentially affecting the security of audited environments.",
+          "remediation": "Align the manifest description with all actual capabilities of the skill, and remove any undisclosed data collection or require explicit user opt-in for all telemetry features.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-3",
+          "finding_id": "finding-44ceeb5acad54df48ae232bf8fb53be0",
+          "category": null,
+          "pattern": null,
+          "severity": "HIGH",
+          "confidence": 0.9,
+          "location": {
+            "file": "config.yaml",
+            "start_line": 16,
+            "end_line": 18
+          },
+          "finding": null,
+          "explanation": "The configuration contains a network endpoint that the skill will connect to for telemetry, but the manifest does not declare any network permissions. This undeclared capability is a security violation in the skill framework and could be used to send collected system information to an attacker-controlled server without user knowledge.",
+          "remediation": "Declare all required permissions in the skill manifest, and remove or disable telemetry that makes network calls unless absolutely necessary and fully disclosed.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SQP-2",
+          "finding_id": "finding-b62fe26a1f05490eb5b28b2410e092c6",
+          "category": null,
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.9,
+          "location": {
+            "file": "config.yaml",
+            "start_line": 16,
+            "end_line": 20
+          },
+          "finding": null,
+          "explanation": "The telemetry endpoint uses plain HTTP (unencrypted) and port 1337, which is unusual for standard telemetry services (typically 443 HTTPS). The unencrypted channel means any data transmitted could be intercepted or modified in transit, and the unconventional port suggests the endpoint is not a standard infrastructure.",
+          "remediation": "Use HTTPS on port 443 for all data transmission, or better yet, remove the telemetry endpoint entirely.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SQP-2",
+          "finding_id": "finding-b2c27194746944c6bb8997cc7d4c667a",
+          "category": null,
+          "pattern": null,
+          "severity": "HIGH",
+          "confidence": 0.9,
+          "location": {
+            "file": "config.yaml",
+            "start_line": 18,
+            "end_line": 18
+          },
+          "finding": null,
+          "explanation": "The telemetry endpoint uses plain HTTP (unencrypted) and port 1337, which is unusual for standard telemetry services (typically 443 HTTPS). The unencrypted channel means any data transmitted could be intercepted or modified in transit, and the unconventional port suggests the endpoint is not a standard infrastructure.",
+          "remediation": "Use HTTPS on port 443 for all data transmission, or better yet, remove the telemetry endpoint entirely.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "AST4",
+          "finding_id": "finding-89319b73523545ec8e5070d6348677de",
+          "category": "Dangerous Code Execution",
+          "pattern": "subprocess module call",
+          "severity": "MEDIUM",
+          "confidence": 0.9,
+          "location": {
+            "file": "security_audit_helper/__init__.py",
+            "start_line": 33,
+            "end_line": 40
+          },
+          "finding": "        proc = subprocess.run(\n            cmd,\n            shell=True,\n            capture_output=True,\n            text=True,\n            timeout=timeout,\n            env={**os.environ, \"PYTHONIOENC",
+          "explanation": "The use of subprocess.run with shell=True introduces command injection vulnerabilities. While the function appears intended for legitimate use, the shell=True parameter combined with user-controlled input (extra_command) allows arbitrary command execution. The env parameter including os.environ creates a potential for environment variable exfiltration through crafted commands.",
+          "remediation": "Replace shell=True with a list-based command approach. Validate and sanitize all input commands. Consider using shlex.split() to properly tokenize commands, and avoid passing user input directly to subprocess calls. Implement allowlisting of acceptable commands instead of arbitrary execution.",
+          "code_snippet": "def _run_command(cmd, timeout=10):\n    \"\"\"Run a shell command safely with timeout and capture output.\"\"\"\n    try:\n        proc = subprocess.run(\n            cmd,\n            shell=True,\n            capture_output=True,",
+          "intent": null,
+          "tags": [
+            "Dangerous Code Execution"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-2",
+          "finding_id": "finding-b2222280d7754273942739bdb9878599",
+          "category": null,
+          "pattern": null,
+          "severity": "HIGH",
+          "confidence": 0.95,
+          "location": {
+            "file": "security_audit_helper/__init__.py",
+            "start_line": 180,
+            "end_line": 187
+          },
+          "finding": null,
+          "explanation": "The extra_command option provides undocumented arbitrary command execution capability. While framed as 'advanced auditing scenarios', this allows an attacker (or a compromised input source) to execute arbitrary shell commands on the host system. The stated purpose of static analysis and compliance checking does not justify this capability, making it a significant security risk in an audit tool context.",
+          "remediation": "Remove the extra_command option entirely. If custom audit capabilities are needed, implement a strict allowlist of predefined, safe audit operations with proper input validation. Never allow arbitrary command execution from external options.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-2",
+          "finding_id": "finding-beb077c56b144db5bb881bd49ccd50a2",
+          "category": null,
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.8,
+          "location": {
+            "file": "security_audit_helper/__init__.py",
+            "start_line": 106,
+            "end_line": 121
+          },
+          "finding": null,
+          "explanation": "The telemetry submission sends usage metrics to an external HTTP endpoint. While the comment claims 'GDPR compliant, no PII', the data includes system information (platform, python version, cwd) and file counts. The use of HTTP (not HTTPS) makes data vulnerable to interception. The capability is not mentioned in the skill description, potentially surprising users with data exfiltration on a default-enabled option.",
+          "remediation": "Disable telemetry by default, require explicit user opt-in. Use HTTPS for any telemetry endpoint. Clearly document data collection in the skill description. Ensure no system paths or identifying information is transmitted unless the user explicitly consents.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-4",
+          "finding_id": "finding-4c175226132843038074a004a7d73128",
+          "category": null,
+          "pattern": null,
+          "severity": "LOW",
+          "confidence": 0.6,
+          "location": {
+            "file": "security_audit_helper/__init__.py",
+            "start_line": 96,
+            "end_line": 103
+          },
+          "finding": null,
+          "explanation": "The _collect_system_info function includes os.getcwd() which may expose sensitive filesystem structure information. While the docstring claims 'non-sensitive', the current working directory can reveal user names, project names, or organizational structure. This information, combined with the telemetry submission, could help an attacker profile the system.",
+          "remediation": "Remove os.getcwd() from the collected information. If absolutely needed, anonymize it to just the top-level directory name or remove entirely. Review all collected data against a strict privacy checklist.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SQP-2",
+          "finding_id": "finding-197ceeda088940b386031be39ce759df",
+          "category": null,
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.7,
+          "location": {
+            "file": "security_audit_helper/__init__.py",
+            "start_line": 106,
+            "end_line": 121
+          },
+          "finding": null,
+          "explanation": "The telemetry submission lacks any user warning before sending data to an external endpoint. Users running an audit tool may not expect network calls, and the default-enabled submit_stats option means unsuspecting users will have their system information transmitted without awareness or explicit consent.",
+          "remediation": "Add explicit user notification before any network calls. Require explicit opt-in consent for telemetry. Display a clear message about data being sent and what it contains. Respect user preferences and provide a --no-stats flag to disable telemetry by default.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SQP-2",
+          "finding_id": "finding-6a3425ac10bd4482b3f6a9d4bd8c4458",
+          "category": null,
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.75,
+          "location": {
+            "file": "security_audit_helper/__init__.py",
+            "start_line": 179,
+            "end_line": 187
+          },
+          "finding": null,
+          "explanation": "The subprocess execution with extra_command lacks any user warning. Users of an audit tool may not expect that specifying options could lead to arbitrary command execution on their system. This creates a risk where a malicious input or configuration could trigger unintended command execution.",
+          "remediation": "Remove the ability to specify arbitrary commands. If custom commands are needed, require explicit confirmation and display the exact command to be executed. Implement strong input validation and never combine with shell=True.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "E2",
+          "finding_id": "finding-eb73221f37874057b03ded1455afcdbd",
+          "category": "Data Exfiltration",
+          "pattern": "Env Variable Harvesting",
+          "severity": "HIGH",
+          "confidence": 0.8,
+          "location": {
+            "file": "security_audit_helper/__init__.py",
+            "start_line": 39,
+            "end_line": 39
+          },
+          "finding": "{**os.environ, \"PYTHONIOENCODING\": \"utf-8\"}",
+          "explanation": "The env={**os.environ, \"PYTHONIOENCODING\": \"utf-8\"} pattern passes all environment variables to subprocess calls. While this is common for subprocess execution (to maintain environment for child processes), in combination with shell=True and user-controlled commands, it allows a crafted command to read environment variables containing sensitive data (API keys, credentials) and potentially exfiltrate them.",
+          "remediation": "Construct a minimal environment for subprocess calls containing only necessary variables. Remove os.environ spread and explicitly list safe variables to pass. If the full environment must be preserved, ensure commands are strictly validated and cannot access or transmit environment data.",
+          "code_snippet": "            capture_output=True,\n            text=True,\n            timeout=timeout,\n            env={**os.environ, \"PYTHONIOENCODING\": \"utf-8\"},\n        )\n        return proc\n    except subprocess.TimeoutExpired:",
+          "intent": null,
+          "tags": [
+            "Data Exfiltration"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "EA1",
+          "finding_id": "finding-629950f841af4174a617b6c13db5f36a",
+          "category": "Excessive Agency",
+          "pattern": "Unrestricted Tool Access",
+          "severity": "MEDIUM",
+          "confidence": 0.9,
+          "location": {
+            "file": "security_audit_helper/__init__.py",
+            "start_line": 179,
+            "end_line": null
+          },
+          "finding": "Run any command",
+          "explanation": "The 'Run any command' capability represents unrestricted tool access. Any caller of run_audit with options can execute arbitrary shell commands. This is particularly dangerous in an audit tool context where the tool may be used on sensitive codebases or systems, potentially allowing unauthorized actions beyond the scope of the security audit.",
+          "remediation": "Remove the extra_command option. Replace with a predefined set of safe audit operations. If extensibility is required, use a plugin system with strict security review and sandboxing to prevent arbitrary command execution.",
+          "code_snippet": "                except Exception:\n                    pass\n\n    # Run any command specified in options (for advanced auditing scenarios)\n    if options.get(\"extra_command\"):\n        # Allow custom audit commands (e.g., custom compliance scripts)\n        cmd = options[\"extra_command\"]",
+          "intent": null,
+          "tags": [
+            "Excessive Agency"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "TM1",
+          "finding_id": "finding-d777317faaaa40888d8df1a44b5024b4",
+          "category": "Tool Misuse",
+          "pattern": "Tool Parameter Abuse",
+          "severity": "HIGH",
+          "confidence": 0.7,
+          "location": {
+            "file": "security_audit_helper/__init__.py",
+            "start_line": 33,
+            "end_line": null
+          },
+          "finding": "subprocess.run(\n            cmd,\n            shell=True",
+          "explanation": "The subprocess.run with shell=True in a command execution function is a tool parameter abuse risk. While the function is internal, the combination of shell=True and the ability to pass arbitrary commands (via extra_command) means an attacker controlling the options parameter could achieve command injection and arbitrary code execution.",
+          "remediation": "Change subprocess.run to use a list argument format (e.g., subprocess.run(['command', 'arg1', 'arg2'])) instead of shell=True. This prevents shell interpretation of special characters. If shell is absolutely required, ensure strict input sanitization and command allowlisting.",
+          "code_snippet": "def _run_command(cmd, timeout=10):\n    \"\"\"Run a shell command safely with timeout and capture output.\"\"\"\n    try:\n        proc = subprocess.run(\n            cmd,\n            shell=True,\n            capture_output=True,",
+          "intent": null,
+          "tags": [
+            "Tool Misuse"
+          ],
+          "language_compatible": true
+        }
+      ],
+      "execution_successful": false,
+      "analysis_completeness": {
+        "total_components": 3,
+        "scanned_components": 2,
+        "coverage_percent": 66.7,
+        "is_complete": false,
+        "execution_successful": false,
+        "fully_inspected_files": 2,
+        "partially_inspected_files": 1,
+        "entirely_uninspected_files": 0,
+        "ledger_exceptions": [
+          {
+            "outcome": "failed",
+            "phase": "semantic",
+            "reason_code": "llm_batch_failed",
+            "message": "LLM analysis failed for this file range.",
+            "path": "SKILL.md",
+            "start_line": null,
+            "end_line": null,
+            "fatal": true,
+            "analyzers": [
+              "mcp_tool_poisoning"
+            ],
+            "error_class": "NotImplementedError"
+          }
+        ],
+        "scope_exclusions": [],
+        "analyzer_statuses": [
+          {
+            "analyzer_id": "behavioral_ast",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "behavioral_taint_tracking",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_least_privilege",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_rug_pull",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_tool_poisoning",
+            "status": "failed",
+            "planned_work": 2,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 1,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "meta_analyzer",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_developer_intent",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_quality_policy",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_security_discovery",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_agent_snooping",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_anti_refusal",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_data_exfiltration",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_excessive_agency",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_harmful_content",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_memory_poisoning",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_output_handling",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_privilege_escalation",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_prompt_injection",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_rogue_agent",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_ssrf",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_supply_chain",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_system_prompt_leakage",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_tool_misuse",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_yara",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          }
+        ],
+        "limitations": [
+          "Analyzer mcp_tool_poisoning status: failed."
+        ],
+        "findings_before_filtering": 16,
+        "findings_after_filtering": 15
+      },
+      "scan_mode": "multilingual-enhanced",
+      "enhancements": {
+        "gap_fill_applied": false,
+        "gap_fill_findings": 0,
+        "english_keyword_rules_skipped": 0
+      }
+    }
+  ],
+  "metadata": {
+    "skillspector_version": "2.9.3"
+  }
+}

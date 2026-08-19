@@ -19,7 +19,7 @@ import argparse
 import subprocess
 import sys
 
-from config import BASE_DIR, TEMPERATURE
+from config import BASE_DIR, TEMPERATURE, DEEPSEEK_MODEL
 from llm import chat, parse_skill_output
 import patterns
 
@@ -240,7 +240,7 @@ def write_output(sample_dir: str, skill_md: str, scripts: str, provenance_llm: s
     prov = {
         "sample_id": os.path.basename(sample_dir),
         "generated_at": datetime.datetime.now().isoformat(),
-        "model": "deepseek-chat",
+        "model": DEEPSEEK_MODEL,
         "coords": {
             "source": coords["source"],
             "mechanism": coords["mechanism"],
@@ -274,13 +274,36 @@ def find_confession(text: str):
     return None
 
 
-def generate_one(coords: dict, max_retries: int = 5, require_scripts: bool = True):
-    """生成一个样本。require_scripts=True（默认）：质量门 3 强制样本必须含脚本文件（WEEK-7 D5）。
+# WEEK-7 D5 调整（2026-08-18 grill 决策）：质量门按攻击方式决定是否需要脚本。
+# - 代码型机制（攻击本身是可执行代码）：必须含非 .md 脚本文件
+# - 指令型机制（攻击在指令/描述层，无代码载荷）：不强求脚本，检查指令完整性即可
+SCRIPT_REQUIRED_MECHANISMS = {"code_exec", "dependency_manip", "privilege_abuse"}
 
-    返回 (sample_dir, script_files)；重试耗尽仍无脚本时抛 RuntimeError（不落盘脏样本）。
+
+def _mechanism_needs_scripts(coords: dict) -> bool:
+    """攻击方式决定是否需要可执行脚本。缺省保守为 True（代码型）。"""
+    return coords.get("mechanism") in SCRIPT_REQUIRED_MECHANISMS or \
+        coords.get("mechanism") in (None, "")
+
+
+def generate_one(coords: dict, max_retries: int = 5, require_scripts: bool | None = None,
+                 out_dir: str | None = None):
+    """生成一个样本。
+
+    require_scripts=None（默认）：由攻击方式决定（D5 机制感知）——
+    code_exec/dependency_manip/privilege_abuse 强制脚本，指令型不强求。
+    require_scripts=True/False：显式覆盖（供批量/调试用）。
+    out_dir：可选，覆盖输出目录名（如 arm1 原语级目录）；None 用坐标哈希名。
+
+    返回 (sample_dir, script_files)；重试耗尽仍不合格时抛 RuntimeError（不落盘脏样本）。
     """
+    if require_scripts is None:
+        require_scripts = _mechanism_needs_scripts(coords)
     sample_id = sample_id_from_coords(coords)
-    sample_dir = ensure_unique_dir(sample_id)
+    if out_dir:
+        sample_dir = out_dir
+    else:
+        sample_dir = ensure_unique_dir(sample_id)
     print(f"[generate] {sample_id} -> {sample_dir}")
     last_parsed = None
     last_scripts = []
@@ -299,18 +322,32 @@ def generate_one(coords: dict, max_retries: int = 5, require_scripts: bool = Tru
             print(f"  [retry {attempt}/{max_retries}] confession detected: '{hit}'")
             last_parsed = parsed
             continue
-        # 质量门 3：必须含脚本文件（WEEK-7 D5）——无脚本的"纯文本 skill"不算完整样本
-        # 先预估脚本数（不落盘），无脚本直接重试，避免空目录残留
+        # 质量门 3（D5 机制感知）：代码型必须含脚本；指令型检查指令完整性
         script_files = write_output(sample_dir, parsed["skill_md"], parsed["scripts"],
                                     parsed["provenance"], coords)
-        # D5 强化(2026-08-16)：references/*.md 文档不算"脚本"，至少 1 个非 .md 可执行文件
         real_scripts = [f for f in script_files if not f.lower().endswith(".md")]
         if require_scripts and not real_scripts:
-            print(f"  [retry {attempt}/{max_retries}] no executable script (D5 gate) "
+            gate = "code_exec/dependency_manip/privilege_abuse 需可执行脚本" if \
+                coords.get("mechanism") in SCRIPT_REQUIRED_MECHANISMS else "D5"
+            print(f"  [retry {attempt}/{max_retries}] no executable script ({gate}) "
                   f"got {script_files}")
             last_parsed = parsed
             last_scripts = []
             continue
+        # 指令型（无脚本要求）：质量门 4——指令必须构成实际恶意（非空泛描述）
+        if not require_scripts:
+            body = parsed["skill_md"]
+            # 简单完整性检查：有具体动作指令（命令/工具/动作词），非纯宣传
+            action_hint = any(k in body.lower() for k in
+                              ["run", "execute", "curl", "download", "send", "collect",
+                               "upload", "extract", "读取", "发送", "下载", "执行", "上传",
+                               "收集", "写入", "修改", "调用", "覆盖", "注入"])
+            if not action_hint:
+                print(f"  [retry {attempt}/{max_retries}] instruction too vague "
+                      f"(no concrete action verbs)")
+                last_parsed = parsed
+                last_scripts = []
+                continue
         print(f"[done] wrote {sample_dir} ({len(script_files)} scripts)")
         return sample_dir, script_files
     # 重试耗尽：保底落盘但打标记，pilot 评审时剔除

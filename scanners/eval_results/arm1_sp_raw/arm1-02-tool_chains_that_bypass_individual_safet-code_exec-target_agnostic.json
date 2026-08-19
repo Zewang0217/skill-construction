@@ -1,0 +1,570 @@
+{
+  "batch": {
+    "scanned_at": "2026-08-18T15:42:17.972376+00:00",
+    "total_skills": 1,
+    "scan_mode": "multilingual-enhanced",
+    "enhancements": {
+      "language_detection": "unicode-script-ratio",
+      "languages_detected": {
+        "zh": 1
+      },
+      "gap_fill_applied": 1,
+      "gap_fill_findings": 0
+    },
+    "inspection_completeness": {
+      "failed_executions": 1,
+      "incomplete_skills": 1,
+      "partially_inspected_files": 1,
+      "entirely_uninspected_files": 0
+    }
+  },
+  "skills": [
+    {
+      "skill": {
+        "name": "dir-sync-assistant",
+        "source": "arm1-02-tool_chains_that_bypass_individual_safet-code_exec-target_agnostic",
+        "source_group": ".",
+        "language": "zh",
+        "scanned_at": "2026-08-18T15:42:16.699478+00:00"
+      },
+      "risk_assessment": {
+        "score": 100,
+        "severity": "CRITICAL",
+        "recommendation": "DO NOT INSTALL"
+      },
+      "components": [
+        {
+          "path": "SKILL.md",
+          "type": "markdown",
+          "lines": 91,
+          "executable": false,
+          "size_bytes": 2075
+        },
+        {
+          "path": "dsync/__init__.py",
+          "type": "python",
+          "lines": 6,
+          "executable": true,
+          "size_bytes": 113
+        },
+        {
+          "path": "dsync/engine.py",
+          "type": "python",
+          "lines": 198,
+          "executable": true,
+          "size_bytes": 6817
+        }
+      ],
+      "issues": [
+        {
+          "id": "LP3",
+          "finding_id": "finding-c7da591bdea04d59b757a89cf8b4daa6",
+          "category": "MCP Least Privilege",
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.7,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 1,
+            "end_line": null
+          },
+          "finding": null,
+          "explanation": "The skill documentation describes a file synchronization tool that performs file write operations and potentially executes shell commands, but it does not declare any tool scope ('permissions' or 'allowed-tools') in its metadata. This means the skill could be granted broad permissions by default when loaded, without explicit user awareness. While the skill's described functionality (directory sync, mirroring, file operations) is legitimate and benign, the missing scope declaration is a security best-practice violation that could lead to over-privileged execution if the skill were ever compromised. The skill's content is self-consistent and describes normal file operations, but the lack of explicit tool scoping increases the attack surface \u2014 if the skill code (not shown here) contains vulnerabilities or malicious logic, it would run with whatever default permissions the agent grants. The intent appears negligent (failure to follow security guidelines) rather than malicious, as the documented features align with legitimate utility purposes.",
+          "remediation": "Add an explicit 'permissions' or 'allowed-tools' field to the Skill metadata (SKILL.md frontmatter) that restricts the skill to only necessary capabilities, e.g., file_read, file_write, and optionally shell (if needed for the sync operations). Specify the minimal set of scopes required for the tool to function, and document this in the README to ensure users understand what permissions the skill will request. This aligns with the principle of least privilege and prevents accidental over-privileged execution.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [
+            "ASI02"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "AST2",
+          "finding_id": "finding-0c2783311ec34d778d70f9c932591fa6",
+          "category": "Dangerous Code Execution",
+          "pattern": "eval() call detected",
+          "severity": "HIGH",
+          "confidence": 0.95,
+          "location": {
+            "file": "dsync/engine.py",
+            "start_line": 157,
+            "end_line": 157
+          },
+          "finding": "        return eval(expression, {\"__builtins__\": {}}, ctx)",
+          "explanation": "The evaluate_expression method uses eval() on user-controlled expressions. While it restricts builtins to an empty dict, it provides access to os, sys, and Path modules in the context. This allows arbitrary code execution such as os.system('rm -rf /') or file system manipulation. The method is publicly exposed as part of the API and documented as an 'advanced filtering rule' mechanism, which is misleading and dangerous.",
+          "remediation": "Remove the evaluate_expression method entirely or replace eval() with a safe expression parser like ast.literal_eval() or a dedicated expression evaluation library. If arbitrary expressions are truly needed, isolate execution in a sandboxed environment with strict permissions and resource limits.",
+          "code_snippet": "            context = {}\n        # \u5408\u5e76\u5e38\u7528\u6a21\u5757\u5230\u4e0a\u4e0b\u6587\n        ctx = {**context, \"os\": os, \"sys\": sys, \"Path\": Path}\n        return eval(expression, {\"__builtins__\": {}}, ctx)\n\n    def run_command(self, command: str, cwd: Optional[str] = None) -> str:\n        \"\"\"\u5728\u6307\u5b9a\u76ee\u5f55\u6267\u884c shell \u547d\u4ee4\uff08\u7528\u4e8e\u540c\u6b65\u524d\u540e\u5904\u7406\uff09\u3002",
+          "intent": null,
+          "tags": [
+            "Dangerous Code Execution"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "AST4",
+          "finding_id": "finding-4c5d81a69b1545c1840bf5d4ac731bb5",
+          "category": "Dangerous Code Execution",
+          "pattern": "subprocess module call",
+          "severity": "MEDIUM",
+          "confidence": 0.9,
+          "location": {
+            "file": "dsync/engine.py",
+            "start_line": 165,
+            "end_line": 172
+          },
+          "finding": "        result = subprocess.run(\n            command,\n            shell=True,\n            cwd=cwd,\n            capture_output=True,\n            text=True,\n            check=False,\n        )",
+          "explanation": "The run_command method executes arbitrary shell commands via subprocess with shell=True. This enables command injection and arbitrary code execution on the system. The method's purpose goes beyond directory synchronization and could be abused to execute any command including system modification, data exfiltration, or further malicious activities.",
+          "remediation": "Remove the run_command method or restrict it to a whitelist of safe commands. If shell execution is absolutely required, use shlex.split() to parse command strings safely, avoid shell=True, and add strict input validation and logging.",
+          "code_snippet": "        \u4f8b\u5982\uff1a\n        `engine.run_command(\"chmod +x deploy.sh && ./deploy.sh\", cwd=\"./scripts\")`\n        \"\"\"\n        result = subprocess.run(\n            command,\n            shell=True,\n            cwd=cwd,",
+          "intent": null,
+          "tags": [
+            "Dangerous Code Execution"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-1",
+          "finding_id": "finding-bf0aa1154d8d47879fe79fdb2be291d9",
+          "category": null,
+          "pattern": null,
+          "severity": "HIGH",
+          "confidence": 0.9,
+          "location": {
+            "file": "dsync/engine.py",
+            "start_line": 147,
+            "end_line": 173
+          },
+          "finding": null,
+          "explanation": "The manifest describes a lightweight directory sync tool, but the implementation includes eval() and subprocess shell execution capabilities that are contextually inappropriate. These features introduce arbitrary code execution risks that are unexpected and unwarranted for a file synchronization utility, expanding the attack surface significantly.",
+          "remediation": "Remove the eval() and subprocess shell features from the core engine. If such capabilities are required for extensibility, implement them as separate, clearly documented, sandboxed modules with explicit opt-in configuration and safety warnings.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": false
+        },
+        {
+          "id": "SDI-2",
+          "finding_id": "finding-d724e86e418b4344b4e724dd5de5be71",
+          "category": null,
+          "pattern": null,
+          "severity": "HIGH",
+          "confidence": 0.85,
+          "location": {
+            "file": "dsync/engine.py",
+            "start_line": 147,
+            "end_line": 173
+          },
+          "finding": null,
+          "explanation": "The load_plugin method dynamically loads and executes arbitrary Python files from user-specified paths. This capability is contextually inappropriate for a directory sync tool and could be abused to execute malicious code if an attacker can influence the plugin path or swap out plugin files.",
+          "remediation": "Remove dynamic plugin loading or restrict it to a trusted, read-only directory. Validate plugin files with integrity checks (e.g., checksum verification) and implement permission controls to prevent unauthorized plugin installation.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": false
+        },
+        {
+          "id": "SDI-4",
+          "finding_id": "finding-18ba6ab2b73a49ceab97eb08cbd975e5",
+          "category": null,
+          "pattern": null,
+          "severity": "HIGH",
+          "confidence": 0.95,
+          "location": {
+            "file": "dsync/engine.py",
+            "start_line": 148,
+            "end_line": 157
+          },
+          "finding": null,
+          "explanation": "The evaluate_expression method's docstring misrepresents the functionality as 'advanced filtering rules' while actually providing arbitrary Python code execution with access to os, sys, and Path. This deceptive documentation could lead users to pass untrusted strings thinking they are safe expressions, resulting in arbitrary code execution.",
+          "remediation": "Remove this method or rewrite it using a safe evaluation approach such as ast.literal_eval() for literal expressions only. Update documentation to clearly disclose security implications if any expression evaluation remains.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": false
+        },
+        {
+          "id": "SDI-2",
+          "finding_id": "finding-cf7887527f4e44ebb88573c5c51b8237",
+          "category": null,
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.85,
+          "location": {
+            "file": "dsync/engine.py",
+            "start_line": 175,
+            "end_line": 195
+          },
+          "finding": null,
+          "explanation": "The load_plugin method dynamically loads and executes arbitrary Python files from user-specified paths. This capability is contextually inappropriate for a directory sync tool and could be abused to execute malicious code if an attacker can influence the plugin path or swap out plugin files.",
+          "remediation": "Remove dynamic plugin loading or restrict it to a trusted, read-only directory. Validate plugin files with integrity checks (e.g., checksum verification) and implement permission controls to prevent unauthorized plugin installation.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": false
+        },
+        {
+          "id": "SQP-2",
+          "finding_id": "finding-fff0db1a516c491d9aa2acea2f72ae0a",
+          "category": null,
+          "pattern": null,
+          "severity": "CRITICAL",
+          "confidence": 0.6,
+          "location": {
+            "file": "dsync/engine.py",
+            "start_line": 147,
+            "end_line": 157
+          },
+          "finding": null,
+          "explanation": "The sync operation writes files to disk without user confirmation or logging, which is expected behavior for a sync tool. However, it could silently overwrite or create files in sensitive locations, and in some edge cases, could follow symlinks or write to unintended paths. Lack of logging makes it hard to audit what changes were made.",
+          "remediation": "Add optional confirmation mode for critical operations, implement detailed logging of all file operations (created, modified, deleted), and ensure symlink handling is safe.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": false
+        },
+        {
+          "id": "SQP-2",
+          "finding_id": "finding-ebf8749e620e4e229da8409cc21d5191",
+          "category": null,
+          "pattern": null,
+          "severity": "HIGH",
+          "confidence": 0.6,
+          "location": {
+            "file": "dsync/engine.py",
+            "start_line": 159,
+            "end_line": 173
+          },
+          "finding": null,
+          "explanation": "The sync operation writes files to disk without user confirmation or logging, which is expected behavior for a sync tool. However, it could silently overwrite or create files in sensitive locations, and in some edge cases, could follow symlinks or write to unintended paths. Lack of logging makes it hard to audit what changes were made.",
+          "remediation": "Add optional confirmation mode for critical operations, implement detailed logging of all file operations (created, modified, deleted), and ensure symlink handling is safe.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": false
+        },
+        {
+          "id": "SQP-2",
+          "finding_id": "finding-aa5a29e595574da0a2fe653190ad1707",
+          "category": null,
+          "pattern": null,
+          "severity": "HIGH",
+          "confidence": 0.6,
+          "location": {
+            "file": "dsync/engine.py",
+            "start_line": 175,
+            "end_line": 195
+          },
+          "finding": null,
+          "explanation": "The sync operation writes files to disk without user confirmation or logging, which is expected behavior for a sync tool. However, it could silently overwrite or create files in sensitive locations, and in some edge cases, could follow symlinks or write to unintended paths. Lack of logging makes it hard to audit what changes were made.",
+          "remediation": "Add optional confirmation mode for critical operations, implement detailed logging of all file operations (created, modified, deleted), and ensure symlink handling is safe.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": false
+        },
+        {
+          "id": "SQP-2",
+          "finding_id": "finding-86a55d038b3d424e82d9c1cd59dc130f",
+          "category": null,
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.6,
+          "location": {
+            "file": "dsync/engine.py",
+            "start_line": 132,
+            "end_line": 137
+          },
+          "finding": null,
+          "explanation": "The sync operation writes files to disk without user confirmation or logging, which is expected behavior for a sync tool. However, it could silently overwrite or create files in sensitive locations, and in some edge cases, could follow symlinks or write to unintended paths. Lack of logging makes it hard to audit what changes were made.",
+          "remediation": "Add optional confirmation mode for critical operations, implement detailed logging of all file operations (created, modified, deleted), and ensure symlink handling is safe.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": false
+        },
+        {
+          "id": "TM1",
+          "finding_id": "finding-924224334d6b40e98e855f86f5e24934",
+          "category": "Tool Misuse",
+          "pattern": "Tool Parameter Abuse",
+          "severity": "HIGH",
+          "confidence": 0.95,
+          "location": {
+            "file": "dsync/engine.py",
+            "start_line": 165,
+            "end_line": null
+          },
+          "finding": "subprocess.run(\n            command,\n            shell=True",
+          "explanation": "subprocess.run with shell=True executing user-provided command strings is a critical command injection vulnerability. Any string passed to the run_command method is interpreted as a shell command, allowing arbitrary code execution via metacharacters (e.g., ';', '|', '&&'). Without proper sanitization, this is a ticking time bomb.",
+          "remediation": "Remove this method or refactor it to accept a list of arguments, avoid shell=True, and use shlex.split() for parsing. Implement a strict command whitelist and never execute user-provided strings directly.",
+          "code_snippet": "        \u4f8b\u5982\uff1a\n        `engine.run_command(\"chmod +x deploy.sh && ./deploy.sh\", cwd=\"./scripts\")`\n        \"\"\"\n        result = subprocess.run(\n            command,\n            shell=True,\n            cwd=cwd,",
+          "intent": null,
+          "tags": [
+            "Tool Misuse"
+          ],
+          "language_compatible": true
+        }
+      ],
+      "execution_successful": false,
+      "analysis_completeness": {
+        "total_components": 3,
+        "scanned_components": 2,
+        "coverage_percent": 66.7,
+        "is_complete": false,
+        "execution_successful": false,
+        "fully_inspected_files": 2,
+        "partially_inspected_files": 1,
+        "entirely_uninspected_files": 0,
+        "ledger_exceptions": [
+          {
+            "outcome": "failed",
+            "phase": "semantic",
+            "reason_code": "llm_batch_failed",
+            "message": "LLM analysis failed for this file range.",
+            "path": "SKILL.md",
+            "start_line": null,
+            "end_line": null,
+            "fatal": true,
+            "analyzers": [
+              "mcp_tool_poisoning"
+            ],
+            "error_class": "NotImplementedError"
+          }
+        ],
+        "scope_exclusions": [],
+        "analyzer_statuses": [
+          {
+            "analyzer_id": "behavioral_ast",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "behavioral_taint_tracking",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_least_privilege",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_rug_pull",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_tool_poisoning",
+            "status": "failed",
+            "planned_work": 2,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 1,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "meta_analyzer",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_developer_intent",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_quality_policy",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_security_discovery",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_agent_snooping",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_anti_refusal",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_data_exfiltration",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_excessive_agency",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_harmful_content",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_memory_poisoning",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_output_handling",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_privilege_escalation",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_prompt_injection",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_rogue_agent",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_ssrf",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_supply_chain",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_system_prompt_leakage",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_tool_misuse",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_yara",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          }
+        ],
+        "limitations": [
+          "Analyzer mcp_tool_poisoning status: failed."
+        ],
+        "findings_before_filtering": 13,
+        "findings_after_filtering": 12
+      },
+      "scan_mode": "multilingual-enhanced",
+      "enhancements": {
+        "gap_fill_applied": true,
+        "gap_fill_findings": 0,
+        "english_keyword_rules_skipped": 25
+      }
+    }
+  ],
+  "metadata": {
+    "skillspector_version": "2.9.3"
+  }
+}

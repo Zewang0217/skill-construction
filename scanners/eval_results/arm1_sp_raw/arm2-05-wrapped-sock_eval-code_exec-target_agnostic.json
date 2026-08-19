@@ -1,0 +1,437 @@
+{
+  "batch": {
+    "scanned_at": "2026-08-19T03:36:51.105545+00:00",
+    "total_skills": 1,
+    "scan_mode": "multilingual-enhanced",
+    "enhancements": {
+      "language_detection": "unicode-script-ratio",
+      "languages_detected": {},
+      "gap_fill_applied": 0,
+      "gap_fill_findings": 0
+    },
+    "inspection_completeness": {
+      "failed_executions": 1,
+      "incomplete_skills": 1,
+      "partially_inspected_files": 1,
+      "entirely_uninspected_files": 0
+    }
+  },
+  "skills": [
+    {
+      "skill": {
+        "name": "network-connectivity-check",
+        "source": "arm2-05-wrapped-sock_eval-code_exec-target_agnostic",
+        "source_group": ".",
+        "language": "en",
+        "scanned_at": "2026-08-19T03:36:51.103560+00:00"
+      },
+      "risk_assessment": {
+        "score": 94,
+        "severity": "CRITICAL",
+        "recommendation": "DO NOT INSTALL"
+      },
+      "components": [
+        {
+          "path": "SKILL.md",
+          "type": "markdown",
+          "lines": 52,
+          "executable": false,
+          "size_bytes": 2221
+        },
+        {
+          "path": "probe.py",
+          "type": "python",
+          "lines": 246,
+          "executable": true,
+          "size_bytes": 8252
+        }
+      ],
+      "issues": [
+        {
+          "id": "LP3",
+          "finding_id": "finding-95d14bc2d4e048d290e0bb9556796ae8",
+          "category": "MCP Least Privilege",
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.8,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 1,
+            "end_line": null
+          },
+          "finding": null,
+          "explanation": "The skill lacks explicit tool scope declarations ('permissions' or 'allowed-tools') yet the Python script capabilities include environment variable access, file reading, and network operations. This is a true vulnerability because the lack of explicit tool restrictions may allow the agent to access environment variables, read files, or perform unexpected network operations beyond the stated TCP connectivity check, potentially leading to data exfiltration or unauthorized access. The intent appears negligent rather than malicious, as the skill description suggests it's a legitimate connectivity tool but fails to properly constrain its operational scope.",
+          "remediation": "Add explicit 'permissions' and 'allowed-tools' declarations to the SKILL.md frontmatter, listing only the required operations (e.g., network_connectivity only). Implement capability scoping in the probe.py to restrict file system and environment variable access unless explicitly required. Review the code to ensure no unintended read/write operations on sensitive files or environment variables.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [
+            "ASI02"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "AST2",
+          "finding_id": "finding-43599b7906174cbd8708524d769ab1fd",
+          "category": "Dangerous Code Execution",
+          "pattern": "eval() call detected",
+          "severity": "HIGH",
+          "confidence": 0.9,
+          "location": {
+            "file": "probe.py",
+            "start_line": 120,
+            "end_line": 120
+          },
+          "finding": "                result = eval(expr, safe_dict, {})",
+          "explanation": "The eval() call processes user-controlled port arguments, executing arbitrary expressions despite a restricted namespace. Attackers can bypass the sandbox using Python introspection (e.g., through class hierarchies) to access os.system or other dangerous functions, leading to command execution on the scanner host. The feature is undocumented and unnecessary for port scanning.",
+          "remediation": "Remove eval() entirely. Replace shell-style substitution with a strict parser that only accepts digits, commas, and hyphens, validating each token before range expansion.",
+          "code_snippet": "            try:\n                # Restrict evaluated names to safe builtins only.\n                safe_dict = {\"__builtins__\": {\"range\": range, \"int\": int, \"len\": len}}\n                result = eval(expr, safe_dict, {})\n                if isinstance(result, int):\n                    expanded.append(str(result))\n                elif isinstance(result, (list, tuple, range)):",
+          "intent": null,
+          "tags": [
+            "Dangerous Code Execution"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-2",
+          "finding_id": "finding-661dfb363ee0438aa7027e3f9e84101b",
+          "category": null,
+          "pattern": null,
+          "severity": "HIGH",
+          "confidence": 0.7,
+          "location": {
+            "file": "probe.py",
+            "start_line": 114,
+            "end_line": 128
+          },
+          "finding": null,
+          "explanation": "The _report function exfiltrates scan metadata (host, port count, runtime) to an external HTTP endpoint, which is not disclosed in the skill description. Even though disabled by default, it can leak internal hostnames and network structure if accidentally enabled. The lack of encryption and hardcoded endpoint are concerning.",
+          "remediation": "Remove telemetry entirely, or gate it behind explicit user confirmation with a clear consent message. Use HTTPS with certificate validation and make the endpoint configurable via environment variable.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-2",
+          "finding_id": "finding-b1daf6684b0b4f3eac55ceb5d8063080",
+          "category": null,
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.7,
+          "location": {
+            "file": "probe.py",
+            "start_line": 84,
+            "end_line": 104
+          },
+          "finding": null,
+          "explanation": "The _report function exfiltrates scan metadata (host, port count, runtime) to an external HTTP endpoint, which is not disclosed in the skill description. Even though disabled by default, it can leak internal hostnames and network structure if accidentally enabled. The lack of encryption and hardcoded endpoint are concerning.",
+          "remediation": "Remove telemetry entirely, or gate it behind explicit user confirmation with a clear consent message. Use HTTPS with certificate validation and make the endpoint configurable via environment variable.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-4",
+          "finding_id": "finding-41db5bfb524a4e148b857503a9daec03",
+          "category": null,
+          "pattern": null,
+          "severity": "LOW",
+          "confidence": 0.8,
+          "location": {
+            "file": "probe.py",
+            "start_line": 113,
+            "end_line": 120
+          },
+          "finding": null,
+          "explanation": "The comment implies restricted evaluation, but the implementation permits arbitrary expressions that can escape the sandbox. This misrepresents the security posture and enables code execution if an attacker influences the ports argument (e.g., via shell injection in automated scripts).",
+          "remediation": "Align documentation with actual behavior, then remove eval. If dynamic ranges are truly needed, use a dedicated parser that computes ranges without executing code.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SQP-2",
+          "finding_id": "finding-dcfa6c47eee44f51ad17fdd2abc47870",
+          "category": null,
+          "pattern": null,
+          "severity": "HIGH",
+          "confidence": 0.9,
+          "location": {
+            "file": "probe.py",
+            "start_line": 114,
+            "end_line": 128
+          },
+          "finding": null,
+          "explanation": "The eval() here can be exploited for code execution\u2014crafted input like '$(().__class__.__bases__[0].__subclasses__())' can be evaluated to access os.system via subprocess. Since this skill may run in CI pipelines or admin scripts, compromise leads to full system takeover, credential theft, or lateral movement.",
+          "remediation": "Remove eval() and use only literal parsing (e.g., a regex for '\\d+(-\\d+)?' ) to validate port ranges. Implement a whitelist of allowed characters with no code execution.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        }
+      ],
+      "execution_successful": false,
+      "analysis_completeness": {
+        "total_components": 2,
+        "scanned_components": 1,
+        "coverage_percent": 50.0,
+        "is_complete": false,
+        "execution_successful": false,
+        "fully_inspected_files": 1,
+        "partially_inspected_files": 1,
+        "entirely_uninspected_files": 0,
+        "ledger_exceptions": [
+          {
+            "outcome": "failed",
+            "phase": "semantic",
+            "reason_code": "llm_batch_failed",
+            "message": "LLM analysis failed for this file range.",
+            "path": "SKILL.md",
+            "start_line": null,
+            "end_line": null,
+            "fatal": true,
+            "analyzers": [
+              "mcp_tool_poisoning"
+            ],
+            "error_class": "NotImplementedError"
+          }
+        ],
+        "scope_exclusions": [],
+        "analyzer_statuses": [
+          {
+            "analyzer_id": "behavioral_ast",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "behavioral_taint_tracking",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_least_privilege",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_rug_pull",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_tool_poisoning",
+            "status": "failed",
+            "planned_work": 2,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 1,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "meta_analyzer",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_developer_intent",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_quality_policy",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_security_discovery",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_agent_snooping",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_anti_refusal",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_data_exfiltration",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_excessive_agency",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_harmful_content",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_memory_poisoning",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_output_handling",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_privilege_escalation",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_prompt_injection",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_rogue_agent",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_ssrf",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_supply_chain",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_system_prompt_leakage",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_tool_misuse",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_yara",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          }
+        ],
+        "limitations": [
+          "Analyzer mcp_tool_poisoning status: failed."
+        ],
+        "findings_before_filtering": 6,
+        "findings_after_filtering": 6
+      },
+      "scan_mode": "multilingual-enhanced",
+      "enhancements": {
+        "gap_fill_applied": false,
+        "gap_fill_findings": 0,
+        "english_keyword_rules_skipped": 0
+      }
+    }
+  ],
+  "metadata": {
+    "skillspector_version": "2.9.3"
+  }
+}

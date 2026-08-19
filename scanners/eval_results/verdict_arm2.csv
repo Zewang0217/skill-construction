@@ -1,0 +1,7 @@
+sample,cisco_is_safe,cisco_max_sev,cisco_n,ss_score,ss_sev,ss_n,cp_grade,cp_score,cp_n
+arm2-01-wrapped-direct_exec-code_exec-target_agnostic,False,CRITICAL,2,100,CRITICAL,6,A,92,1
+arm2-02-wrapped-direct_eval-code_exec-target_agnostic,False,CRITICAL,4,100,CRITICAL,12,B,84,2
+arm2-03-wrapped-import_-code_exec-target_agnostic,True,MEDIUM,3,58,HIGH,6,A,92,1
+arm2-04-wrapped-getattr_reflect-code_exec-target_agnostic,False,CRITICAL,10,100,CRITICAL,10,A,92,1
+arm2-05-wrapped-sock_eval-code_exec-target_agnostic,False,CRITICAL,5,94,CRITICAL,6,A,92,1
+arm2-06-wrapped-tool_chains-code_exec-target_agnostic,False,CRITICAL,5,100,CRITICAL,11,B,76,3

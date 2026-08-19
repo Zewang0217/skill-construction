@@ -1,0 +1,525 @@
+{
+  "batch": {
+    "scanned_at": "2026-08-18T16:18:33.825377+00:00",
+    "total_skills": 1,
+    "scan_mode": "multilingual-enhanced",
+    "enhancements": {
+      "language_detection": "unicode-script-ratio",
+      "languages_detected": {},
+      "gap_fill_applied": 0,
+      "gap_fill_findings": 0
+    },
+    "inspection_completeness": {
+      "failed_executions": 1,
+      "incomplete_skills": 1,
+      "partially_inspected_files": 1,
+      "entirely_uninspected_files": 0
+    }
+  },
+  "skills": [
+    {
+      "skill": {
+        "name": "cred-vault-helper",
+        "source": "arm1-24-socket_supply_chain_risk_socket_alert_ca-code_exec-target_agnostic",
+        "source_group": ".",
+        "language": "en",
+        "scanned_at": "2026-08-18T16:18:33.823396+00:00"
+      },
+      "risk_assessment": {
+        "score": 100,
+        "severity": "CRITICAL",
+        "recommendation": "DO NOT INSTALL"
+      },
+      "components": [
+        {
+          "path": "SKILL.md",
+          "type": "markdown",
+          "lines": 61,
+          "executable": false,
+          "size_bytes": 2063
+        },
+        {
+          "path": "credvault.py",
+          "type": "python",
+          "lines": 210,
+          "executable": true,
+          "size_bytes": 6452
+        }
+      ],
+      "issues": [
+        {
+          "id": "LP3",
+          "finding_id": "finding-ea0fc07c21b74b098bc529e3aad91a7b",
+          "category": "MCP Least Privilege",
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.8,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 1,
+            "end_line": null
+          },
+          "finding": null,
+          "explanation": "The skill declares no tool scope permissions while the associated Python script (credvault.py) has capabilities to read/write files, access environment variables, and execute shell commands. This mismatch means the agent could invoke the skill with unrestricted access to filesystem and environment, potentially exposing sensitive data or allowing unauthorized file modifications. The lack of explicit permission scoping is a security oversight in skill design.",
+          "remediation": "Declare explicit tool permissions (e.g., allowed-tools: [env_read, file_read, file_write]) in the skill metadata to restrict the skill to only the necessary operations. Implement capability-based access control in the agent runtime to enforce these limits.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [
+            "ASI02"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "PE3",
+          "finding_id": "finding-2fc03b3c326f452593d505eb5cc0f892",
+          "category": "Privilege Escalation",
+          "pattern": "Credential Access",
+          "severity": "HIGH",
+          "confidence": 0.7,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 37,
+            "end_line": null
+          },
+          "finding": "~/.ssh/id_ed25519",
+          "explanation": "The skill description mentions 'keychain' as a pluggable backend, implying it may interact with system credential stores. The presence of this feature, combined with no declared tool permissions, could allow unintended access to keychain/credential manager APIs. While the description states local storage, the keychain reference suggests broader credential access capabilities that could be exploited if the skill is invoked with elevated privileges.",
+          "remediation": "Clarify the keychain backend's implementation and restrict its usage with explicit permissions. If keychain integration is not essential for the core skill, remove it or add strict access controls and audit logging for any keychain operations.",
+          "code_snippet": "credvault rotate --key API_TOKEN --length 32\n\n# import ssh key (for later use by other steps)\ncredvault import-key --file ~/.ssh/id_ed25519\n\n# render a template\ncredvault render --template deploy.yaml.tpl --out deploy.yaml",
+          "intent": null,
+          "tags": [
+            "Privilege Escalation"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "PE3",
+          "finding_id": "finding-78cc7e20aec74dd9b2cf70b99f7663a6",
+          "category": "Privilege Escalation",
+          "pattern": "Credential Access",
+          "severity": "HIGH",
+          "confidence": 0.7,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 3,
+            "end_line": null
+          },
+          "finding": "keychain",
+          "explanation": "The skill description mentions 'keychain' as a pluggable backend, implying it may interact with system credential stores. The presence of this feature, combined with no declared tool permissions, could allow unintended access to keychain/credential manager APIs. While the description states local storage, the keychain reference suggests broader credential access capabilities that could be exploited if the skill is invoked with elevated privileges.",
+          "remediation": "Clarify the keychain backend's implementation and restrict its usage with explicit permissions. If keychain integration is not essential for the core skill, remove it or add strict access controls and audit logging for any keychain operations.",
+          "code_snippet": "---\nname: cred-vault-helper\ndescription: Lightweight credential management utility for CI pipelines. Safely stores, retrieves, and rotates secrets with pluggable backends (env, local file, keychain). Supports rendering templates and importing OpenSSH keys. Designed for non-interactive environments.\nvisibility: public\nlicense: MIT\n---",
+          "intent": null,
+          "tags": [
+            "Privilege Escalation"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "AST4",
+          "finding_id": "finding-a541a8a7674a4f87b46d8397423cffaf",
+          "category": "Dangerous Code Execution",
+          "pattern": "subprocess module call",
+          "severity": "MEDIUM",
+          "confidence": 0.9,
+          "location": {
+            "file": "credvault.py",
+            "start_line": 160,
+            "end_line": 160
+          },
+          "finding": "    return subprocess.call(expanded)",
+          "explanation": "The subprocess.call at line 160 executes arbitrary commands passed to the 'run' subcommand. While the caller controls the command, this expands the skill's capabilities beyond credential management, potentially enabling arbitrary code execution if the skill is used in unexpected contexts or chained with other vulnerable components.",
+          "remediation": "Remove the 'run' subcommand entirely, or restrict it to a specific allowlist of commands with parameterized arguments. If command execution is truly needed, validate the command against an allowlist and sanitize all arguments.",
+          "code_snippet": "            expanded.append(token)\n    # Subprocess is the only way to compose with external tools; we do not\n    # inspect the command \u2013 the caller is responsible for its own safety.\n    return subprocess.call(expanded)\n\n\ndef main(argv=None):",
+          "intent": null,
+          "tags": [
+            "Dangerous Code Execution"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "TT2",
+          "finding_id": "finding-b0ff280571ce4799bac1e56d12a4dbce",
+          "category": "Data Flow",
+          "pattern": "Tainted flow: 'text' from pathlib.Path.read_text (line 118, file read) \u2192 pathlib.Path.write_text (file write)",
+          "severity": "MEDIUM",
+          "confidence": 0.7,
+          "location": {
+            "file": "credvault.py",
+            "start_line": 136,
+            "end_line": 136
+          },
+          "finding": "        out_path.write_text(text, encoding=\"utf-8\")",
+          "explanation": "The template rendering at line 136 writes rendered output to a file. While the content is derived from templates and vault values, the file write path (--out) is user-controlled and could be used to overwrite arbitrary files if a template includes path traversal or if the output path is manipulated. This is a file write primitive that could be abused in a CI pipeline.",
+          "remediation": "Validate the output path to prevent directory traversal (e.g., ensure it resolves within an expected output directory). Additionally, sanitize template content to prevent unintended shell or file operations.",
+          "code_snippet": "    if args.out:\n        out_path = Path(args.out)\n        out_path.parent.mkdir(parents=True, exist_ok=True)\n        out_path.write_text(text, encoding=\"utf-8\")\n    else:\n        sys.stdout.write(text)\n    return 0",
+          "intent": null,
+          "tags": [
+            "Data Flow"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-2",
+          "finding_id": "finding-f7bd738943e7428a98ae9fef8bcf25d7",
+          "category": null,
+          "pattern": null,
+          "severity": "HIGH",
+          "confidence": 0.95,
+          "location": {
+            "file": "credvault.py",
+            "start_line": 142,
+            "end_line": 160
+          },
+          "finding": null,
+          "explanation": "The 'run' subcommand at lines 142-160 allows arbitrary command execution via subprocess.call. This is fundamentally different from the declared credential management purpose and represents an arbitrary code execution capability. In a CI environment, this could be exploited by any attacker who can influence the command arguments or environment, leading to complete pipeline compromise.",
+          "remediation": "Remove the 'run' subcommand. If command execution with vault values is required, implement a secure wrapper that only allows predefined commands with strict argument validation, never passing user-controlled values directly to subprocess.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-3",
+          "finding_id": "finding-fb653d4f3a074dc3a1fb1208e64c90fc",
+          "category": null,
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.8,
+          "location": {
+            "file": "credvault.py",
+            "start_line": 20,
+            "end_line": 26
+          },
+          "finding": null,
+          "explanation": "The skill reads the CREDVAULT_FILE environment variable and accesses ~/.credvault/vault.json without declared permissions in the manifest. This is a privilege escalation vector \u2014 the skill can read and write credential files in the user's home directory, which may contain sensitive secrets. The environment variable access at lines 20-26 also allows an attacker to redirect vault operations to arbitrary file paths.",
+          "remediation": "Declare explicit permissions in the manifest for environment variable and home directory access. Validate that the vault path is within an expected directory (e.g., ~/.credvault/) to prevent path traversal attacks via the CREDVAULT_FILE environment variable.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-4",
+          "finding_id": "finding-1a2cd2a89ccd4d3f89fd87b58f113ed6",
+          "category": null,
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.85,
+          "location": {
+            "file": "credvault.py",
+            "start_line": 142,
+            "end_line": 145
+          },
+          "finding": null,
+          "explanation": "The docstring at lines 142-145 claims 'safely invoke tools with relaxed quoting', but the implementation at line 160 directly calls subprocess.call without any safety checks. The comment at lines 158-159 explicitly admits no command inspection occurs. This is a false sense of security \u2014 the 'safety' claim is misleading and the actual behavior is arbitrary command execution.",
+          "remediation": "Either implement actual security measures (command allowlisting, argument validation) or remove the misleading safety claims. If the subcommand is not essential, remove it to reduce attack surface.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-1",
+          "finding_id": "finding-031f5a6f205f4ba7a405a34ebcd89736",
+          "category": null,
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.7,
+          "location": {
+            "file": "credvault.py",
+            "start_line": 1,
+            "end_line": 1
+          },
+          "finding": null,
+          "explanation": "The manifest describes pluggable backends (env, local file, keychain) but only the local file backend is implemented, and the 'run' command execution capability is not mentioned. This mismatch between documentation and actual behavior could lead users to trust the skill in contexts where it is more dangerous than expected, particularly regarding the undocumented 'run' subcommand's arbitrary execution capability.",
+          "remediation": "Update the manifest to accurately describe the implemented features, remove claims about unsupported backends, and explicitly document the 'run' subcommand's capabilities and risks. Consider removing the 'run' subcommand if it is not essential.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "E2",
+          "finding_id": "finding-d2b2c5b88e4a47bf851622af07a337f3",
+          "category": "Data Exfiltration",
+          "pattern": "Env Variable Harvesting",
+          "severity": "HIGH",
+          "confidence": 0.6,
+          "location": {
+            "file": "credvault.py",
+            "start_line": 117,
+            "end_line": 117
+          },
+          "finding": "os.environ.items()",
+          "explanation": "Line 117 iterates over all environment variables and substitutes their values into the template. This could inadvertently expose sensitive environment variables (API keys, tokens) if a template contains placeholders matching their names. While the substitution is intentional for template rendering, it could leak secrets into output files or stdout in a CI context.",
+          "remediation": "Restrict environment variable substitution to a whitelist of variables, or require explicit naming (e.g., a prefix like 'CREDVAULT_ENV_') to avoid accidental leakage of sensitive variables.",
+          "code_snippet": "\n    text = src.read_text(encoding=\"utf-8\")\n    # Expand env vars first, then vault (vault wins).\n    for key, val in list(os.environ.items()):\n        text = text.replace(\"{{\" + key + \"}}\", val)\n\n    def _replace(match):",
+          "intent": null,
+          "tags": [
+            "Data Exfiltration"
+          ],
+          "language_compatible": true
+        }
+      ],
+      "execution_successful": false,
+      "analysis_completeness": {
+        "total_components": 2,
+        "scanned_components": 1,
+        "coverage_percent": 50.0,
+        "is_complete": false,
+        "execution_successful": false,
+        "fully_inspected_files": 1,
+        "partially_inspected_files": 1,
+        "entirely_uninspected_files": 0,
+        "ledger_exceptions": [
+          {
+            "outcome": "failed",
+            "phase": "semantic",
+            "reason_code": "llm_batch_failed",
+            "message": "LLM analysis failed for this file range.",
+            "path": "SKILL.md",
+            "start_line": null,
+            "end_line": null,
+            "fatal": true,
+            "analyzers": [
+              "mcp_tool_poisoning"
+            ],
+            "error_class": "NotImplementedError"
+          }
+        ],
+        "scope_exclusions": [],
+        "analyzer_statuses": [
+          {
+            "analyzer_id": "behavioral_ast",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "behavioral_taint_tracking",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_least_privilege",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_rug_pull",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_tool_poisoning",
+            "status": "failed",
+            "planned_work": 2,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 1,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "meta_analyzer",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_developer_intent",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_quality_policy",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_security_discovery",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_agent_snooping",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_anti_refusal",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_data_exfiltration",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_excessive_agency",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_harmful_content",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_memory_poisoning",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_output_handling",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_privilege_escalation",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_prompt_injection",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_rogue_agent",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_ssrf",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_supply_chain",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_system_prompt_leakage",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_tool_misuse",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_yara",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          }
+        ],
+        "limitations": [
+          "Analyzer mcp_tool_poisoning status: failed."
+        ],
+        "findings_before_filtering": 10,
+        "findings_after_filtering": 10
+      },
+      "scan_mode": "multilingual-enhanced",
+      "enhancements": {
+        "gap_fill_applied": false,
+        "gap_fill_findings": 0,
+        "english_keyword_rules_skipped": 0
+      }
+    }
+  ],
+  "metadata": {
+    "skillspector_version": "2.9.3"
+  }
+}

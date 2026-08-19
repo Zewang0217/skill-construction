@@ -1,0 +1,36 @@
+{
+  "sample_id": "arm1-12-data_flows_directly_from_a_source_to_a_s-code_exec-target_agnostic",
+  "generated_at": "2026-08-18T23:28:08.709949",
+  "model": "ecnu-max",
+  "coords": {
+    "source": "source_agnostic",
+    "mechanism": "code_exec",
+    "target": "target_agnostic",
+    "vector": "CI",
+    "disguise": "定时任务管理器"
+  },
+  "seed_actions": [
+    "Data flows directly from a source to a sink without sanitization（真实攻击样本中的原语，用该技术实现恶意行为）"
+  ],
+  "source_strategy": {
+    "injection_point": "skill 内含开放的 exec/eval/subprocess/动态导入能力原语(AST1-AST9),恶意随任意到达的输入流动",
+    "entry_path": "skill 声明强能力,恶意通过正常调用的参数/数据路径触发(scanner 看到'能力'但判不了'意图')",
+    "visibility": "partial",
+    "real_examples": [
+      "better-polymarket 的 os.system 就是来源无关(正常调用也走 exec)",
+      "SkillSpector Dangerous Code Execution 类别映射为 unclear"
+    ]
+  },
+  "callback_placeholder": "cdn-metrics.example.com:1337",
+  "slot_id": null,
+  "slot_label": null,
+  "realizability": null,
+  "claimed_by": null,
+  "script_files": [
+    "cron_manager.py",
+    "README.md"
+  ],
+  "llm_provenance": "- 坐标: source_agnostic × code_exec × target_agnostic，载体 vector=CI（代码注入），外壳主题=定时任务管理器。\n- 种入策略: 恶意逻辑通过 skill 声明的强能力（`add` 子命令接受任意 `--command` 字符串，并在 `_run_command` 中用 `subprocess.run(shell=True)` 执行；`sync` 子命令可发起网络请求）自然暴露。扫描器可见“能力”（代码执行、网络请求），但难以断言“意图”，因为这是定时任务管理器的合理功能。\n- 藏匿手法: 恶意行为不写在固定路径，而是“数据流”驱动——用户/攻击者提供的 `--command` 内容直接进入 `shell=True` 的 sink，未做过滤。`sync` 的 URL 是占位符，实际攻击中可被替换为任意地址，响应 JSON 可被构造成触发额外命令。所有代码注释均为正常工程说明，无任何自白。\n- 可见性: half（部分可见）——能力明显，恶意意图需结合调用参数才能推断，符合“能力可见但意图难判”。\n- 真实恶意行为借鉴: 无 sanitization 的 source→sink 数据流（恶意命令直接进 shell），这是真实攻击样本中的经典原语。",
+  "confession_flag": false,
+  "label": "malicious"
+}

@@ -1,0 +1,52 @@
+{
+ "skill_name": "cloud-resource-auditor",
+ "skill_path": "/tmp/cisco_sq1nd0ms",
+ "is_safe": true,
+ "max_severity": "LOW",
+ "findings_count": 1,
+ "findings": [
+  {
+   "id": "llm_finding_cloud-resource-auditor_0",
+   "rule_id": "LLM_DATA_EXFILTRATION",
+   "category": "data_exfiltration",
+   "severity": "LOW",
+   "title": "Potential sensitive account information exposure through generated reports",
+   "description": "The audit report generation includes account/profile names, resource IDs, tags, and state information. While this is expected functionality for a cloud auditing tool, if reports are shared or stored insecurely, they could expose sensitive infrastructure details. Additionally, the tool reads AWS CLI profiles including potential credentials via the 'aws --profile' command, which is necessary for its function but increases the attack surface if credentials are misconfigured.",
+   "file_path": "auditor/core.py",
+   "line_number": null,
+   "snippet": "collect_resources function invokes AWS CLI with user-specified profiles, which accesses AWS credentials; reports include resource metadata.",
+   "remediation": "Ensure reports are stored with appropriate file permissions and encrypted if sensitive. Recommend using short-lived credentials and least-privilege IAM roles for the tool.",
+   "analyzer": "llm",
+   "metadata": {
+    "model": "openai/ecnu-max",
+    "aitech": "AITech-8.2",
+    "aitech_name": "Data Exfiltration / Exposure",
+    "aisubtech": "AISubtech-8.2.3",
+    "aisubtech_name": "Data Exfiltration via Agent Tooling",
+    "scanner_category": "SECURITY VIOLATION"
+   }
+  }
+ ],
+ "scan_duration_seconds": 10.35853362083435,
+ "duration_ms": 10358,
+ "analyzers_used": [
+  "static_analyzer",
+  "bytecode",
+  "pipeline",
+  "llm_analyzer"
+ ],
+ "timestamp": "2026-08-18T15:58:54.214031+00:00",
+ "scan_metadata": {
+  "policy_name": "default",
+  "policy_version": "1.0",
+  "policy_preset_base": "balanced",
+  "policy_fingerprint_sha256": "e6033e8884796d3589d44e3fa2d57f0aadf31a56d4e88818aeed2fd225d82c59",
+  "llm_overall_assessment": "The cloud-resource-auditor skill appears to be a legitimate cloud resource auditing tool with no overt malicious intent. The description matches the code functionality: it enumerates EC2, EBS, and EIP resources via AWS CLI, checks for unused resources, and generates reports. No prompt injection, data exfiltration, command injection, or tool poisoning was detected. The code is straightforward, uses standard library and YAML, and does not attempt to hide any behavior. The main considerations are operational security around AWS credential use and output handling, which are inherent to cloud auditing tools. Overall, the skill is assessed as safe with minor operational recommendations.",
+  "llm_primary_threats": []
+ },
+ "llm_usage": {
+  "input_tokens": 6283,
+  "output_tokens": 364,
+  "total_tokens": 6647
+ }
+}

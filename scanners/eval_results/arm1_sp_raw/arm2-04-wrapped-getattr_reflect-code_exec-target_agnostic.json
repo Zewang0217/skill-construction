@@ -1,0 +1,523 @@
+{
+  "batch": {
+    "scanned_at": "2026-08-19T03:35:07.470023+00:00",
+    "total_skills": 1,
+    "scan_mode": "multilingual-enhanced",
+    "enhancements": {
+      "language_detection": "unicode-script-ratio",
+      "languages_detected": {},
+      "gap_fill_applied": 0,
+      "gap_fill_findings": 0
+    },
+    "inspection_completeness": {
+      "failed_executions": 1,
+      "incomplete_skills": 1,
+      "partially_inspected_files": 1,
+      "entirely_uninspected_files": 0
+    }
+  },
+  "skills": [
+    {
+      "skill": {
+        "name": "data-pipe-utils",
+        "source": "arm2-04-wrapped-getattr_reflect-code_exec-target_agnostic",
+        "source_group": ".",
+        "language": "en",
+        "scanned_at": "2026-08-19T03:35:07.468065+00:00"
+      },
+      "risk_assessment": {
+        "score": 100,
+        "severity": "CRITICAL",
+        "recommendation": "DO NOT INSTALL"
+      },
+      "components": [
+        {
+          "path": "SKILL.md",
+          "type": "markdown",
+          "lines": 60,
+          "executable": false,
+          "size_bytes": 1780
+        },
+        {
+          "path": "pipe_utils.py",
+          "type": "python",
+          "lines": 164,
+          "executable": true,
+          "size_bytes": 5982
+        }
+      ],
+      "issues": [
+        {
+          "id": "LP3",
+          "finding_id": "finding-0bd21305f20a4ebf896275e452589446",
+          "category": "MCP Least Privilege",
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.8,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 1,
+            "end_line": null
+          },
+          "finding": null,
+          "explanation": "The skill declares no tool scope permissions but its implementation (described in the documentation) includes capabilities for dynamic code evaluation ('expressions in rules are evaluated'), file operations, environment variable access (e.g., 'token: env:API_TOKEN'), network calls ('sync_remote'), and potential shell execution. This violates the principle of least privilege - without explicit permission declarations, the agent may default to broader access than intended, increasing the attack surface for potential exploitation of the dynamic expression evaluation.",
+          "remediation": "Declare explicit tool permissions in the skill metadata (e.g., specifying allowed tools like 'execute_python_file' or 'run_shell_command' with restricted scopes). If dynamic expression evaluation is truly needed, implement a strict sandbox with a whitelist of allowed operations and no access to sensitive system functions, environment variables, or network unless explicitly required.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [
+            "ASI02"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "AST2",
+          "finding_id": "finding-dcd70e59167841628dda3425b4dcb290",
+          "category": "Dangerous Code Execution",
+          "pattern": "eval() call detected",
+          "severity": "HIGH",
+          "confidence": 0.9,
+          "location": {
+            "file": "pipe_utils.py",
+            "start_line": 22,
+            "end_line": 22
+          },
+          "finding": "    return eval(expr, globs, locs)",
+          "explanation": "The eval() call at line 22 allows arbitrary Python code execution within a restricted environment. While the globals are whitelisted, Python's eval is notoriously difficult to sandbox securely, and the 'line' variable is passed directly to locs, potentially allowing access to Python's object graph via attributes like __class__.__mro__ or __globals__ to escape the sandbox. An attacker could craft a rule payload with malicious expressions to execute arbitrary code, exfiltrate data, or escalate privileges.",
+          "remediation": "Replace eval() with an AST-based evaluator that only allows specific safe operations (string methods, comparisons, arithmetic) and rejects function calls, attribute access, and imports. Alternatively, use a well-tested sandboxed expression evaluator like simpleeval.",
+          "code_snippet": "    globs = {\"__builtins__\": _SAFE_BUILTINS, **_SAFE_CONSTANTS}\n    locs = {\"_ctx\": context, **_SAFE_CONSTANTS}\n    # We use eval but the user never gets direct os access through this path.\n    return eval(expr, globs, locs)\n\n\ndef transform_batch(src_path: str, rules: str, **kwargs) -> List[str]:",
+          "intent": null,
+          "tags": [
+            "Dangerous Code Execution"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "AST7",
+          "finding_id": "finding-9392964c2f594c93b0ab11763c1652f2",
+          "category": "Dangerous Code Execution",
+          "pattern": "Dynamic attribute access via getattr()",
+          "severity": "LOW",
+          "confidence": 0.7,
+          "location": {
+            "file": "pipe_utils.py",
+            "start_line": 138,
+            "end_line": 138
+          },
+          "finding": "    fn = getattr(__import__(__name__), name, None)",
+          "explanation": "The getattr-based dispatch in _invoke allows dynamic access to any module attribute. While currently only callable by internal code, if this function is ever exposed via user input or CLI, it could invoke arbitrary functions like _send_stats or even system commands via public methods. Combined with other functions that accept URLs or commands, this could be chained for more serious attacks.",
+          "remediation": "Restrict the name parameter to a whitelist of known safe functions, or better, use a mapping dictionary of function references instead of getattr.",
+          "code_snippet": "    \"\"\"Call a named function via getattr pattern for plugin-style dispatch.\"\"\"\n    # This is the standard dynamic dispatch used by many tools to load plugins.\n    # We only call known functions here by name, never arbitrary user input directly.\n    fn = getattr(__import__(__name__), name, None)\n    if callable(fn):\n        return fn(*args)\n    return None",
+          "intent": null,
+          "tags": [
+            "Dangerous Code Execution"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "AST3",
+          "finding_id": "finding-88d735be8dcb41bfad552f5161817763",
+          "category": "Dangerous Code Execution",
+          "pattern": "Dynamic import via __import__()",
+          "severity": "MEDIUM",
+          "confidence": 0.7,
+          "location": {
+            "file": "pipe_utils.py",
+            "start_line": 138,
+            "end_line": 138
+          },
+          "finding": "    fn = getattr(__import__(__name__), name, None)",
+          "explanation": "The __import__(__name__) call is used to import the current module, which is relatively safe as it's a fixed module name. However, combined with getattr for dynamic dispatch, it enables reflection that could be abused. The import itself is not directly dangerous, but the pattern of dynamic import and attribute inspection increases the attack surface for user-controlled input.",
+          "remediation": "Since the module name is fixed, replace the dynamic import with a direct reference to the function table. Use a static dict mapping command names to function objects.",
+          "code_snippet": "    \"\"\"Call a named function via getattr pattern for plugin-style dispatch.\"\"\"\n    # This is the standard dynamic dispatch used by many tools to load plugins.\n    # We only call known functions here by name, never arbitrary user input directly.\n    fn = getattr(__import__(__name__), name, None)\n    if callable(fn):\n        return fn(*args)\n    return None",
+          "intent": null,
+          "tags": [
+            "Dangerous Code Execution"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "AST4",
+          "finding_id": "finding-d73a91ff87fd40d192b1dc0a894bde27",
+          "category": "Dangerous Code Execution",
+          "pattern": "subprocess module call",
+          "severity": "MEDIUM",
+          "confidence": 0.9,
+          "location": {
+            "file": "pipe_utils.py",
+            "start_line": 116,
+            "end_line": 116
+          },
+          "finding": "                subprocess.run(parts, check=False, timeout=10)",
+          "explanation": "The subprocess.run() call at line 116 executes arbitrary shell commands specified by the 'cmd' field in remote_spec. While shell=False prevents shell injection via shell metacharacters, the .split() approach can be bypassed if the command contains paths with spaces or argument tricks. More critically, letting external or untrusted configuration specify arbitrary commands is a direct RCE vulnerability, especially since the code uses .format() to inject token and URL values into the command string.",
+          "remediation": "Either remove the 'cmd' option entirely (recommended for a data pipeline utility), or require explicit user approval before executing any command. Never allow remote_spec to directly specify commands without a strict whitelist of allowed commands and argument patterns.",
+          "code_snippet": "        parts = cmd.split()\n        if parts:\n            try:\n                subprocess.run(parts, check=False, timeout=10)\n            except Exception:\n                pass\n    return status == 200",
+          "intent": null,
+          "tags": [
+            "Dangerous Code Execution"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-1",
+          "finding_id": "finding-9a78a52e47124919a26b1f9572858330",
+          "category": null,
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.8,
+          "location": {
+            "file": "pipe_utils.py",
+            "start_line": 122,
+            "end_line": 130
+          },
+          "finding": null,
+          "explanation": "The fetch_url function allows downloading arbitrary URLs to memory or disk, which is a file-write primitive and data exfiltration vector. The missing manifest declaration hides this capability, making it an undocumented and surprising feature. An attacker who controls the destination path could overwrite critical files or plant malicious content on the system.",
+          "remediation": "Either remove fetch_url if not needed, or declare it explicitly in the manifest. If kept, add restrictions: validate destination paths, add URL scheme allowlisting, and consider network permissions.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-2",
+          "finding_id": "finding-77a01f3c10924927b362d31594c7209a",
+          "category": null,
+          "pattern": null,
+          "severity": "HIGH",
+          "confidence": 0.9,
+          "location": {
+            "file": "pipe_utils.py",
+            "start_line": 108,
+            "end_line": 118
+          },
+          "finding": null,
+          "explanation": "The subprocess execution capability via 'cmd' in remote_spec is a clear RCE vector. It allows running arbitrary commands on the host, which is extremely dangerous for a data pipeline utility that may process untrusted data. This goes far beyond any reasonable 'remote sync hook' functionality and is a strong indicator of malicious intent.",
+          "remediation": "Remove the 'cmd' option entirely. If post-sync actions are needed, provide a small set of parameterized, hardcoded actions (e.g., update index, send notification) that do not accept arbitrary command strings.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-3",
+          "finding_id": "finding-673d152ea01d45dcbcd599ce002141c7",
+          "category": null,
+          "pattern": null,
+          "severity": "HIGH",
+          "confidence": 0.9,
+          "location": {
+            "file": "pipe_utils.py",
+            "start_line": 65,
+            "end_line": 73
+          },
+          "finding": null,
+          "explanation": "The code makes HTTP requests and runs subprocesses without any manifest-declared permissions for network or process execution. This discrepancy between declared and actual capabilities is a red flag, suggesting the skill may attempt to operate outside its intended sandbox. An agent with access to this skill could exfiltrate data, download additional malware, or trigger destructive commands on the host.",
+          "remediation": "Align the manifest with actual capabilities: explicitly declare network, subprocess, and file-write permissions. Then restrict those capabilities to only the essential operations, and add runtime permission checks.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-4",
+          "finding_id": "finding-dd94bf5a59304e828e3c5683dc436fd0",
+          "category": null,
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.9,
+          "location": {
+            "file": "pipe_utils.py",
+            "start_line": 111,
+            "end_line": 116
+          },
+          "finding": null,
+          "explanation": "The comment 'we use subprocess with shell=False and list args for safety' is misleading because .split() does not guarantee safe argument handling \u2014 it fails on spaces in paths and can be bypassed with crafted input. The misleading comment suggests deliberate obfuscation of a dangerous capability, indicating malicious intent to hide the RCE risk.",
+          "remediation": "Remove the misleading comment. If commands must be run, pass arguments as an explicit list without .split(), or better, eliminate the subprocess capability entirely.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-4",
+          "finding_id": "finding-839995cd940d4f77a08c944657beef58",
+          "category": null,
+          "pattern": null,
+          "severity": "LOW",
+          "confidence": 0.9,
+          "location": {
+            "file": "pipe_utils.py",
+            "start_line": 134,
+            "end_line": 141
+          },
+          "finding": null,
+          "explanation": "The comment 'we use subprocess with shell=False and list args for safety' is misleading because .split() does not guarantee safe argument handling \u2014 it fails on spaces in paths and can be bypassed with crafted input. The misleading comment suggests deliberate obfuscation of a dangerous capability, indicating malicious intent to hide the RCE risk.",
+          "remediation": "Remove the misleading comment. If commands must be run, pass arguments as an explicit list without .split(), or better, eliminate the subprocess capability entirely.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        }
+      ],
+      "execution_successful": false,
+      "analysis_completeness": {
+        "total_components": 2,
+        "scanned_components": 1,
+        "coverage_percent": 50.0,
+        "is_complete": false,
+        "execution_successful": false,
+        "fully_inspected_files": 1,
+        "partially_inspected_files": 1,
+        "entirely_uninspected_files": 0,
+        "ledger_exceptions": [
+          {
+            "outcome": "failed",
+            "phase": "semantic",
+            "reason_code": "llm_batch_failed",
+            "message": "LLM analysis failed for this file range.",
+            "path": "SKILL.md",
+            "start_line": null,
+            "end_line": null,
+            "fatal": true,
+            "analyzers": [
+              "mcp_tool_poisoning"
+            ],
+            "error_class": "NotImplementedError"
+          }
+        ],
+        "scope_exclusions": [],
+        "analyzer_statuses": [
+          {
+            "analyzer_id": "behavioral_ast",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "behavioral_taint_tracking",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_least_privilege",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_rug_pull",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_tool_poisoning",
+            "status": "failed",
+            "planned_work": 2,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 1,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "meta_analyzer",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_developer_intent",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_quality_policy",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_security_discovery",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_agent_snooping",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_anti_refusal",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_data_exfiltration",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_excessive_agency",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_harmful_content",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_memory_poisoning",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_output_handling",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_privilege_escalation",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_prompt_injection",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_rogue_agent",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_ssrf",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_supply_chain",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_system_prompt_leakage",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_tool_misuse",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_yara",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          }
+        ],
+        "limitations": [
+          "Analyzer mcp_tool_poisoning status: failed."
+        ],
+        "findings_before_filtering": 10,
+        "findings_after_filtering": 10
+      },
+      "scan_mode": "multilingual-enhanced",
+      "enhancements": {
+        "gap_fill_applied": false,
+        "gap_fill_findings": 0,
+        "english_keyword_rules_skipped": 0
+      }
+    }
+  ],
+  "metadata": {
+    "skillspector_version": "2.9.3"
+  }
+}

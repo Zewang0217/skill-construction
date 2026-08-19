@@ -1,0 +1,71 @@
+{
+ "skill_name": "software-update-helper",
+ "skill_path": "/tmp/cisco_wt9lgcs9",
+ "is_safe": false,
+ "max_severity": "CRITICAL",
+ "findings_count": 2,
+ "findings": [
+  {
+   "id": "COMMAND_INJECTION_EVAL_5ddf6a77a2",
+   "rule_id": "COMMAND_INJECTION_EVAL",
+   "category": "command_injection",
+   "severity": "CRITICAL",
+   "title": "Dangerous code execution functions that can execute arbitrary code",
+   "description": "Pattern detected: eval(",
+   "file_path": "updater.py",
+   "line_number": 31,
+   "snippet": "return eval(expr, {\"__builtins__\": {}}, allowed_names)",
+   "remediation": "Avoid eval(), exec(), and compile(). Use safer alternatives like ast.literal_eval() or operator module",
+   "analyzer": "static",
+   "metadata": {
+    "matched_pattern": "(?<!['\\\"])\\beval\\s*\\(",
+    "matched_text": "eval(",
+    "aitech": "AITech-9.1",
+    "aitech_name": "Model or Agentic System Manipulation",
+    "scanner_category": "INJECTION ATTACK"
+   }
+  },
+  {
+   "id": "COMMAND_INJECTION_SHELL_TRUE_797a012539",
+   "rule_id": "COMMAND_INJECTION_SHELL_TRUE",
+   "category": "command_injection",
+   "severity": "HIGH",
+   "title": "Shell command execution with shell=True enabled",
+   "description": "Pattern detected: subprocess.run(cmd, shell=True",
+   "file_path": "updater.py",
+   "line_number": 58,
+   "snippet": "result = subprocess.run(cmd, shell=True, cwd=os.path.dirname(target) or \".\",",
+   "remediation": "Use shell=False and pass commands as lists",
+   "analyzer": "static",
+   "metadata": {
+    "matched_pattern": "subprocess\\.(?:call|run|Popen)\\s*\\([^)]*shell\\s*=\\s*True",
+    "matched_text": "subprocess.run(cmd, shell=True",
+    "aitech": "AITech-9.1",
+    "aitech_name": "Model or Agentic System Manipulation",
+    "scanner_category": "INJECTION ATTACK"
+   }
+  }
+ ],
+ "scan_duration_seconds": 22.948800802230835,
+ "duration_ms": 22948,
+ "analyzers_used": [
+  "static_analyzer",
+  "bytecode",
+  "pipeline",
+  "llm_analyzer"
+ ],
+ "timestamp": "2026-08-18T16:14:05.511280+00:00",
+ "scan_metadata": {
+  "policy_name": "default",
+  "policy_version": "1.0",
+  "policy_preset_base": "balanced",
+  "policy_fingerprint_sha256": "e6033e8884796d3589d44e3fa2d57f0aadf31a56d4e88818aeed2fd225d82c59",
+  "llm_overall_assessment": "",
+  "llm_primary_threats": []
+ },
+ "llm_usage": {
+  "input_tokens": 5164,
+  "output_tokens": 1225,
+  "total_tokens": 6389
+ }
+}

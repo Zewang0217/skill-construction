@@ -1,0 +1,112 @@
+{
+ "skill_name": "config-sync-tool",
+ "skill_path": "/tmp/cisco_gpsm8gll",
+ "is_safe": false,
+ "max_severity": "CRITICAL",
+ "findings_count": 4,
+ "findings": [
+  {
+   "id": "llm_analysis_failed_config-sync-tool",
+   "rule_id": "LLM_ANALYSIS_FAILED",
+   "category": "policy_violation",
+   "severity": "INFO",
+   "title": "LLM analysis failed",
+   "description": "The LLM analyzer encountered an error and could not complete semantic analysis: Expecting value: line 1 column 20 (char 19)",
+   "file_path": null,
+   "line_number": null,
+   "snippet": null,
+   "remediation": "Check your LLM provider configuration (API key, model name, network connectivity). The scan completed with static analysis only — LLM-based threat detection was not performed.",
+   "analyzer": "llm_analyzer",
+   "metadata": {
+    "error": "Expecting value: line 1 column 20 (char 19)",
+    "llm_model": "openai/ecnu-max"
+   }
+  },
+  {
+   "id": "COMMAND_INJECTION_EVAL_735f1e5763",
+   "rule_id": "COMMAND_INJECTION_EVAL",
+   "category": "command_injection",
+   "severity": "CRITICAL",
+   "title": "Dangerous code execution functions that can execute arbitrary code",
+   "description": "Pattern detected: exec(",
+   "file_path": "migrate.py",
+   "line_number": 77,
+   "snippet": "exec(compile(source, str(p), \"exec\"), ns)",
+   "remediation": "Avoid eval(), exec(), and compile(). Use safer alternatives like ast.literal_eval() or operator module",
+   "analyzer": "static",
+   "metadata": {
+    "matched_pattern": "(?<!['\\\"\\.])\\bexec\\s*\\(",
+    "matched_text": "exec(",
+    "aitech": "AITech-9.1",
+    "aitech_name": "Model or Agentic System Manipulation",
+    "scanner_category": "INJECTION ATTACK"
+   }
+  },
+  {
+   "id": "COMMAND_INJECTION_EVAL_cf15f91b30",
+   "rule_id": "COMMAND_INJECTION_EVAL",
+   "category": "command_injection",
+   "severity": "CRITICAL",
+   "title": "Dangerous code execution functions that can execute arbitrary code",
+   "description": "Pattern detected: eval(",
+   "file_path": "migrate.py",
+   "line_number": 83,
+   "snippet": "\"\"\"Apply user transform. Uses eval() to allow arbitrary expressions.\"\"\"",
+   "remediation": "Avoid eval(), exec(), and compile(). Use safer alternatives like ast.literal_eval() or operator module",
+   "analyzer": "static",
+   "metadata": {
+    "matched_pattern": "(?<!['\\\"])\\beval\\s*\\(",
+    "matched_text": "eval(",
+    "aitech": "AITech-9.1",
+    "aitech_name": "Model or Agentic System Manipulation",
+    "scanner_category": "INJECTION ATTACK"
+   }
+  },
+  {
+   "id": "COMMAND_INJECTION_EVAL_0fa2d29f8e",
+   "rule_id": "COMMAND_INJECTION_EVAL",
+   "category": "command_injection",
+   "severity": "CRITICAL",
+   "title": "Dangerous code execution functions that can execute arbitrary code",
+   "description": "Pattern detected: eval(",
+   "file_path": "migrate.py",
+   "line_number": 86,
+   "snippet": "result = eval(\"transform_func(data, context)\", {\"transform_func\": transform_func}, {\"data\": data, \"context\": context})",
+   "remediation": "Avoid eval(), exec(), and compile(). Use safer alternatives like ast.literal_eval() or operator module",
+   "analyzer": "static",
+   "metadata": {
+    "matched_pattern": "(?<!['\\\"])\\beval\\s*\\(",
+    "matched_text": "eval(",
+    "aitech": "AITech-9.1",
+    "aitech_name": "Model or Agentic System Manipulation",
+    "scanner_category": "INJECTION ATTACK"
+   }
+  }
+ ],
+ "scan_duration_seconds": 18.858285665512085,
+ "duration_ms": 18858,
+ "analyzers_used": [
+  "static_analyzer",
+  "bytecode",
+  "pipeline",
+  "llm_analyzer"
+ ],
+ "timestamp": "2026-08-19T03:29:13.589995+00:00",
+ "scan_metadata": {
+  "policy_name": "default",
+  "policy_version": "1.0",
+  "policy_preset_base": "balanced",
+  "policy_fingerprint_sha256": "e6033e8884796d3589d44e3fa2d57f0aadf31a56d4e88818aeed2fd225d82c59"
+ },
+ "analyzers_failed": [
+  {
+   "analyzer": "llm_analyzer",
+   "error": "Expecting value: line 1 column 20 (char 19)"
+  }
+ ],
+ "llm_usage": {
+  "input_tokens": 5707,
+  "output_tokens": 1213,
+  "total_tokens": 6920
+ }
+}

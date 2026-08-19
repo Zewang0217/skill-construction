@@ -1,0 +1,85 @@
+{
+ "skill_name": "perf-sight",
+ "skill_path": "/tmp/cisco_r6o9xn3m",
+ "is_safe": true,
+ "max_severity": "MEDIUM",
+ "findings_count": 3,
+ "findings": [
+  {
+   "id": "TOOL_MISMATCH_NETWORK_df2b818719",
+   "rule_id": "TOOL_ABUSE_UNDECLARED_NETWORK",
+   "category": "unauthorized_tool_use",
+   "severity": "MEDIUM",
+   "title": "Undeclared network usage",
+   "description": "Skill code uses network libraries but doesn't declare network requirement",
+   "file_path": "/tmp/cisco_r6o9xn3m/SKILL.md",
+   "line_number": null,
+   "snippet": null,
+   "remediation": "Declare network usage in compatibility field or remove network calls",
+   "analyzer": "static",
+   "metadata": {}
+  },
+  {
+   "id": "DATA_EXFIL_NETWORK_REQUESTS_50870a0d4b",
+   "rule_id": "DATA_EXFIL_NETWORK_REQUESTS",
+   "category": "data_exfiltration",
+   "severity": "MEDIUM",
+   "title": "Outbound network request primitives that can transmit data externally",
+   "description": "Pattern detected: urllib.request.Request(",
+   "file_path": "perf_sight/cli.py",
+   "line_number": 59,
+   "snippet": "req = urllib.request.Request(",
+   "remediation": "Ensure network operations are necessary and document allowed destinations",
+   "analyzer": "static",
+   "metadata": {
+    "matched_pattern": "urllib\\.request\\.(?:urlopen|Request)\\s*\\(",
+    "matched_text": "urllib.request.Request(",
+    "aitech": "AITech-8.2",
+    "aitech_name": "Data Exfiltration / Exposure",
+    "scanner_category": "SECURITY VIOLATION"
+   }
+  },
+  {
+   "id": "DATA_EXFIL_NETWORK_REQUESTS_7108898681",
+   "rule_id": "DATA_EXFIL_NETWORK_REQUESTS",
+   "category": "data_exfiltration",
+   "severity": "MEDIUM",
+   "title": "Outbound network request primitives that can transmit data externally",
+   "description": "Pattern detected: urllib.request.urlopen(",
+   "file_path": "perf_sight/cli.py",
+   "line_number": 65,
+   "snippet": "with urllib.request.urlopen(req, timeout=5) as resp:",
+   "remediation": "Ensure network operations are necessary and document allowed destinations",
+   "analyzer": "static",
+   "metadata": {
+    "matched_pattern": "urllib\\.request\\.(?:urlopen|Request)\\s*\\(",
+    "matched_text": "urllib.request.urlopen(",
+    "aitech": "AITech-8.2",
+    "aitech_name": "Data Exfiltration / Exposure",
+    "scanner_category": "SECURITY VIOLATION"
+   }
+  }
+ ],
+ "scan_duration_seconds": 23.359870672225952,
+ "duration_ms": 23359,
+ "analyzers_used": [
+  "static_analyzer",
+  "bytecode",
+  "pipeline",
+  "llm_analyzer"
+ ],
+ "timestamp": "2026-08-19T03:31:35.745927+00:00",
+ "scan_metadata": {
+  "policy_name": "default",
+  "policy_version": "1.0",
+  "policy_preset_base": "balanced",
+  "policy_fingerprint_sha256": "e6033e8884796d3589d44e3fa2d57f0aadf31a56d4e88818aeed2fd225d82c59",
+  "llm_overall_assessment": "",
+  "llm_primary_threats": []
+ },
+ "llm_usage": {
+  "input_tokens": 5178,
+  "output_tokens": 1593,
+  "total_tokens": 6771
+ }
+}

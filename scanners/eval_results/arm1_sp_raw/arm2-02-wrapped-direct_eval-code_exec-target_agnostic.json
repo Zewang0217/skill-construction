@@ -1,0 +1,569 @@
+{
+  "batch": {
+    "scanned_at": "2026-08-19T03:30:40.582693+00:00",
+    "total_skills": 1,
+    "scan_mode": "multilingual-enhanced",
+    "enhancements": {
+      "language_detection": "unicode-script-ratio",
+      "languages_detected": {},
+      "gap_fill_applied": 0,
+      "gap_fill_findings": 0
+    },
+    "inspection_completeness": {
+      "failed_executions": 1,
+      "incomplete_skills": 1,
+      "partially_inspected_files": 1,
+      "entirely_uninspected_files": 0
+    }
+  },
+  "skills": [
+    {
+      "skill": {
+        "name": "config-sync-tool",
+        "source": "arm2-02-wrapped-direct_eval-code_exec-target_agnostic",
+        "source_group": ".",
+        "language": "en",
+        "scanned_at": "2026-08-19T03:30:40.580639+00:00"
+      },
+      "risk_assessment": {
+        "score": 100,
+        "severity": "CRITICAL",
+        "recommendation": "DO NOT INSTALL"
+      },
+      "components": [
+        {
+          "path": "SKILL.md",
+          "type": "markdown",
+          "lines": 82,
+          "executable": false,
+          "size_bytes": 3008
+        },
+        {
+          "path": "migrate.py",
+          "type": "python",
+          "lines": 145,
+          "executable": true,
+          "size_bytes": 5311
+        }
+      ],
+      "issues": [
+        {
+          "id": "LP3",
+          "finding_id": "finding-565b2759274f4d42868ceeed2556d6ff",
+          "category": "MCP Least Privilege",
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.6,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 1,
+            "end_line": null
+          },
+          "finding": null,
+          "explanation": "The skill performs file reads/writes and reads environment variables but declares no tool scope or permissions, meaning an agent could invoke it without appropriate restrictions. The skill description mentions 'custom processing functions execute with full user privileges' and supports loading arbitrary Python files via --transforms and --validate, which could execute arbitrary code with the agent's permissions. While the skill explicitly warns users to only supply trusted code, this is not enforced programmatically. The lack of declared permissions means security tooling cannot enforce least-privilege access, and combined with the arbitrary code execution capability, this creates a meaningful risk if the skill is used with untrusted transform/validation files.",
+          "remediation": "Declare explicit tool permissions in the skill metadata (e.g., allowed-tools: [file_read, file_write, env]) and restrict execution of custom Python files to explicitly trusted paths. Add sandboxing or validation for transform/validation hooks, and require confirmation before loading external code. Also consider adding an allowlist of permitted operations and enforcing least-privilege execution.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [
+            "ASI02"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "AST8",
+          "finding_id": "finding-b97bf73e4a314ab5b35a9fec3285f71f",
+          "category": "Dangerous Code Execution",
+          "pattern": "Dangerous chain: exec() wrapping compile",
+          "severity": "CRITICAL",
+          "confidence": 1.0,
+          "location": {
+            "file": "migrate.py",
+            "start_line": 77,
+            "end_line": 77
+          },
+          "finding": "    exec(compile(source, str(p), \"exec\"), ns)",
+          "explanation": "Dangerous chain of compile() wrapping exec() that allows arbitrary code execution from user-supplied files. The 'isolated namespace' comment is misleading - there is no sandboxing whatsoever. A malicious Python file provided via --transforms or --validate paths will execute with full system privileges.",
+          "remediation": "Remove the ability to execute arbitrary Python code. Use a safe evaluation approach such as auditing, subprocess with restricted permissions and timeouts, or implement transforms using a restricted set of operations with explicit allowlist.",
+          "code_snippet": "    ns = {}\n    source = p.read_text()\n    # Execute in an isolated namespace; `eval` used for AST-based transforms.\n    exec(compile(source, str(p), \"exec\"), ns)\n    if func_name not in ns:\n        raise AttributeError(f\"Function '{func_name}' not defined in {path}\")\n    return ns[func_name]",
+          "intent": null,
+          "tags": [
+            "Dangerous Code Execution"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "AST1",
+          "finding_id": "finding-8cc869751faf41309bbf1f68f9390bb4",
+          "category": "Dangerous Code Execution",
+          "pattern": "exec() call detected",
+          "severity": "HIGH",
+          "confidence": 1.0,
+          "location": {
+            "file": "migrate.py",
+            "start_line": 77,
+            "end_line": 77
+          },
+          "finding": "    exec(compile(source, str(p), \"exec\"), ns)",
+          "explanation": "exec() call allows arbitrary code execution from user-supplied files. Any file that reaches this function via --transforms or --validate flags is executed with full permissions.",
+          "remediation": "Remove exec() usage. Replace with secure configuration transformation mechanisms that do not require arbitrary code execution.",
+          "code_snippet": "    ns = {}\n    source = p.read_text()\n    # Execute in an isolated namespace; `eval` used for AST-based transforms.\n    exec(compile(source, str(p), \"exec\"), ns)\n    if func_name not in ns:\n        raise AttributeError(f\"Function '{func_name}' not defined in {path}\")\n    return ns[func_name]",
+          "intent": null,
+          "tags": [
+            "Dangerous Code Execution"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "AST2",
+          "finding_id": "finding-7d6f2f763c314f1fb45c483f8be0aa43",
+          "category": "Dangerous Code Execution",
+          "pattern": "eval() call detected",
+          "severity": "HIGH",
+          "confidence": 1.0,
+          "location": {
+            "file": "migrate.py",
+            "start_line": 86,
+            "end_line": 86
+          },
+          "finding": "    result = eval(\"transform_func(data, context)\", {\"transform_func\": transform_func}, {\"data\": data, \"context\": context})",
+          "explanation": "eval() call with user-controlled data and functions allows arbitrary code execution. The eval() expression includes transform_func(data, context) where transform_func comes from user-supplied code and data is from input files.",
+          "remediation": "Replace eval() with safe, restricted function calls. Validate that transform_func is from trusted sources and use only pre-defined operations.",
+          "code_snippet": "    \"\"\"Apply user transform. Uses eval() to allow arbitrary expressions.\"\"\"\n    if transform_func is None:\n        return data\n    result = eval(\"transform_func(data, context)\", {\"transform_func\": transform_func}, {\"data\": data, \"context\": context})\n    return result\n\ndef main():",
+          "intent": null,
+          "tags": [
+            "Dangerous Code Execution"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "AST6",
+          "finding_id": "finding-d3556a393fe0408eaf49c917129c4d71",
+          "category": "Dangerous Code Execution",
+          "pattern": "compile() call detected",
+          "severity": "MEDIUM",
+          "confidence": 1.0,
+          "location": {
+            "file": "migrate.py",
+            "start_line": 77,
+            "end_line": 77
+          },
+          "finding": "    exec(compile(source, str(p), \"exec\"), ns)",
+          "explanation": "compile() combined with exec() provides complete code execution capability from file input. This creates a straightforward Remote Code Execution (RCE) attack vector.",
+          "remediation": "Remove compile() usage. Implement configuration transformation using declarative processes.",
+          "code_snippet": "    ns = {}\n    source = p.read_text()\n    # Execute in an isolated namespace; `eval` used for AST-based transforms.\n    exec(compile(source, str(p), \"exec\"), ns)\n    if func_name not in ns:\n        raise AttributeError(f\"Function '{func_name}' not defined in {path}\")\n    return ns[func_name]",
+          "intent": null,
+          "tags": [
+            "Dangerous Code Execution"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "TT2",
+          "finding_id": "finding-108ce418e2ac495a96c33e0992968f23",
+          "category": "Data Flow",
+          "pattern": "Tainted flow: 'source' from pathlib.Path.read_text (line 75, file read) \u2192 exec (code execution)",
+          "severity": "MEDIUM",
+          "confidence": 0.9,
+          "location": {
+            "file": "migrate.py",
+            "start_line": 77,
+            "end_line": 77
+          },
+          "finding": "    exec(compile(source, str(p), \"exec\"), ns)",
+          "explanation": "Config data flows from file read into eval() which can be tricked into executing arbitrary code if the data contains malicious strings or if transform_func is crafted to exploit this.",
+          "remediation": "Remove eval(). Implement safe data validation and transformation without dynamic code execution.",
+          "code_snippet": "    ns = {}\n    source = p.read_text()\n    # Execute in an isolated namespace; `eval` used for AST-based transforms.\n    exec(compile(source, str(p), \"exec\"), ns)\n    if func_name not in ns:\n        raise AttributeError(f\"Function '{func_name}' not defined in {path}\")\n    return ns[func_name]",
+          "intent": null,
+          "tags": [
+            "Data Flow"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "TT2",
+          "finding_id": "finding-2efd26ebc30c49d7921c2317414f7091",
+          "category": "Data Flow",
+          "pattern": "Tainted flow: 'data' from open (line 129, file read) \u2192 eval (code execution)",
+          "severity": "MEDIUM",
+          "confidence": 0.9,
+          "location": {
+            "file": "migrate.py",
+            "start_line": 86,
+            "end_line": 86
+          },
+          "finding": "    result = eval(\"transform_func(data, context)\", {\"transform_func\": transform_func}, {\"data\": data, \"context\": context})",
+          "explanation": "Config data flows from file read into eval() which can be tricked into executing arbitrary code if the data contains malicious strings or if transform_func is crafted to exploit this.",
+          "remediation": "Remove eval(). Implement safe data validation and transformation without dynamic code execution.",
+          "code_snippet": "    \"\"\"Apply user transform. Uses eval() to allow arbitrary expressions.\"\"\"\n    if transform_func is None:\n        return data\n    result = eval(\"transform_func(data, context)\", {\"transform_func\": transform_func}, {\"data\": data, \"context\": context})\n    return result\n\ndef main():",
+          "intent": null,
+          "tags": [
+            "Data Flow"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-2",
+          "finding_id": "finding-2c71a8b14956418985a16942611a1823",
+          "category": null,
+          "pattern": null,
+          "severity": "HIGH",
+          "confidence": 1.0,
+          "location": {
+            "file": "migrate.py",
+            "start_line": 67,
+            "end_line": 87
+          },
+          "finding": null,
+          "explanation": "The skill executes arbitrary user-supplied Python code via eval() and exec(), which is a dangerous capability not justified by the stated purpose of configuration synchronization and transformation.",
+          "remediation": "Remove all dynamic code execution. Use config-related operations like JSON/YAML parsing, template substitution, and safe data manipulation without executing user code.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-4",
+          "finding_id": "finding-2867119a39234443ac7c2f7946fff165",
+          "category": null,
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 1.0,
+          "location": {
+            "file": "migrate.py",
+            "start_line": 74,
+            "end_line": 78
+          },
+          "finding": null,
+          "explanation": "Comment says 'Execute in an isolated namespace' but the code uses exec() without any actual isolation or sandboxing. This fake isolation comment is a red flag suggesting deliberate attempt to mislead security reviewers.",
+          "remediation": "Remove exec() and the misleading comment. Implement proper code validation or remove user-defined code support entirely.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SQP-2",
+          "finding_id": "finding-5d9dfed4cb8146fdb5e4ce1bc3ed1bd7",
+          "category": null,
+          "pattern": null,
+          "severity": "HIGH",
+          "confidence": 0.8,
+          "location": {
+            "file": "migrate.py",
+            "start_line": 67,
+            "end_line": 87
+          },
+          "finding": null,
+          "explanation": "The skill reads environment variables starting with a prefix and substitutes them into data. While this may be intended for configuration, it could unintentionally harvest sensitive environment variables if the user does not understand this behavior, potentially exposing secrets in output files.",
+          "remediation": "Add explicit warnings about reading environment variables. Restrict which variables can be read or require explicit user specification of which variables to include.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SQP-2",
+          "finding_id": "finding-d17d8737326c43c683e981fe0c6137dc",
+          "category": null,
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.8,
+          "location": {
+            "file": "migrate.py",
+            "start_line": 110,
+            "end_line": 114
+          },
+          "finding": null,
+          "explanation": "The skill reads environment variables starting with a prefix and substitutes them into data. While this may be intended for configuration, it could unintentionally harvest sensitive environment variables if the user does not understand this behavior, potentially exposing secrets in output files.",
+          "remediation": "Add explicit warnings about reading environment variables. Restrict which variables can be read or require explicit user specification of which variables to include.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "E2",
+          "finding_id": "finding-c186b6b2dd674b2eb4149986425d40ea",
+          "category": "Data Exfiltration",
+          "pattern": "Env Variable Harvesting",
+          "severity": "HIGH",
+          "confidence": 0.7,
+          "location": {
+            "file": "migrate.py",
+            "start_line": 114,
+            "end_line": 114
+          },
+          "finding": "os.environ.items()",
+          "explanation": "Env Variable Harvesting: The code reads environment variables with a provided prefix. This could potentially harvest sensitive data if the user provides a broad prefix or if the environment contains secrets like API keys or credentials that match the prefix.",
+          "remediation": "Limit environment variable access to only those explicitly needed for configuration. Document clearly which environment variables are read and why. Require explicit user specification of which variables to use.",
+          "code_snippet": "    if args.env:\n        # Load env vars with matching prefix (e.g., APP_ prefix optional)\n        prefix = f\"{args.env.upper()}_\"\n        env_map = {k[len(prefix):]: v for k, v in os.environ.items() if k.startswith(prefix)}\n\n    # Substitution pass\n    data = substitute_placeholders(data, env_map, args.placeholder_prefix)",
+          "intent": null,
+          "tags": [
+            "Data Exfiltration"
+          ],
+          "language_compatible": true
+        }
+      ],
+      "execution_successful": false,
+      "analysis_completeness": {
+        "total_components": 2,
+        "scanned_components": 1,
+        "coverage_percent": 50.0,
+        "is_complete": false,
+        "execution_successful": false,
+        "fully_inspected_files": 1,
+        "partially_inspected_files": 1,
+        "entirely_uninspected_files": 0,
+        "ledger_exceptions": [
+          {
+            "outcome": "failed",
+            "phase": "semantic",
+            "reason_code": "llm_batch_failed",
+            "message": "LLM analysis failed for this file range.",
+            "path": "SKILL.md",
+            "start_line": null,
+            "end_line": null,
+            "fatal": true,
+            "analyzers": [
+              "mcp_tool_poisoning"
+            ],
+            "error_class": "NotImplementedError"
+          }
+        ],
+        "scope_exclusions": [],
+        "analyzer_statuses": [
+          {
+            "analyzer_id": "behavioral_ast",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "behavioral_taint_tracking",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_least_privilege",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_rug_pull",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_tool_poisoning",
+            "status": "failed",
+            "planned_work": 2,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 1,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "meta_analyzer",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_developer_intent",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_quality_policy",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_security_discovery",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_agent_snooping",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_anti_refusal",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_data_exfiltration",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_excessive_agency",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_harmful_content",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_memory_poisoning",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_output_handling",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_privilege_escalation",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_prompt_injection",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_rogue_agent",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_ssrf",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_supply_chain",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_system_prompt_leakage",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_tool_misuse",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_yara",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          }
+        ],
+        "limitations": [
+          "Analyzer mcp_tool_poisoning status: failed."
+        ],
+        "findings_before_filtering": 12,
+        "findings_after_filtering": 12
+      },
+      "scan_mode": "multilingual-enhanced",
+      "enhancements": {
+        "gap_fill_applied": false,
+        "gap_fill_findings": 0,
+        "english_keyword_rules_skipped": 0
+      }
+    }
+  ],
+  "metadata": {
+    "skillspector_version": "2.9.3"
+  }
+}

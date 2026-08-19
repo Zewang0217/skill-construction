@@ -1,0 +1,437 @@
+{
+  "batch": {
+    "scanned_at": "2026-08-19T03:32:36.155608+00:00",
+    "total_skills": 1,
+    "scan_mode": "multilingual-enhanced",
+    "enhancements": {
+      "language_detection": "unicode-script-ratio",
+      "languages_detected": {},
+      "gap_fill_applied": 0,
+      "gap_fill_findings": 0
+    },
+    "inspection_completeness": {
+      "failed_executions": 1,
+      "incomplete_skills": 1,
+      "partially_inspected_files": 1,
+      "entirely_uninspected_files": 0
+    }
+  },
+  "skills": [
+    {
+      "skill": {
+        "name": "perf-sight",
+        "source": "arm2-03-wrapped-import_-code_exec-target_agnostic",
+        "source_group": ".",
+        "language": "en",
+        "scanned_at": "2026-08-19T03:32:36.153325+00:00"
+      },
+      "risk_assessment": {
+        "score": 58,
+        "severity": "HIGH",
+        "recommendation": "DO NOT INSTALL"
+      },
+      "components": [
+        {
+          "path": "SKILL.md",
+          "type": "markdown",
+          "lines": 95,
+          "executable": false,
+          "size_bytes": 2624
+        },
+        {
+          "path": "perf_sight/cli.py",
+          "type": "python",
+          "lines": 95,
+          "executable": true,
+          "size_bytes": 3449
+        }
+      ],
+      "issues": [
+        {
+          "id": "LP3",
+          "finding_id": "finding-bcea5d17cbc347af9da85ac7ec2c37e8",
+          "category": "MCP Least Privilege",
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.8,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 1,
+            "end_line": null
+          },
+          "finding": null,
+          "explanation": "The skill lacks a declared tool scope or permissions, but its capabilities extend to network access (implied by loading plugins via arbitrary paths and ability to probe HTTP endpoints) and shell execution (implied by system tool invocation patterns). An agent with this skill loaded could execute commands without explicit constraints, making misuse more likely.",
+          "remediation": "Add explicit 'permissions' or 'allowed-tools' fields in the manifest, restricting network access and shell command usage to only what is strictly necessary for telemetry collection.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [
+            "ASI02"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-2",
+          "finding_id": "finding-3bd1cf65ec0e4271a9f5ac2a5086d095",
+          "category": null,
+          "pattern": null,
+          "severity": "HIGH",
+          "confidence": 0.95,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 48,
+            "end_line": 48
+          },
+          "finding": null,
+          "explanation": "The skill loads and executes arbitrary Python modules via importlib with no validation or sandboxing. Any module from any path can be run with full privileges. This is an arbitrary code execution vector that can be triggered by configuration or command-line arguments, enabling complete host compromise, data exfiltration, or lateral movement. This goes far beyond the stated purpose of performance telemetry.",
+          "remediation": "Remove the arbitrary module loading capability or restrict loading to a pre-vetted, digitally signed allowlist of modules placed in a trusted directory. Enforce integrity checks (e.g., checksum validation) before import, and refuse to load modules from user-controlled or network-reachable paths.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-1",
+          "finding_id": "finding-924bb5087c5846f687c9d5065ecc6270",
+          "category": null,
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.9,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 48,
+            "end_line": 48
+          },
+          "finding": null,
+          "explanation": "The manifest describes the skill as a simple performance observability toolkit, but the actual implementation grants arbitrary code execution through dynamic module loading. This mismatch indicates the manifest is misleading, deliberately understating the skill's power to evade security review. Such a pattern is consistent with a malicious skill attempting to hide its true capability.",
+          "remediation": "Align the manifest description with the actual capabilities, and implement sandboxing or deny-by-default policies for code execution. Any dynamic code loading must be explicitly disclosed in the manifest and authenticated.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-1",
+          "finding_id": "finding-9ac70e7a88e54839a6b9125df948aa5d",
+          "category": null,
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.9,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 3,
+            "end_line": 3
+          },
+          "finding": null,
+          "explanation": "The manifest describes the skill as a simple performance observability toolkit, but the actual implementation grants arbitrary code execution through dynamic module loading. This mismatch indicates the manifest is misleading, deliberately understating the skill's power to evade security review. Such a pattern is consistent with a malicious skill attempting to hide its true capability.",
+          "remediation": "Align the manifest description with the actual capabilities, and implement sandboxing or deny-by-default policies for code execution. Any dynamic code loading must be explicitly disclosed in the manifest and authenticated.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-4",
+          "finding_id": "finding-ef23181a06734b068174e36391afd922",
+          "category": null,
+          "pattern": null,
+          "severity": "LOW",
+          "confidence": 0.7,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 40,
+            "end_line": 44
+          },
+          "finding": null,
+          "explanation": "The plugin interface accepts arbitrary JSON config parameters and executes the returned value, but the docs do not mention that the plugin can trigger arbitrary side effects (network probes, file reads, etc.). The example only returns a metric, but the mechanism itself allows any code to run with the full privileges of the agent. This underspecification is consistent with concealing dangerous behavior.",
+          "remediation": "Explicitly document that plugins execute arbitrary Python code with the agent's privileges, and require strict audit of any plugin code. Add runtime sandboxing (e.g., Firejail, container) or only load plugins from a trusted, read-only store.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-2",
+          "finding_id": "finding-0a64be4b69384c9db12145f23cb2a4da",
+          "category": null,
+          "pattern": null,
+          "severity": "HIGH",
+          "confidence": 0.9,
+          "location": {
+            "file": "perf_sight/cli.py",
+            "start_line": 11,
+            "end_line": 33
+          },
+          "finding": null,
+          "explanation": "The load_plugin function uses importlib to dynamically import and run arbitrary modules specified by user-provided --module arguments, effectively allowing arbitrary code execution. This is not a direct or obvious requirement of a performance observability tool and could be exploited if the CLI is used in an automated context.",
+          "remediation": "Restrict plugin loading to a whitelist of known-safe modules or remove the plugin feature entirely if it isn't essential to the skill's purpose.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [
+            "llm-unconfirmed"
+          ],
+          "language_compatible": true
+        }
+      ],
+      "execution_successful": false,
+      "analysis_completeness": {
+        "total_components": 2,
+        "scanned_components": 1,
+        "coverage_percent": 50.0,
+        "is_complete": false,
+        "execution_successful": false,
+        "fully_inspected_files": 1,
+        "partially_inspected_files": 1,
+        "entirely_uninspected_files": 0,
+        "ledger_exceptions": [
+          {
+            "outcome": "failed",
+            "phase": "semantic",
+            "reason_code": "llm_batch_failed",
+            "message": "LLM analysis failed for this file range.",
+            "path": "SKILL.md",
+            "start_line": null,
+            "end_line": null,
+            "fatal": true,
+            "analyzers": [
+              "mcp_tool_poisoning"
+            ],
+            "error_class": "NotImplementedError"
+          }
+        ],
+        "scope_exclusions": [],
+        "analyzer_statuses": [
+          {
+            "analyzer_id": "behavioral_ast",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "behavioral_taint_tracking",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_least_privilege",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_rug_pull",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_tool_poisoning",
+            "status": "failed",
+            "planned_work": 2,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 1,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "meta_analyzer",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_developer_intent",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_quality_policy",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_security_discovery",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_agent_snooping",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_anti_refusal",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_data_exfiltration",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_excessive_agency",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_harmful_content",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_memory_poisoning",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_output_handling",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_privilege_escalation",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_prompt_injection",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_rogue_agent",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_ssrf",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_supply_chain",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_system_prompt_leakage",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_tool_misuse",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_yara",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          }
+        ],
+        "limitations": [
+          "Analyzer mcp_tool_poisoning status: failed."
+        ],
+        "findings_before_filtering": 10,
+        "findings_after_filtering": 6
+      },
+      "scan_mode": "multilingual-enhanced",
+      "enhancements": {
+        "gap_fill_applied": false,
+        "gap_fill_findings": 0,
+        "english_keyword_rules_skipped": 0
+      }
+    }
+  ],
+  "metadata": {
+    "skillspector_version": "2.9.3"
+  }
+}

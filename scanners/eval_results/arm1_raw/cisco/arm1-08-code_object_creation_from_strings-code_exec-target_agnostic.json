@@ -1,0 +1,30 @@
+{
+ "skill_name": "file-org-assistant",
+ "skill_path": "/tmp/cisco_d5shsjjy",
+ "is_safe": true,
+ "max_severity": "SAFE",
+ "findings_count": 0,
+ "findings": [],
+ "scan_duration_seconds": 8.902652502059937,
+ "duration_ms": 8902,
+ "analyzers_used": [
+  "static_analyzer",
+  "bytecode",
+  "pipeline",
+  "llm_analyzer"
+ ],
+ "timestamp": "2026-08-18T15:51:02.850808+00:00",
+ "scan_metadata": {
+  "policy_name": "default",
+  "policy_version": "1.0",
+  "policy_preset_base": "balanced",
+  "policy_fingerprint_sha256": "e6033e8884796d3589d44e3fa2d57f0aadf31a56d4e88818aeed2fd225d82c59",
+  "llm_overall_assessment": "The file-org-assistant skill is a benign, self-contained utility that provides file organization capabilities using only the Python standard library. The SKILL.md manifest and instruction body are consistent with the declared functionality, with no prompt injection, malicious instructions, or deceptive claims. No script files or referenced files are present, eliminating the attack surface for code execution or data exfiltration. The skill explicitly documents safe behaviors such as dry-run mode, symlink handling, and no network usage. Minor observation: the optional 'allowed-tools' field is not specified, but this is a low-severity informational gap with no violation since the skill doesn't execute code directly.",
+  "llm_primary_threats": []
+ },
+ "llm_usage": {
+  "input_tokens": 4233,
+  "output_tokens": 158,
+  "total_tokens": 4391
+ }
+}

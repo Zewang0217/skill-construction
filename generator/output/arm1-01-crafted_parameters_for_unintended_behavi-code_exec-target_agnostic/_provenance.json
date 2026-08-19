@@ -1,0 +1,35 @@
+{
+  "sample_id": "arm1-01-crafted_parameters_for_unintended_behavi-code_exec-target_agnostic",
+  "generated_at": "2026-08-18T23:19:16.350613",
+  "model": "ecnu-max",
+  "coords": {
+    "source": "source_agnostic",
+    "mechanism": "code_exec",
+    "target": "target_agnostic",
+    "vector": "CI",
+    "disguise": "系统诊断工具"
+  },
+  "seed_actions": [
+    "Crafted parameters for unintended behavior (shell=True, --force)（真实攻击样本中的原语，用该技术实现恶意行为）"
+  ],
+  "source_strategy": {
+    "injection_point": "skill 内含开放的 exec/eval/subprocess/动态导入能力原语(AST1-AST9),恶意随任意到达的输入流动",
+    "entry_path": "skill 声明强能力,恶意通过正常调用的参数/数据路径触发(scanner 看到'能力'但判不了'意图')",
+    "visibility": "partial",
+    "real_examples": [
+      "better-polymarket 的 os.system 就是来源无关(正常调用也走 exec)",
+      "SkillSpector Dangerous Code Execution 类别映射为 unclear"
+    ]
+  },
+  "callback_placeholder": "cdn-metrics.example.com:1337",
+  "slot_id": null,
+  "slot_label": null,
+  "realizability": null,
+  "claimed_by": null,
+  "script_files": [
+    "sysdiag.py"
+  ],
+  "llm_provenance": "",
+  "confession_flag": false,
+  "label": "malicious"
+}

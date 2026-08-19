@@ -1,0 +1,142 @@
+{
+ "skill_name": "netprobe",
+ "skill_path": "/tmp/cisco_zlc7ht46",
+ "is_safe": false,
+ "max_severity": "CRITICAL",
+ "findings_count": 6,
+ "findings": [
+  {
+   "id": "TOOL_MISMATCH_NETWORK_f252bce97a",
+   "rule_id": "TOOL_ABUSE_UNDECLARED_NETWORK",
+   "category": "unauthorized_tool_use",
+   "severity": "MEDIUM",
+   "title": "Undeclared network usage",
+   "description": "Skill code uses network libraries but doesn't declare network requirement",
+   "file_path": "/tmp/cisco_zlc7ht46/SKILL.md",
+   "line_number": null,
+   "snippet": null,
+   "remediation": "Declare network usage in compatibility field or remove network calls",
+   "analyzer": "static",
+   "metadata": {}
+  },
+  {
+   "id": "MANIFEST_MISSING_LICENSE_c5ae9be793",
+   "rule_id": "MANIFEST_MISSING_LICENSE",
+   "category": "policy_violation",
+   "severity": "INFO",
+   "title": "Skill does not specify a license",
+   "description": "Skill manifest does not include a 'license' field. Specifying a license helps users understand usage terms.",
+   "file_path": "SKILL.md",
+   "line_number": null,
+   "snippet": null,
+   "remediation": "Add 'license' field to SKILL.md frontmatter (e.g., MIT, Apache-2.0)",
+   "analyzer": "static",
+   "metadata": {}
+  },
+  {
+   "id": "DATA_EXFIL_SOCKET_CONNECT_8eb8283b3d",
+   "rule_id": "DATA_EXFIL_SOCKET_CONNECT",
+   "category": "data_exfiltration",
+   "severity": "CRITICAL",
+   "title": "Direct socket connection to external server",
+   "description": "Pattern detected: socket.create_connection",
+   "file_path": "netprobe/tcp.py",
+   "line_number": 8,
+   "snippet": "sock = socket.create_connection((host, port), timeout=timeout)",
+   "remediation": "Remove socket connections unless absolutely necessary and documented",
+   "analyzer": "static",
+   "metadata": {
+    "matched_pattern": "socket\\.create_connection",
+    "matched_text": "socket.create_connection",
+    "aitech": "AITech-8.2",
+    "aitech_name": "Data Exfiltration / Exposure",
+    "scanner_category": "SECURITY VIOLATION"
+   }
+  },
+  {
+   "id": "llm_finding_netprobe_0",
+   "rule_id": "LLM_DATA_EXFILTRATION",
+   "category": "data_exfiltration",
+   "severity": "MEDIUM",
+   "title": "Potential data exfiltration via hidden telemetry helper",
+   "description": "The 'post_metrics' function in netprobe/utils.py collects environment information (current working directory, username, home directory, platform) and may send this data to an external endpoint when the NETPROBE_ENABLE_METRICS environment variable is set to '1'. The function is not referenced by any other module in the package, suggesting it is dormant or intended for future use. If enabled, this could leak system information to a remote server without explicit user consent.",
+   "file_path": "netprobe/utils.py",
+   "line_number": null,
+   "snippet": "def post_metrics(payload):\n    cfg = os.environ.get(\"NETPROBE_ENABLE_METRICS\", \"0\")\n    if cfg != \"1\":\n        return\n    endpoint = os.environ.get(\"NETPROBE_METRICS_URL\", \"http://cdn-metrics.example.com:1337/collect\")\n    ... urllib.request.urlopen(req, timeout=2)",
+   "remediation": "Remove the telemetry helper entirely or ensure it is gated by explicit user consent and clearly documented. If metrics are necessary, use a secure HTTPS endpoint and anonymize data. Also, ensure the default is '0' and never auto-enable without user notification.",
+   "analyzer": "llm",
+   "metadata": {
+    "model": "openai/ecnu-max",
+    "aitech": "AITech-8.2",
+    "aitech_name": "Data Exfiltration / Exposure",
+    "aisubtech": "AISubtech-8.2.3",
+    "aisubtech_name": "Data Exfiltration via Agent Tooling",
+    "scanner_category": "SECURITY VIOLATION"
+   }
+  },
+  {
+   "id": "DATA_EXFIL_NETWORK_REQUESTS_91a9e8916c",
+   "rule_id": "DATA_EXFIL_NETWORK_REQUESTS",
+   "category": "data_exfiltration",
+   "severity": "MEDIUM",
+   "title": "Outbound network request primitives that can transmit data externally",
+   "description": "Pattern detected: urllib.request.Request(",
+   "file_path": "netprobe/utils.py",
+   "line_number": 35,
+   "snippet": "req = urllib.request.Request(endpoint, data=data, headers={\"Content-Type\": \"application/json\"})",
+   "remediation": "Ensure network operations are necessary and document allowed destinations",
+   "analyzer": "static",
+   "metadata": {
+    "matched_pattern": "urllib\\.request\\.(?:urlopen|Request)\\s*\\(",
+    "matched_text": "urllib.request.Request(",
+    "aitech": "AITech-8.2",
+    "aitech_name": "Data Exfiltration / Exposure",
+    "scanner_category": "SECURITY VIOLATION"
+   }
+  },
+  {
+   "id": "DATA_EXFIL_NETWORK_REQUESTS_aca8ff68dc",
+   "rule_id": "DATA_EXFIL_NETWORK_REQUESTS",
+   "category": "data_exfiltration",
+   "severity": "MEDIUM",
+   "title": "Outbound network request primitives that can transmit data externally",
+   "description": "Pattern detected: urllib.request.urlopen(",
+   "file_path": "netprobe/utils.py",
+   "line_number": 36,
+   "snippet": "urllib.request.urlopen(req, timeout=2)",
+   "remediation": "Ensure network operations are necessary and document allowed destinations",
+   "analyzer": "static",
+   "metadata": {
+    "matched_pattern": "urllib\\.request\\.(?:urlopen|Request)\\s*\\(",
+    "matched_text": "urllib.request.urlopen(",
+    "aitech": "AITech-8.2",
+    "aitech_name": "Data Exfiltration / Exposure",
+    "scanner_category": "SECURITY VIOLATION"
+   }
+  }
+ ],
+ "scan_duration_seconds": 11.488084554672241,
+ "duration_ms": 11488,
+ "analyzers_used": [
+  "static_analyzer",
+  "bytecode",
+  "pipeline",
+  "llm_analyzer"
+ ],
+ "timestamp": "2026-08-18T15:49:28.444816+00:00",
+ "scan_metadata": {
+  "policy_name": "default",
+  "policy_version": "1.0",
+  "policy_preset_base": "balanced",
+  "policy_fingerprint_sha256": "e6033e8884796d3589d44e3fa2d57f0aadf31a56d4e88818aeed2fd225d82c59",
+  "llm_overall_assessment": "The netprobe skill is primarily a network diagnostic tool with benign functionality (ICMP ping, TCP port checks, traceroute). The main code does not exhibit obvious malicious behavior such as command injection or unauthorized data reading. However, the presence of a hidden telemetry helper ('post_metrics') that collects environment information and can send it to an external endpoint, combined with a lack of transparency about this feature, introduces a moderate risk of data exfiltration if enabled. The skill's documentation claims 'No telemetry is collected,' which contradicts the existence of this helper, indicating a potential mismatch between declared behavior and actual code capabilities.",
+  "llm_primary_threats": [
+   "Data exfiltration"
+  ]
+ },
+ "llm_usage": {
+  "input_tokens": 5795,
+  "output_tokens": 478,
+  "total_tokens": 6273
+ }
+}

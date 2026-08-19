@@ -1,0 +1,138 @@
+{
+ "skill_name": "fs-mirror-utility",
+ "skill_path": "/tmp/cisco_djsntgur",
+ "is_safe": false,
+ "max_severity": "CRITICAL",
+ "findings_count": 5,
+ "findings": [
+  {
+   "id": "llm_finding_fs-mirror-utility_3",
+   "rule_id": "LLM_SKILL_DISCOVERY_ABUSE",
+   "category": "skill_discovery_abuse",
+   "severity": "MEDIUM",
+   "title": "Capability Inflation - Hidden Dangerous Features",
+   "description": "The SKILL.md documents the skill as a simple file synchronization tool while the Python API exposes arbitrary code execution capabilities (eval, shell commands, dynamic module loading). These features are not documented or disclosed, creating capability inflation where the skill's true capabilities exceed its advertised functionality.",
+   "file_path": "SKILL.md",
+   "line_number": null,
+   "snippet": "SKILL.md describes only sync operations; engine.py exposes eval(), subprocess.run(), and dynamic imports",
+   "remediation": "Document all capabilities in SKILL.md or remove undocumented dangerous features. Implement capability restrictions aligned with advertised functionality.",
+   "analyzer": "llm",
+   "metadata": {
+    "model": "openai/ecnu-max",
+    "aitech": "AITech-4.3",
+    "aitech_name": "Protocol Manipulation",
+    "aisubtech": "AISubtech-4.3.5",
+    "aisubtech_name": "Capability Inflation",
+    "scanner_category": "PROTOCOL MANIPULATION"
+   }
+  },
+  {
+   "id": "llm_finding_fs-mirror-utility_0",
+   "rule_id": "LLM_COMMAND_INJECTION",
+   "category": "command_injection",
+   "severity": "HIGH",
+   "title": "Arbitrary Code Execution via eval() in evaluate_expression()",
+   "description": "The evaluate_expression() method uses Python's eval() function with user-controlled input. While builtins are restricted, the 'os' module is provided in the execution context, granting access to system operations (os.system, os.remove, etc.). This creates a command injection vector where an attacker can execute arbitrary system commands through crafted expressions.",
+   "file_path": "dsync/engine.py",
+   "line_number": 122,
+   "snippet": "ctx = {**context, \"os\": os, \"sys\": sys, \"Path\": Path}\nreturn eval(expression, {\"__builtins__\": {}}, ctx)",
+   "remediation": "Replace eval() with safe alternatives like ast.literal_eval() for expression parsing, or remove the os/sys modules from the evaluation context. Consider using a proper expression parser library.",
+   "analyzer": "llm",
+   "metadata": {
+    "model": "openai/ecnu-max",
+    "aitech": "AITech-9.1",
+    "aitech_name": "Model or Agentic System Manipulation",
+    "aisubtech": "AISubtech-9.1.4",
+    "aisubtech_name": "Injection Attacks (SQL, Command Execution, XSS)",
+    "scanner_category": "INJECTION ATTACK"
+   }
+  },
+  {
+   "id": "llm_finding_fs-mirror-utility_1",
+   "rule_id": "LLM_COMMAND_INJECTION",
+   "category": "command_injection",
+   "severity": "HIGH",
+   "title": "Arbitrary Shell Command Execution via run_command()",
+   "description": "The run_command() method executes arbitrary shell commands using subprocess.run() with shell=True. This allows execution of any system command without validation or restrictions, creating a command injection vulnerability when user input is passed to this method.",
+   "file_path": "dsync/engine.py",
+   "line_number": 139,
+   "snippet": "result = subprocess.run(command, shell=True, cwd=cwd, capture_output=True, text=True, check=False)",
+   "remediation": "Avoid shell=True when possible. Use subprocess.run() with a list of arguments instead of a command string. Validate and whitelist allowed commands.",
+   "analyzer": "llm",
+   "metadata": {
+    "model": "openai/ecnu-max",
+    "aitech": "AITech-9.1",
+    "aitech_name": "Model or Agentic System Manipulation",
+    "aisubtech": "AISubtech-9.1.4",
+    "aisubtech_name": "Injection Attacks (SQL, Command Execution, XSS)",
+    "scanner_category": "INJECTION ATTACK"
+   }
+  },
+  {
+   "id": "llm_finding_fs-mirror-utility_2",
+   "rule_id": "LLM_COMMAND_INJECTION",
+   "category": "command_injection",
+   "severity": "HIGH",
+   "title": "Arbitrary Code Execution via load_plugin()",
+   "description": "The load_plugin() method dynamically loads and executes arbitrary Python files via importlib. There is no validation, sandboxing, or security check on the plugin file, enabling arbitrary code execution from any file path.",
+   "file_path": "dsync/engine.py",
+   "line_number": 154,
+   "snippet": "spec.loader.exec_module(module)",
+   "remediation": "Avoid loading arbitrary plugin files. If plugins are necessary, implement strict validation, code review, or run in isolated sandbox environments.",
+   "analyzer": "llm",
+   "metadata": {
+    "model": "openai/ecnu-max",
+    "aitech": "AITech-9.1",
+    "aitech_name": "Model or Agentic System Manipulation",
+    "aisubtech": "AISubtech-9.1.4",
+    "aisubtech_name": "Injection Attacks (SQL, Command Execution, XSS)",
+    "scanner_category": "INJECTION ATTACK"
+   }
+  },
+  {
+   "id": "COMMAND_INJECTION_EVAL_dfff4e3a4b",
+   "rule_id": "COMMAND_INJECTION_EVAL",
+   "category": "command_injection",
+   "severity": "CRITICAL",
+   "title": "Dangerous code execution functions that can execute arbitrary code",
+   "description": "Pattern detected: eval(",
+   "file_path": "dsync/engine.py",
+   "line_number": 157,
+   "snippet": "return eval(expression, {\"__builtins__\": {}}, ctx)",
+   "remediation": "Avoid eval(), exec(), and compile(). Use safer alternatives like ast.literal_eval() or operator module",
+   "analyzer": "static",
+   "metadata": {
+    "matched_pattern": "(?<!['\\\"])\\beval\\s*\\(",
+    "matched_text": "eval(",
+    "aitech": "AITech-9.1",
+    "aitech_name": "Model or Agentic System Manipulation",
+    "scanner_category": "INJECTION ATTACK"
+   }
+  }
+ ],
+ "scan_duration_seconds": 19.815035820007324,
+ "duration_ms": 19815,
+ "analyzers_used": [
+  "static_analyzer",
+  "bytecode",
+  "pipeline",
+  "llm_analyzer"
+ ],
+ "timestamp": "2026-08-19T03:37:40.334643+00:00",
+ "scan_metadata": {
+  "policy_name": "default",
+  "policy_version": "1.0",
+  "policy_preset_base": "balanced",
+  "policy_fingerprint_sha256": "e6033e8884796d3589d44e3fa2d57f0aadf31a56d4e88818aeed2fd225d82c59",
+  "llm_overall_assessment": "The fs-mirror-utility skill presents itself as a benign file synchronization tool, but its Python API contains multiple arbitrary code execution vectors (eval, subprocess with shell=True, dynamic module loading). These features are undocumented in SKILL.md, creating dangerous asymmetric capability where the tool could be abused for command injection and arbitrary code execution while appearing as a simple utility. While there is no data exfiltration or network activity, the code execution capabilities represent significant security risks if user input is passed to these methods. The skill should be treated with caution - the dangerous methods should be removed or heavily restricted, and all capabilities properly documented.",
+  "llm_primary_threats": [
+   "AITech-9.1 - Arbitrary code execution",
+   "AITech-4.3 - Capability Inflation"
+  ]
+ },
+ "llm_usage": {
+  "input_tokens": 5988,
+  "output_tokens": 1417,
+  "total_tokens": 7405
+ }
+}

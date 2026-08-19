@@ -1,0 +1,173 @@
+{
+ "skill_name": "perf-sight",
+ "skill_path": "/tmp/cisco_ohk_ted1",
+ "is_safe": false,
+ "max_severity": "HIGH",
+ "findings_count": 7,
+ "findings": [
+  {
+   "id": "llm_finding_perf-sight_2",
+   "rule_id": "LLM_SOCIAL_ENGINEERING",
+   "category": "social_engineering",
+   "severity": "MEDIUM",
+   "title": "Unpinned dependency installation in installation instructions",
+   "description": "The installation instructions suggest 'pip install perf-sight' or running 'python setup.py install' without pinning versions or verifying package provenance. This creates a supply chain risk. A package name that sounds generic could be typosquatted, and unpinned installation could pull a compromised version.",
+   "file_path": null,
+   "line_number": null,
+   "snippet": "pip install perf-sight; # or clone and run: python setup.py install",
+   "remediation": "Pin exact package versions (e.g., perf-sight==1.2.0), use hashes for integrity (pip install --require-hashes), and clone from a verified official repository with a signed release.",
+   "analyzer": "llm",
+   "metadata": {
+    "model": "openai/ecnu-max",
+    "aitech": "AITech-2.1",
+    "aitech_name": "Unknown Threat",
+    "aisubtech": null,
+    "aisubtech_name": null,
+    "scanner_category": "UNKNOWN"
+   }
+  },
+  {
+   "id": "llm_finding_perf-sight_3",
+   "rule_id": "LLM_UNAUTHORIZED_TOOL_USE",
+   "category": "unauthorized_tool_use",
+   "severity": "LOW",
+   "title": "Missing allowed-tools metadata",
+   "description": "The skill does not specify 'allowed-tools' in its YAML manifest. Per the agent skills specification, this field is optional; missing it is an informational issue. However, absence means there is no declared restriction on which agent tools the skill may invoke.",
+   "file_path": null,
+   "line_number": null,
+   "snippet": "allowed-tools: Not specified",
+   "remediation": "Declare the tools the skill actually needs (e.g., Bash, Python, Read) to establish a baseline for detecting tool restriction violations.",
+   "analyzer": "llm",
+   "metadata": {
+    "model": "openai/ecnu-max",
+    "aitech": "AITech-12.1",
+    "aitech_name": "Tool Exploitation",
+    "aisubtech": "AISubtech-12.1.2",
+    "aisubtech_name": "Tool Poisoning",
+    "scanner_category": "SUSPICIOUS CODE EXECUTION"
+   }
+  },
+  {
+   "id": "TOOL_MISMATCH_NETWORK_df2b818719",
+   "rule_id": "TOOL_ABUSE_UNDECLARED_NETWORK",
+   "category": "unauthorized_tool_use",
+   "severity": "MEDIUM",
+   "title": "Undeclared network usage",
+   "description": "Skill code uses network libraries but doesn't declare network requirement",
+   "file_path": "/tmp/cisco_ohk_ted1/SKILL.md",
+   "line_number": null,
+   "snippet": null,
+   "remediation": "Declare network usage in compatibility field or remove network calls",
+   "analyzer": "static",
+   "metadata": {}
+  },
+  {
+   "id": "llm_finding_perf-sight_0",
+   "rule_id": "LLM_COMMAND_INJECTION",
+   "category": "command_injection",
+   "severity": "HIGH",
+   "title": "Unrestricted dynamic code loading enables arbitrary code execution from untrusted sources",
+   "description": "The plugin system uses importlib to dynamically load and execute arbitrary Python modules. The documentation explicitly states that modules can be loaded from 'any path' and that plugins may use 'exec/eval internally', making the skill a vehicle for executing arbitrary code. A malicious plugin module could execute arbitrary commands on the host system, and the skill's own CLI would be the execution vector. This is a severe capability that, while intentional extensibility, constitutes unrestricted code execution and could be abused if a malicious plugin is supplied.",
+   "file_path": "perf_sight/cli.py",
+   "line_number": null,
+   "snippet": "module = importlib.import_module(module_name) ... spec.loader.exec_module(module) ... return module.run(config) if hasattr(module, 'run') else None; Instructions state plugins can be loaded 'via importlib at runtime, allowing dynamic loading from any path.'",
+   "remediation": "Restrict plugin execution to a sandboxed environment (e.g., subprocess with disabled network/filesystem access), require plugin signature verification/allowlist, and never execute plugins from untrusted paths without explicit user confirmation.",
+   "analyzer": "llm",
+   "metadata": {
+    "model": "openai/ecnu-max",
+    "aitech": "AITech-9.1",
+    "aitech_name": "Model or Agentic System Manipulation",
+    "aisubtech": "AISubtech-9.1.4",
+    "aisubtech_name": "Injection Attacks (SQL, Command Execution, XSS)",
+    "scanner_category": "INJECTION ATTACK"
+   }
+  },
+  {
+   "id": "llm_finding_perf-sight_1",
+   "rule_id": "LLM_UNAUTHORIZED_TOOL_USE",
+   "category": "unauthorized_tool_use",
+   "severity": "LOW",
+   "title": "Unauthorized network export capability not reflected in declared tool set",
+   "description": "The CLI includes an 'export' command that sends data to a remote URL via urllib.request. While 'allowed-tools' is not specified (making missing metadata a LOW issue), the skill's documented purpose is local performance monitoring. The ability to exfiltrate collectible metrics or arbitrary data to an attacker-controlled URL is an undeclared network capability. The export command currently sends only a hardcoded 'test' payload, but the design pattern (collect metrics + send to remote) enables data exfiltration via tool chaining.",
+   "file_path": "perf_sight/cli.py",
+   "line_number": null,
+   "snippet": "req = urllib.request.Request(args.url, data=json.dumps({\"payload\": \"test\"}).encode(), headers={'Content-Type': 'application/json'}) ... urllib.request.urlopen(req, timeout=5)",
+   "remediation": "If network export is not a required feature, remove the export command. If it is required, document it in the manifest as an allowed tool/capability and require explicit user confirmation before any data is transmitted.",
+   "analyzer": "llm",
+   "metadata": {
+    "model": "openai/ecnu-max",
+    "aitech": "AITech-12.1",
+    "aitech_name": "Tool Exploitation",
+    "aisubtech": "AISubtech-12.1.2",
+    "aisubtech_name": "Tool Poisoning",
+    "scanner_category": "SUSPICIOUS CODE EXECUTION"
+   }
+  },
+  {
+   "id": "DATA_EXFIL_NETWORK_REQUESTS_50870a0d4b",
+   "rule_id": "DATA_EXFIL_NETWORK_REQUESTS",
+   "category": "data_exfiltration",
+   "severity": "MEDIUM",
+   "title": "Outbound network request primitives that can transmit data externally",
+   "description": "Pattern detected: urllib.request.Request(",
+   "file_path": "perf_sight/cli.py",
+   "line_number": 59,
+   "snippet": "req = urllib.request.Request(",
+   "remediation": "Ensure network operations are necessary and document allowed destinations",
+   "analyzer": "static",
+   "metadata": {
+    "matched_pattern": "urllib\\.request\\.(?:urlopen|Request)\\s*\\(",
+    "matched_text": "urllib.request.Request(",
+    "aitech": "AITech-8.2",
+    "aitech_name": "Data Exfiltration / Exposure",
+    "scanner_category": "SECURITY VIOLATION"
+   }
+  },
+  {
+   "id": "DATA_EXFIL_NETWORK_REQUESTS_7108898681",
+   "rule_id": "DATA_EXFIL_NETWORK_REQUESTS",
+   "category": "data_exfiltration",
+   "severity": "MEDIUM",
+   "title": "Outbound network request primitives that can transmit data externally",
+   "description": "Pattern detected: urllib.request.urlopen(",
+   "file_path": "perf_sight/cli.py",
+   "line_number": 65,
+   "snippet": "with urllib.request.urlopen(req, timeout=5) as resp:",
+   "remediation": "Ensure network operations are necessary and document allowed destinations",
+   "analyzer": "static",
+   "metadata": {
+    "matched_pattern": "urllib\\.request\\.(?:urlopen|Request)\\s*\\(",
+    "matched_text": "urllib.request.urlopen(",
+    "aitech": "AITech-8.2",
+    "aitech_name": "Data Exfiltration / Exposure",
+    "scanner_category": "SECURITY VIOLATION"
+   }
+  }
+ ],
+ "scan_duration_seconds": 17.543651580810547,
+ "duration_ms": 17543,
+ "analyzers_used": [
+  "static_analyzer",
+  "bytecode",
+  "pipeline",
+  "llm_analyzer"
+ ],
+ "timestamp": "2026-08-18T15:46:24.622063+00:00",
+ "scan_metadata": {
+  "policy_name": "default",
+  "policy_version": "1.0",
+  "policy_preset_base": "balanced",
+  "policy_fingerprint_sha256": "e6033e8884796d3589d44e3fa2d57f0aadf31a56d4e88818aeed2fd225d82c59",
+  "llm_overall_assessment": "Perf-Sight is a legitimate-looking performance monitoring skill, but it contains a significant security concern: an unrestricted plugin execution system that loads and runs arbitrary Python code from any path, explicitly permitting plugins to use exec/eval. While this is framed as a feature, it constitutes a high-risk arbitrary code execution vector. The skill also contains an undeclared network export capability that, combined with metric collection, could enable data exfiltration. Installation instructions introduce a supply chain risk with unpinned dependencies. The skill appears to be functionally designed for its stated purpose, but the plugin execution capacity and undeclared network capability warrant careful review or restriction before deployment in a production agent environment.",
+  "llm_primary_threats": [
+   "AITech-9.1: Arbitrary code execution via dynamic plugin loading",
+   "AITech-12.1: Undeclared tool/network capability (export command)",
+   "AITech-2.1: Supply chain risk from unpinned dependency installation"
+  ]
+ },
+ "llm_usage": {
+  "input_tokens": 5141,
+  "output_tokens": 1148,
+  "total_tokens": 6289
+ }
+}

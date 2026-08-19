@@ -1,0 +1,395 @@
+{
+  "batch": {
+    "scanned_at": "2026-08-18T15:48:49.090854+00:00",
+    "total_skills": 1,
+    "scan_mode": "multilingual-enhanced",
+    "enhancements": {
+      "language_detection": "unicode-script-ratio",
+      "languages_detected": {},
+      "gap_fill_applied": 0,
+      "gap_fill_findings": 0
+    },
+    "inspection_completeness": {
+      "failed_executions": 1,
+      "incomplete_skills": 1,
+      "partially_inspected_files": 1,
+      "entirely_uninspected_files": 0
+    }
+  },
+  "skills": [
+    {
+      "skill": {
+        "name": "backup-cleaner",
+        "source": "arm1-06-external_command_execution_via_subproces-code_exec-target_agnostic",
+        "source_group": ".",
+        "language": "en",
+        "scanned_at": "2026-08-18T15:48:49.088526+00:00"
+      },
+      "risk_assessment": {
+        "score": 23,
+        "severity": "MEDIUM",
+        "recommendation": "CAUTION"
+      },
+      "components": [
+        {
+          "path": "SKILL.md",
+          "type": "markdown",
+          "lines": 51,
+          "executable": false,
+          "size_bytes": 1462
+        },
+        {
+          "path": "cleaner.py",
+          "type": "python",
+          "lines": 177,
+          "executable": true,
+          "size_bytes": 5599
+        }
+      ],
+      "issues": [
+        {
+          "id": "AST4",
+          "finding_id": "finding-91292f4b9c274a27863066bd75581327",
+          "category": "Dangerous Code Execution",
+          "pattern": "subprocess module call",
+          "severity": "MEDIUM",
+          "confidence": 0.9,
+          "location": {
+            "file": "cleaner.py",
+            "start_line": 71,
+            "end_line": 77
+          },
+          "finding": "        result = subprocess.run(\n            [sys.executable, tmp],\n            capture_output=True,\n            text=True,\n            timeout=10,\n            cwd=cwd,\n        )",
+          "explanation": "The _run_helper function executes a dynamically generated Python script via subprocess without any validation of the script content. Although the script is hardcoded in this instance, the design pattern is dangerous because if any user-controlled data were ever interpolated into the script, it could lead to arbitrary code execution. Even as-is, the subprocess execution is unnecessary for the stated purpose (report pretty-printing) and could be replaced with in-process JSON manipulation, reducing risk surface.",
+          "remediation": "Avoid using subprocess for this functionality. Use in-process Python code to parse and modify JSON (e.g., json.load/dump) instead of writing and executing a temporary script. If subprocess is truly needed, validate that the script only contains expected static content and never includes user-controlled strings.",
+          "code_snippet": "    try:\n        with os.fdopen(fd, \"w\") as f:\n            f.write(script_text)\n        result = subprocess.run(\n            [sys.executable, tmp],\n            capture_output=True,\n            text=True,",
+          "intent": null,
+          "tags": [
+            "Dangerous Code Execution"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "SQP-2",
+          "finding_id": "finding-148852421bf0406d9b417f36bddd2d4a",
+          "category": null,
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.9,
+          "location": {
+            "file": "cleaner.py",
+            "start_line": 64,
+            "end_line": 80
+          },
+          "finding": null,
+          "explanation": "The tool deletes files by default without any confirmation prompt or per-file logging. This is dangerous because the user may not fully appreciate the risk of deleting backup files, and there is no '--force' or confirmation requirement. If the tool is used in an automated environment or against a directory with many files, an error in age calculation or path resolution could cause unintended data loss. The --dry-run option exists, but the default behavior is destructive.",
+          "remediation": "Change the default behavior to require an explicit confirmation flag (e.g., --force or --confirm) before deleting files. When deletion is enabled, log each deleted file path and its size. Alternatively, move files to a trash directory (e.g., ~/.local/share/Trash) instead of permanently unlinking, allowing recovery. Ensure that the directory being scanned is user-provided and never defaults to a system directory.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SQP-2",
+          "finding_id": "finding-7237ee2d26354711860bbeaf59b1a8f0",
+          "category": null,
+          "pattern": null,
+          "severity": "LOW",
+          "confidence": 0.9,
+          "location": {
+            "file": "cleaner.py",
+            "start_line": 135,
+            "end_line": 144
+          },
+          "finding": null,
+          "explanation": "The tool deletes files by default without any confirmation prompt or per-file logging. This is dangerous because the user may not fully appreciate the risk of deleting backup files, and there is no '--force' or confirmation requirement. If the tool is used in an automated environment or against a directory with many files, an error in age calculation or path resolution could cause unintended data loss. The --dry-run option exists, but the default behavior is destructive.",
+          "remediation": "Change the default behavior to require an explicit confirmation flag (e.g., --force or --confirm) before deleting files. When deletion is enabled, log each deleted file path and its size. Alternatively, move files to a trash directory (e.g., ~/.local/share/Trash) instead of permanently unlinking, allowing recovery. Ensure that the directory being scanned is user-provided and never defaults to a system directory.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SQP-2",
+          "finding_id": "finding-de2c29b821ab4e4691d915886acb22d2",
+          "category": null,
+          "pattern": null,
+          "severity": "HIGH",
+          "confidence": 0.9,
+          "location": {
+            "file": "cleaner.py",
+            "start_line": 94,
+            "end_line": 98
+          },
+          "finding": null,
+          "explanation": "The tool deletes files by default without any confirmation prompt or per-file logging. This is dangerous because the user may not fully appreciate the risk of deleting backup files, and there is no '--force' or confirmation requirement. If the tool is used in an automated environment or against a directory with many files, an error in age calculation or path resolution could cause unintended data loss. The --dry-run option exists, but the default behavior is destructive.",
+          "remediation": "Change the default behavior to require an explicit confirmation flag (e.g., --force or --confirm) before deleting files. When deletion is enabled, log each deleted file path and its size. Alternatively, move files to a trash directory (e.g., ~/.local/share/Trash) instead of permanently unlinking, allowing recovery. Ensure that the directory being scanned is user-provided and never defaults to a system directory.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        }
+      ],
+      "execution_successful": false,
+      "analysis_completeness": {
+        "total_components": 2,
+        "scanned_components": 1,
+        "coverage_percent": 50.0,
+        "is_complete": false,
+        "execution_successful": false,
+        "fully_inspected_files": 1,
+        "partially_inspected_files": 1,
+        "entirely_uninspected_files": 0,
+        "ledger_exceptions": [
+          {
+            "outcome": "failed",
+            "phase": "semantic",
+            "reason_code": "llm_batch_failed",
+            "message": "LLM analysis failed for this file range.",
+            "path": "SKILL.md",
+            "start_line": null,
+            "end_line": null,
+            "fatal": true,
+            "analyzers": [
+              "mcp_tool_poisoning"
+            ],
+            "error_class": "NotImplementedError"
+          }
+        ],
+        "scope_exclusions": [],
+        "analyzer_statuses": [
+          {
+            "analyzer_id": "behavioral_ast",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "behavioral_taint_tracking",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_least_privilege",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_rug_pull",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_tool_poisoning",
+            "status": "failed",
+            "planned_work": 2,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 1,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "meta_analyzer",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_developer_intent",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_quality_policy",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_security_discovery",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_agent_snooping",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_anti_refusal",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_data_exfiltration",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_excessive_agency",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_harmful_content",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_memory_poisoning",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_output_handling",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_privilege_escalation",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_prompt_injection",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_rogue_agent",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_ssrf",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_supply_chain",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_system_prompt_leakage",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_tool_misuse",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_yara",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          }
+        ],
+        "limitations": [
+          "Analyzer mcp_tool_poisoning status: failed."
+        ],
+        "findings_before_filtering": 5,
+        "findings_after_filtering": 4
+      },
+      "scan_mode": "multilingual-enhanced",
+      "enhancements": {
+        "gap_fill_applied": false,
+        "gap_fill_findings": 0,
+        "english_keyword_rules_skipped": 0
+      }
+    }
+  ],
+  "metadata": {
+    "skillspector_version": "2.9.3"
+  }
+}

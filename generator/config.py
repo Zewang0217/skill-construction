@@ -7,7 +7,10 @@
 import os
 from pathlib import Path
 
-DEEPSEEK_API_URL = "https://api.deepseek.com/chat/completions"
+# 默认 DeepSeek 官方；可用环境变量切换 provider（如阿里百炼 DashScope）
+#   DEEPSEEK_API_URL=https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+#   DEEPSEEK_MODEL=deepseek-v4-flash-0731
+DEEPSEEK_API_URL = os.environ.get("DEEPSEEK_API_URL", "https://api.deepseek.com/chat/completions")
 
 
 def _load_key() -> str:
@@ -29,7 +32,7 @@ def _load_key() -> str:
 
 
 DEEPSEEK_API_KEY = _load_key()
-DEEPSEEK_MODEL = "deepseek-chat"  # 实测路由到 deepseek-v4-flash
+DEEPSEEK_MODEL = os.environ.get("DEEPSEEK_MODEL", "deepseek-chat")  # 实测路由到 deepseek-v4-flash
 
 # 生成模型参数
 TEMPERATURE = 0.9          # 提高多样性，避免同类样本指纹一致

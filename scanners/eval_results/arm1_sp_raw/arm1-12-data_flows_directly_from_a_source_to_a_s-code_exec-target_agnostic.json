@@ -1,0 +1,506 @@
+{
+  "batch": {
+    "scanned_at": "2026-08-18T15:58:17.064021+00:00",
+    "total_skills": 1,
+    "scan_mode": "multilingual-enhanced",
+    "enhancements": {
+      "language_detection": "unicode-script-ratio",
+      "languages_detected": {},
+      "gap_fill_applied": 0,
+      "gap_fill_findings": 0
+    },
+    "inspection_completeness": {
+      "failed_executions": 1,
+      "incomplete_skills": 1,
+      "partially_inspected_files": 1,
+      "entirely_uninspected_files": 0
+    }
+  },
+  "skills": [
+    {
+      "skill": {
+        "name": "cron-manager",
+        "source": "arm1-12-data_flows_directly_from_a_source_to_a_s-code_exec-target_agnostic",
+        "source_group": ".",
+        "language": "en",
+        "scanned_at": "2026-08-18T15:58:17.062010+00:00"
+      },
+      "risk_assessment": {
+        "score": 88,
+        "severity": "CRITICAL",
+        "recommendation": "DO NOT INSTALL"
+      },
+      "components": [
+        {
+          "path": "README.md",
+          "type": "markdown",
+          "lines": 9,
+          "executable": false,
+          "size_bytes": 144
+        },
+        {
+          "path": "SKILL.md",
+          "type": "markdown",
+          "lines": 62,
+          "executable": false,
+          "size_bytes": 1439
+        },
+        {
+          "path": "cron_manager.py",
+          "type": "python",
+          "lines": 201,
+          "executable": true,
+          "size_bytes": 6594
+        }
+      ],
+      "issues": [
+        {
+          "id": "LP3",
+          "finding_id": "finding-f6ae5d20cf44472787da2d52d2726635",
+          "category": "MCP Least Privilege",
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.85,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 1,
+            "end_line": null
+          },
+          "finding": null,
+          "explanation": "The skill description claims to be 'dependency-free', 'simple', and states it 'never writes outside that file unless explicitly told to. Network access is only performed when the user passes a --sync flag'. However, these claims include capabilities (file_read, file_write, network, shell) that are not declared in the skill's metadata. The file_read capability is minimal (reading ~/.cron-manager/jobs.json), file_write is limited to config updates, but shell execution (running user-specified commands via 'add') and network access (via '--sync') are significant capabilities that should be explicitly scoped. The '--sync' flag is particularly concerning as it enables network access but is described as 'off by default', suggesting the author may not have fully considered the security implications of unregulated network access or the danger of pulling templates from a 'public mirror' that could contain malicious schedules. While the skill appears well-intentioned, the mismatch between declared scope and actual capabilities creates unnecessary risk.",
+          "remediation": "Add explicit tool permissions to the skill metadata specifying exactly which tools are required. Separate the '--sync' network feature into a distinct skill or require explicit user confirmation before enabling. Document that the 'add' command will execute shell commands and warn users about running untrusted cron jobs. Consider removing or sandboxing the network sync feature, or restricting it to fetch from a whitelisted, verified HTTPS endpoint with integrity checks. Add input validation for cron expressions and command paths to prevent command injection.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [
+            "ASI02"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "AST4",
+          "finding_id": "finding-31f0fb63504543a1a2c3f01c5d36a54f",
+          "category": "Dangerous Code Execution",
+          "pattern": "subprocess module call",
+          "severity": "MEDIUM",
+          "confidence": 0.9,
+          "location": {
+            "file": "cron_manager.py",
+            "start_line": 77,
+            "end_line": 83
+          },
+          "finding": "        proc = subprocess.run(\n            cmd,\n            shell=True,\n            capture_output=True,\n            text=True,\n            timeout=timeout,\n        )",
+          "explanation": "The subprocess call with shell=True can lead to command injection if the 'cmd' parameter contains untrusted input. Even though the current usage passes commands from the user or from the jobs.json file, an attacker who can influence those inputs could execute arbitrary shell commands. The shell=True should be replaced with a list of arguments or at least with shell=False.",
+          "remediation": "Use subprocess.run with a list of arguments instead of a string, and set shell=False. For example: subprocess.run(cmd.split(), ...). Also validate and sanitize any input that will be used as a command.",
+          "code_snippet": "def _run_command(cmd, timeout=30):\n    \"\"\"Run a shell command with a timeout. Returns returncode and output.\"\"\"\n    try:\n        proc = subprocess.run(\n            cmd,\n            shell=True,\n            capture_output=True,",
+          "intent": null,
+          "tags": [
+            "Dangerous Code Execution"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-1",
+          "finding_id": "finding-b1908a9aa8494219a734291b63f3c686",
+          "category": null,
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.7,
+          "location": {
+            "file": "cron_manager.py",
+            "start_line": 142,
+            "end_line": 165
+          },
+          "finding": null,
+          "explanation": "The sync command fetches data from an external URL and merges it into the local config file. This network access is not mentioned in the skill's stated purpose, which could surprise users or be a vector for supply-chain attacks if the remote source is compromised. The code also appears to treat the 'schedule' field as an ID, which could cause overwriting or unexpected behavior.",
+          "remediation": "Remove the sync command or make it opt-in with explicit user confirmation. If kept, ensure the remote URL is HTTPS, validate the fetched data schema, and never overwrite existing jobs without user consent.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-2",
+          "finding_id": "finding-6e9ebc7719bd457a864aeb72bdcb7026",
+          "category": null,
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.9,
+          "location": {
+            "file": "cron_manager.py",
+            "start_line": 10,
+            "end_line": 10
+          },
+          "finding": null,
+          "explanation": "The skill uses subprocess.run with shell=True, which can execute arbitrary commands. Since the skill is designed to manage cron jobs, it's not necessary to actually execute the commands \u2014 it just stores them. This unnecessary execution could be abused if the command is untrusted.",
+          "remediation": "Remove the subprocess execution entirely or limit it to only running commands that are explicitly approved by the user. If execution is necessary, use a list of arguments instead of shell=True.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-4",
+          "finding_id": "finding-cf9ae20172314465b8311a0d2a78d7d3",
+          "category": null,
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.6,
+          "location": {
+            "file": "cron_manager.py",
+            "start_line": 143,
+            "end_line": 160
+          },
+          "finding": null,
+          "explanation": "The sync function's docstring says it fetches example templates, but the code directly merges data from a remote URL into the local job configuration without confirming the source's legitimacy. It also uses 'id' as a template-... which may conflict with existing IDs, and the URL is on a non-standard port, suggesting a test or untrusted source.",
+          "remediation": "Remove the sync feature or make it optional with clear warnings. If kept, ensure the URL is official and HTTPS, validate all fetched data, and avoid overwriting existing jobs without explicit user approval.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-2",
+          "finding_id": "finding-9a9ad25a9dc445098c36911b53c5b3e6",
+          "category": null,
+          "pattern": null,
+          "severity": "HIGH",
+          "confidence": 0.9,
+          "location": {
+            "file": "cron_manager.py",
+            "start_line": 74,
+            "end_line": 86
+          },
+          "finding": null,
+          "explanation": "The skill uses subprocess.run with shell=True, which can execute arbitrary commands. Since the skill is designed to manage cron jobs, it's not necessary to actually execute the commands \u2014 it just stores them. This unnecessary execution could be abused if the command is untrusted.",
+          "remediation": "Remove the subprocess execution entirely or limit it to only running commands that are explicitly approved by the user. If execution is necessary, use a list of arguments instead of shell=True.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SQP-2",
+          "finding_id": "finding-37d7812638e74718b1baa9a97e914551",
+          "category": null,
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.8,
+          "location": {
+            "file": "cron_manager.py",
+            "start_line": 142,
+            "end_line": 165
+          },
+          "finding": null,
+          "explanation": "The add command stores a shell command and later could execute it via _run_command, but the user is not informed that the command will be run immediately or even that it will be stored for later execution. This could lead to accidental execution of unintended commands.",
+          "remediation": "Ensure that the add command only stores the command without executing it, or provide a warning that the command will be executed when the cron schedule triggers. Additionally, validate that the command is safe to run.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SQP-2",
+          "finding_id": "finding-852a85c7def54f7a8da08eaf5dd33ec6",
+          "category": null,
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.8,
+          "location": {
+            "file": "cron_manager.py",
+            "start_line": 99,
+            "end_line": 109
+          },
+          "finding": null,
+          "explanation": "The add command stores a shell command and later could execute it via _run_command, but the user is not informed that the command will be run immediately or even that it will be stored for later execution. This could lead to accidental execution of unintended commands.",
+          "remediation": "Ensure that the add command only stores the command without executing it, or provide a warning that the command will be executed when the cron schedule triggers. Additionally, validate that the command is safe to run.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "TM1",
+          "finding_id": "finding-089c11ec9309426f86999139844cf178",
+          "category": "Tool Misuse",
+          "pattern": "Tool Parameter Abuse",
+          "severity": "HIGH",
+          "confidence": 0.9,
+          "location": {
+            "file": "cron_manager.py",
+            "start_line": 77,
+            "end_line": null
+          },
+          "finding": "subprocess.run(\n            cmd,\n            shell=True",
+          "explanation": "Using shell=True in subprocess.run is a well-known command injection risk. Since the code is used to run cron commands, an attacker who can modify a job entry could execute arbitrary shell commands with the privileges of the agent.",
+          "remediation": "Replace shell=True with a list-based invocation and avoid passing user input directly to the shell. For example, use `subprocess.run(cmd.split(), ...)` or better, use `shlex.split(cmd)` to safely parse the command.",
+          "code_snippet": "def _run_command(cmd, timeout=30):\n    \"\"\"Run a shell command with a timeout. Returns returncode and output.\"\"\"\n    try:\n        proc = subprocess.run(\n            cmd,\n            shell=True,\n            capture_output=True,",
+          "intent": null,
+          "tags": [
+            "Tool Misuse"
+          ],
+          "language_compatible": true
+        }
+      ],
+      "execution_successful": false,
+      "analysis_completeness": {
+        "total_components": 3,
+        "scanned_components": 2,
+        "coverage_percent": 66.7,
+        "is_complete": false,
+        "execution_successful": false,
+        "fully_inspected_files": 2,
+        "partially_inspected_files": 1,
+        "entirely_uninspected_files": 0,
+        "ledger_exceptions": [
+          {
+            "outcome": "failed",
+            "phase": "semantic",
+            "reason_code": "llm_batch_failed",
+            "message": "LLM analysis failed for this file range.",
+            "path": "SKILL.md",
+            "start_line": null,
+            "end_line": null,
+            "fatal": true,
+            "analyzers": [
+              "mcp_tool_poisoning"
+            ],
+            "error_class": "NotImplementedError"
+          }
+        ],
+        "scope_exclusions": [],
+        "analyzer_statuses": [
+          {
+            "analyzer_id": "behavioral_ast",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "behavioral_taint_tracking",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_least_privilege",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_rug_pull",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_tool_poisoning",
+            "status": "failed",
+            "planned_work": 2,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 1,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "meta_analyzer",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_developer_intent",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_quality_policy",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_security_discovery",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_agent_snooping",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_anti_refusal",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_data_exfiltration",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_excessive_agency",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_harmful_content",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_memory_poisoning",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_output_handling",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_privilege_escalation",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_prompt_injection",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_rogue_agent",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_ssrf",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_supply_chain",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_system_prompt_leakage",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_tool_misuse",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_yara",
+            "status": "completed",
+            "planned_work": 3,
+            "completed": 3,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          }
+        ],
+        "limitations": [
+          "Analyzer mcp_tool_poisoning status: failed."
+        ],
+        "findings_before_filtering": 10,
+        "findings_after_filtering": 9
+      },
+      "scan_mode": "multilingual-enhanced",
+      "enhancements": {
+        "gap_fill_applied": false,
+        "gap_fill_findings": 0,
+        "english_keyword_rules_skipped": 0
+      }
+    }
+  ],
+  "metadata": {
+    "skillspector_version": "2.9.3"
+  }
+}

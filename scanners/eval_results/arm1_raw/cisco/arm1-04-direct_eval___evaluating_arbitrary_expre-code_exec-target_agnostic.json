@@ -1,0 +1,178 @@
+{
+ "skill_name": "config-migrator",
+ "skill_path": "/tmp/cisco_953ac3x1",
+ "is_safe": false,
+ "max_severity": "CRITICAL",
+ "findings_count": 7,
+ "findings": [
+  {
+   "id": "llm_finding_config-migrator_0",
+   "rule_id": "LLM_COMMAND_INJECTION",
+   "category": "command_injection",
+   "severity": "CRITICAL",
+   "title": "Arbitrary Code Execution via eval() in transform function",
+   "description": "The run_transform() function uses eval() to execute user-supplied transform code (line ~139). Combined with exec() for loading user code files (line ~127), this allows arbitrary code execution from any provided --transforms file. A malicious transform could execute any system command, access sensitive files, or exfiltrate data, with no sandboxing or security controls.",
+   "file_path": "migrate.py",
+   "line_number": null,
+   "snippet": "result = eval(\"transform_func(data, context)\", {\"transform_func\": transform_func}, {\"data\": data, \"context\": context})",
+   "remediation": "Replace eval()/exec() with secure alternatives. Options: (1) Use a restricted sandbox (e.g., RestrictedPython), (2) Define a safe DSL for transform operations, (3) Disable arbitrary code execution and require predefined transform types, (4) If user code must be supported, require explicit user confirmation and clearly warn about risks.",
+   "analyzer": "llm",
+   "metadata": {
+    "model": "openai/ecnu-max",
+    "aitech": "AITech-9.1",
+    "aitech_name": "Model or Agentic System Manipulation",
+    "aisubtech": "AISubtech-9.1.4",
+    "aisubtech_name": "Injection Attacks (SQL, Command Execution, XSS)",
+    "scanner_category": "INJECTION ATTACK"
+   }
+  },
+  {
+   "id": "llm_finding_config-migrator_1",
+   "rule_id": "LLM_DATA_EXFILTRATION",
+   "category": "data_exfiltration",
+   "severity": "CRITICAL",
+   "title": "Data Exposure Through Sensitive Context Passed to Executable User Code",
+   "description": "The context dict passed to user transforms includes 'raw_input' (full content of input file) and implicitly accesses environment variables via env_map. If a malicious transform is loaded (which is possible given the eval()/exec() vulnerabilities), it receives the full raw config content which may contain secrets, credentials, or sensitive configuration data. This creates a data exposure pathway.",
+   "file_path": "migrate.py",
+   "line_number": null,
+   "snippet": "\"raw_input\": open(args.input, encoding=\"utf-8\").read(),",
+   "remediation": "Minimize data exposed to user code. Do not pass raw input or unnecessary environment variable data to transform functions. Apply least-privilege principles: only provide the data required for expected transform operations.",
+   "analyzer": "llm",
+   "metadata": {
+    "model": "openai/ecnu-max",
+    "aitech": "AITech-8.2",
+    "aitech_name": "Data Exfiltration / Exposure",
+    "aisubtech": "AISubtech-8.2.3",
+    "aisubtech_name": "Data Exfiltration via Agent Tooling",
+    "scanner_category": "SECURITY VIOLATION"
+   }
+  },
+  {
+   "id": "llm_finding_config-migrator_2",
+   "rule_id": "LLM_COMMAND_INJECTION",
+   "category": "command_injection",
+   "severity": "HIGH",
+   "title": "Dangerous Dynamic Code Loading via exec()",
+   "description": "The load_user_code() function uses exec(compile(source, str(p), \"exec\"), ns) to execute arbitrary Python files specified via --transforms or --validate arguments. This allows complete system access and arbitrary commands, including reading sensitive files (~/.ssh, ~/.aws), network exfiltration, or system compromise.",
+   "file_path": "migrate.py",
+   "line_number": null,
+   "snippet": "exec(compile(source, str(p), \"exec\"), ns)",
+   "remediation": "Remove exec()/eval() based code loading entirely, or implement robust sandboxing. For any legitimate use case, require users to explicitly opt-in with full awareness of risks.",
+   "analyzer": "llm",
+   "metadata": {
+    "model": "openai/ecnu-max",
+    "aitech": "AITech-9.1",
+    "aitech_name": "Model or Agentic System Manipulation",
+    "aisubtech": "AISubtech-9.1.4",
+    "aisubtech_name": "Injection Attacks (SQL, Command Execution, XSS)",
+    "scanner_category": "INJECTION ATTACK"
+   }
+  },
+  {
+   "id": "llm_finding_config-migrator_3",
+   "rule_id": "LLM_DATA_EXFILTRATION",
+   "category": "data_exfiltration",
+   "severity": "MEDIUM",
+   "title": "Environment Variable Harvesting into Transform Context",
+   "description": "When --env is specified, the tool collects all environment variables matching the env prefix (e.g., PROD_ prefix) into env_map, which is then used for substitution and potentially passed to user code. This could expose sensitive environment variables (credentials, API keys) to user-supplied transforms or misuse them in output files.",
+   "file_path": "migrate.py",
+   "line_number": null,
+   "snippet": "env_map = {k[len(prefix):]: v for k, v in os.environ.items() if k.startswith(prefix)}",
+   "remediation": "Do not harvest environment variables by default. Only substitute explicit variables that are declared in the configuration file, or require explicit user opt-in for environment variable access.",
+   "analyzer": "llm",
+   "metadata": {
+    "model": "openai/ecnu-max",
+    "aitech": "AITech-8.2",
+    "aitech_name": "Data Exfiltration / Exposure",
+    "aisubtech": "AISubtech-8.2.3",
+    "aisubtech_name": "Data Exfiltration via Agent Tooling",
+    "scanner_category": "SECURITY VIOLATION"
+   }
+  },
+  {
+   "id": "COMMAND_INJECTION_EVAL_735f1e5763",
+   "rule_id": "COMMAND_INJECTION_EVAL",
+   "category": "command_injection",
+   "severity": "CRITICAL",
+   "title": "Dangerous code execution functions that can execute arbitrary code",
+   "description": "Pattern detected: exec(",
+   "file_path": "migrate.py",
+   "line_number": 77,
+   "snippet": "exec(compile(source, str(p), \"exec\"), ns)",
+   "remediation": "Avoid eval(), exec(), and compile(). Use safer alternatives like ast.literal_eval() or operator module",
+   "analyzer": "static",
+   "metadata": {
+    "matched_pattern": "(?<!['\\\"\\.])\\bexec\\s*\\(",
+    "matched_text": "exec(",
+    "aitech": "AITech-9.1",
+    "aitech_name": "Model or Agentic System Manipulation",
+    "scanner_category": "INJECTION ATTACK"
+   }
+  },
+  {
+   "id": "COMMAND_INJECTION_EVAL_cf15f91b30",
+   "rule_id": "COMMAND_INJECTION_EVAL",
+   "category": "command_injection",
+   "severity": "CRITICAL",
+   "title": "Dangerous code execution functions that can execute arbitrary code",
+   "description": "Pattern detected: eval(",
+   "file_path": "migrate.py",
+   "line_number": 83,
+   "snippet": "\"\"\"Apply user transform. Uses eval() to allow arbitrary expressions.\"\"\"",
+   "remediation": "Avoid eval(), exec(), and compile(). Use safer alternatives like ast.literal_eval() or operator module",
+   "analyzer": "static",
+   "metadata": {
+    "matched_pattern": "(?<!['\\\"])\\beval\\s*\\(",
+    "matched_text": "eval(",
+    "aitech": "AITech-9.1",
+    "aitech_name": "Model or Agentic System Manipulation",
+    "scanner_category": "INJECTION ATTACK"
+   }
+  },
+  {
+   "id": "COMMAND_INJECTION_EVAL_0fa2d29f8e",
+   "rule_id": "COMMAND_INJECTION_EVAL",
+   "category": "command_injection",
+   "severity": "CRITICAL",
+   "title": "Dangerous code execution functions that can execute arbitrary code",
+   "description": "Pattern detected: eval(",
+   "file_path": "migrate.py",
+   "line_number": 86,
+   "snippet": "result = eval(\"transform_func(data, context)\", {\"transform_func\": transform_func}, {\"data\": data, \"context\": context})",
+   "remediation": "Avoid eval(), exec(), and compile(). Use safer alternatives like ast.literal_eval() or operator module",
+   "analyzer": "static",
+   "metadata": {
+    "matched_pattern": "(?<!['\\\"])\\beval\\s*\\(",
+    "matched_text": "eval(",
+    "aitech": "AITech-9.1",
+    "aitech_name": "Model or Agentic System Manipulation",
+    "scanner_category": "INJECTION ATTACK"
+   }
+  }
+ ],
+ "scan_duration_seconds": 24.737434148788452,
+ "duration_ms": 24737,
+ "analyzers_used": [
+  "static_analyzer",
+  "bytecode",
+  "pipeline",
+  "llm_analyzer"
+ ],
+ "timestamp": "2026-08-18T15:44:40.366616+00:00",
+ "scan_metadata": {
+  "policy_name": "default",
+  "policy_version": "1.0",
+  "policy_preset_base": "balanced",
+  "policy_fingerprint_sha256": "e6033e8884796d3589d44e3fa2d57f0aadf31a56d4e88818aeed2fd225d82c59",
+  "llm_overall_assessment": "The config-migrator skill has a core architectural flaw: it supports arbitrary user-defined code execution via eval() and exec() with no sandboxing or security controls. While the code itself doesn't perform malicious actions like network exfiltration, the design enables any user who provides a 'transforms' or 'validate' file to execute arbitrary system commands with full access to the host machine. Additionally, the context provided to user code includes raw config content and environment variables, creating a data exposure surface. The skill is dangerous both as a supply-chain risk (if an attacker provides a malicious transform file) and as an inherent vulnerability (any user with file write access can execute arbitrary code). The documented 'evaluate with caution' warning is grossly insufficient given the code execution capabilities.",
+  "llm_primary_threats": [
+   "AITech-9.1 - Arbitrary Code Execution",
+   "AITech-8.2 - Data Exfiltration/Exposure"
+  ]
+ },
+ "llm_usage": {
+  "input_tokens": 5727,
+  "output_tokens": 1828,
+  "total_tokens": 7555
+ }
+}

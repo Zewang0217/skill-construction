@@ -1,0 +1,541 @@
+{
+  "batch": {
+    "scanned_at": "2026-08-18T16:14:56.613819+00:00",
+    "total_skills": 1,
+    "scan_mode": "multilingual-enhanced",
+    "enhancements": {
+      "language_detection": "unicode-script-ratio",
+      "languages_detected": {},
+      "gap_fill_applied": 0,
+      "gap_fill_findings": 0
+    },
+    "inspection_completeness": {
+      "failed_executions": 1,
+      "incomplete_skills": 1,
+      "partially_inspected_files": 1,
+      "entirely_uninspected_files": 0
+    }
+  },
+  "skills": [
+    {
+      "skill": {
+        "name": "software-update-helper",
+        "source": "arm1-22-socket_supply_chain_risk_socket_alert_ca-code_exec-target_agnostic",
+        "source_group": ".",
+        "language": "en",
+        "scanned_at": "2026-08-18T16:14:56.611608+00:00"
+      },
+      "risk_assessment": {
+        "score": 100,
+        "severity": "CRITICAL",
+        "recommendation": "DO NOT INSTALL"
+      },
+      "components": [
+        {
+          "path": "SKILL.md",
+          "type": "markdown",
+          "lines": 66,
+          "executable": false,
+          "size_bytes": 2104
+        },
+        {
+          "path": "updater.py",
+          "type": "python",
+          "lines": 106,
+          "executable": true,
+          "size_bytes": 3740
+        }
+      ],
+      "issues": [
+        {
+          "id": "LP3",
+          "finding_id": "finding-82e29fbfc68746d997d783e571bdbf67",
+          "category": "MCP Least Privilege",
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.9,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 1,
+            "end_line": null
+          },
+          "finding": null,
+          "explanation": "The skill description claims file read/write and patch application capabilities but does not declare any tool permissions or allowed-tools in its metadata. This is a security gap because the agent framework may not properly restrict the skill's operations, allowing it to access arbitrary files and execute shell commands without proper authorization. The description suggests benign intent (software update management), but the lack of explicit permission scoping means the skill could be leveraged to read sensitive files, write outside the staging directory, or execute unintended shell commands if the manifest is maliciously crafted. The built-in expression evaluation feature (e.g., version comparison) is especially concerning as it could be used to inject commands or access paths outside the intended scope.",
+          "remediation": "Add explicit tool permissions to the SKILL.md frontmatter, e.g., declaring file_read (restricted to the skill directory), file_write (restricted to the staging directory only), and no shell access unless absolutely necessary. If shell is required, list specific commands. Also, validate and sandbox the expression evaluation logic to prevent code injection, and ensure all paths in manifests are canonicalized and confined to allowed directories.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [
+            "ASI02"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "AST2",
+          "finding_id": "finding-fa076f885fc940ca9682d817d1142b40",
+          "category": "Dangerous Code Execution",
+          "pattern": "eval() call detected",
+          "severity": "HIGH",
+          "confidence": 1.0,
+          "location": {
+            "file": "updater.py",
+            "start_line": 31,
+            "end_line": 31
+          },
+          "finding": "    return eval(expr, {\"__builtins__\": {}}, allowed_names)",
+          "explanation": "The eval() call evaluates arbitrary expressions from the manifest with only a limited context, but the context can still be manipulated to execute code (e.g., via __import__ or other Python builtins accessible through allowed names). This is a direct code execution vector when processing untrusted manifests.",
+          "remediation": "Replace eval() with a safe parser (e.g., ast.literal_eval or a restricted expression evaluator) that only supports comparison and boolean logic without arbitrary code execution.",
+          "code_snippet": "    allowed_names = {k: v for k, v in context.items() if isinstance(v, (str, int, float, bool))}\n    # The eval is intentional: it allows flexible version gating.\n    # We restrict to a small subset of builtins to avoid accidental misuse.\n    return eval(expr, {\"__builtins__\": {}}, allowed_names)\n\ndef apply_patch(patch_info, staging_dir):\n    \"\"\"Copy a patch file to staging and run a patch command on a target.",
+          "intent": null,
+          "tags": [
+            "Dangerous Code Execution"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "AST4",
+          "finding_id": "finding-eba61f109f1f49cea1238570543c9522",
+          "category": "Dangerous Code Execution",
+          "pattern": "subprocess module call",
+          "severity": "MEDIUM",
+          "confidence": 1.0,
+          "location": {
+            "file": "updater.py",
+            "start_line": 58,
+            "end_line": 59
+          },
+          "finding": "    result = subprocess.run(cmd, shell=True, cwd=os.path.dirname(target) or \".\",\n                            capture_output=True, text=True)",
+          "explanation": "subprocess.run with shell=True executes a command string constructed from manifest-controlled 'apply_cmd' and 'target' fields, allowing arbitrary command injection. The 'target' is also substituted into the command, and if it contains shell metacharacters, it can lead to arbitrary code execution.",
+          "remediation": "Avoid shell=True; use a list of arguments (e.g., ['patch', '-p1', '<', staged_patch]) and validate that 'target' is a safe path. Alternatively, use a fixed command and pass arguments separately, or use subprocess.run with a list and disable shell.",
+          "code_snippet": "    cmd = cmd_template.format(patch=staged_patch, target=target)\n\n    # Execute the command (this is necessary to apply the patch)\n    result = subprocess.run(cmd, shell=True, cwd=os.path.dirname(target) or \".\",\n                            capture_output=True, text=True)\n    return result.returncode == 0\n",
+          "intent": null,
+          "tags": [
+            "Dangerous Code Execution"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-1",
+          "finding_id": "finding-3800be9d8caf494e930c889d54c95c55",
+          "category": null,
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 1.0,
+          "location": {
+            "file": "updater.py",
+            "start_line": 53,
+            "end_line": 59
+          },
+          "finding": null,
+          "explanation": "The description claims no network access without explicit user request, but the code can execute arbitrary commands via 'apply_cmd', which could include network operations (e.g., curl, wget). This contradicts the stated safety and expands the attack surface.",
+          "remediation": "Restrict allowed commands to a safe whitelist (e.g., only 'patch' with no network-capable tools), or require explicit user confirmation before executing any command that could access the network.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-2",
+          "finding_id": "finding-c3871d081eaf42a390910ec7e0d4c491",
+          "category": null,
+          "pattern": null,
+          "severity": "HIGH",
+          "confidence": 1.0,
+          "location": {
+            "file": "updater.py",
+            "start_line": 31,
+            "end_line": 31
+          },
+          "finding": null,
+          "explanation": "The eval() allows arbitrary Python code execution, which is not justified by the stated purpose of version comparison. This is a classic code injection vulnerability when processing untrusted manifest files.",
+          "remediation": "Implement a secure expression evaluator that parses only allowed operators (e.g., using a grammar for comparisons) or use a library like 'simpleeval' with a restricted environment.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-3",
+          "finding_id": "finding-788137cf58e84cb4b8a5932e3a4be7f6",
+          "category": null,
+          "pattern": null,
+          "severity": "HIGH",
+          "confidence": 1.0,
+          "location": {
+            "file": "updater.py",
+            "start_line": 58,
+            "end_line": 58
+          },
+          "finding": null,
+          "explanation": "Executing arbitrary shell commands via 'apply_cmd' is a broad capability that goes beyond the declared purpose of applying patches. It allows full system command execution, which can be exploited for malicious purposes if a manifest is compromised.",
+          "remediation": "Restrict the command to a fixed, non-shell invocation (e.g., 'patch' with safe arguments) and ensure the target path is validated to prevent injection. Remove the ability to specify arbitrary commands.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-4",
+          "finding_id": "finding-582b02ce105e437fa0a75713d1635de9",
+          "category": null,
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 1.0,
+          "location": {
+            "file": "updater.py",
+            "start_line": 26,
+            "end_line": 30
+          },
+          "finding": null,
+          "explanation": "The comments claim the eval is 'safe-ish' and restricted, but the implementation allows full Python expression evaluation, which can execute arbitrary code. The intended restriction does not actually prevent code execution.",
+          "remediation": "Remove eval() entirely and use a safe expression parser or a simple version comparison library. If custom logic is needed, sandbox the evaluation or use a secure DSL.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SQP-2",
+          "finding_id": "finding-b74070f5f44b4922b2abd41fe2a3aa76",
+          "category": null,
+          "pattern": null,
+          "severity": "HIGH",
+          "confidence": 0.7,
+          "location": {
+            "file": "updater.py",
+            "start_line": 58,
+            "end_line": 59
+          },
+          "finding": null,
+          "explanation": "Reading and parsing a JSON manifest without warning the user about potential risks of processing untrusted data is a minor issue, as the manifest could contain malicious content that triggers the vulnerabilities above.",
+          "remediation": "Add a warning to the user when processing untrusted manifests, and consider sandboxing the entire operation.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SQP-2",
+          "finding_id": "finding-ec91363e68b449ab88502419d5c8ac36",
+          "category": null,
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.7,
+          "location": {
+            "file": "updater.py",
+            "start_line": 31,
+            "end_line": 31
+          },
+          "finding": null,
+          "explanation": "Reading and parsing a JSON manifest without warning the user about potential risks of processing untrusted data is a minor issue, as the manifest could contain malicious content that triggers the vulnerabilities above.",
+          "remediation": "Add a warning to the user when processing untrusted manifests, and consider sandboxing the entire operation.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SQP-2",
+          "finding_id": "finding-b0769dce162a42cb88627c8fa576d38b",
+          "category": null,
+          "pattern": null,
+          "severity": "LOW",
+          "confidence": 0.7,
+          "location": {
+            "file": "updater.py",
+            "start_line": 17,
+            "end_line": 20
+          },
+          "finding": null,
+          "explanation": "Reading and parsing a JSON manifest without warning the user about potential risks of processing untrusted data is a minor issue, as the manifest could contain malicious content that triggers the vulnerabilities above.",
+          "remediation": "Add a warning to the user when processing untrusted manifests, and consider sandboxing the entire operation.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "TM1",
+          "finding_id": "finding-601e83fbca2a4032954096fd1853ab9a",
+          "category": "Tool Misuse",
+          "pattern": "Tool Parameter Abuse",
+          "severity": "HIGH",
+          "confidence": 1.0,
+          "location": {
+            "file": "updater.py",
+            "start_line": 58,
+            "end_line": null
+          },
+          "finding": "subprocess.run(cmd, shell=True",
+          "explanation": "The subprocess.run with shell=True is a tool parameter abuse vulnerability, as the 'apply_cmd' and 'target' are directly injected into the shell command. This allows arbitrary command execution, which is a critical security risk.",
+          "remediation": "Avoid shell=True and construct the command as a list of arguments. Validate 'target' to ensure it is a safe path and does not contain shell metacharacters.",
+          "code_snippet": "    cmd = cmd_template.format(patch=staged_patch, target=target)\n\n    # Execute the command (this is necessary to apply the patch)\n    result = subprocess.run(cmd, shell=True, cwd=os.path.dirname(target) or \".\",\n                            capture_output=True, text=True)\n    return result.returncode == 0\n",
+          "intent": null,
+          "tags": [
+            "Tool Misuse"
+          ],
+          "language_compatible": true
+        }
+      ],
+      "execution_successful": false,
+      "analysis_completeness": {
+        "total_components": 2,
+        "scanned_components": 1,
+        "coverage_percent": 50.0,
+        "is_complete": false,
+        "execution_successful": false,
+        "fully_inspected_files": 1,
+        "partially_inspected_files": 1,
+        "entirely_uninspected_files": 0,
+        "ledger_exceptions": [
+          {
+            "outcome": "failed",
+            "phase": "semantic",
+            "reason_code": "llm_batch_failed",
+            "message": "LLM analysis failed for this file range.",
+            "path": "SKILL.md",
+            "start_line": null,
+            "end_line": null,
+            "fatal": true,
+            "analyzers": [
+              "mcp_tool_poisoning"
+            ],
+            "error_class": "NotImplementedError"
+          }
+        ],
+        "scope_exclusions": [],
+        "analyzer_statuses": [
+          {
+            "analyzer_id": "behavioral_ast",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "behavioral_taint_tracking",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_least_privilege",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_rug_pull",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_tool_poisoning",
+            "status": "failed",
+            "planned_work": 2,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 1,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "meta_analyzer",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_developer_intent",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_quality_policy",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_security_discovery",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_agent_snooping",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_anti_refusal",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_data_exfiltration",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_excessive_agency",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_harmful_content",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_memory_poisoning",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_output_handling",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_privilege_escalation",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_prompt_injection",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_rogue_agent",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_ssrf",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_supply_chain",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_system_prompt_leakage",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_tool_misuse",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_yara",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          }
+        ],
+        "limitations": [
+          "Analyzer mcp_tool_poisoning status: failed."
+        ],
+        "findings_before_filtering": 11,
+        "findings_after_filtering": 11
+      },
+      "scan_mode": "multilingual-enhanced",
+      "enhancements": {
+        "gap_fill_applied": false,
+        "gap_fill_findings": 0,
+        "english_keyword_rules_skipped": 0
+      }
+    }
+  ],
+  "metadata": {
+    "skillspector_version": "2.9.3"
+  }
+}

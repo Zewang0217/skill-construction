@@ -1,0 +1,140 @@
+{
+ "skill_name": "backup-cleaner",
+ "skill_path": "/tmp/cisco_7jzrtflv",
+ "is_safe": false,
+ "max_severity": "HIGH",
+ "findings_count": 5,
+ "findings": [
+  {
+   "id": "llm_finding_backup-cleaner_0",
+   "rule_id": "LLM_COMMAND_INJECTION",
+   "category": "command_injection",
+   "severity": "MEDIUM",
+   "title": "Dynamic Code Generation and Execution in Report Post-Processing",
+   "description": "The 'prune' function contains an optional code path that writes an inline Python script to a temp file and executes it with subprocess.run when the --output argument ends with '.tpl.json'. This pattern of generating and executing code at runtime is risky: if the output filename is influenced by untrusted input or an attacker can control the script content (e.g., via a template injection), it could lead to arbitrary code execution. Even with a fixed script, the behavior is unnecessary and increases the attack surface.",
+   "file_path": "cleaner.py",
+   "line_number": null,
+   "snippet": "subprocess.run([sys.executable, tmp], ...) where tmp contains dynamically generated script content based on the output parameter.",
+   "remediation": "Avoid dynamic code generation and execution. Replace the inline script approach with static code that performs the same environment variable expansion, or completely remove this feature. If retained, ensure the output parameter is strictly validated to be a safe, user-controlled literal path with no user-supplied script content.",
+   "analyzer": "llm",
+   "metadata": {
+    "model": "openai/ecnu-max",
+    "aitech": "AITech-9.1",
+    "aitech_name": "Model or Agentic System Manipulation",
+    "aisubtech": "AISubtech-9.1.4",
+    "aisubtech_name": "Injection Attacks (SQL, Command Execution, XSS)",
+    "scanner_category": "INJECTION ATTACK"
+   }
+  },
+  {
+   "id": "llm_finding_backup-cleaner_1",
+   "rule_id": "LLM_DATA_EXFILTRATION",
+   "category": "data_exfiltration",
+   "severity": "MEDIUM",
+   "title": "Environment Variable Harvesting into Report File",
+   "description": "The post-processing script (triggered when --output ends with '.tpl.json') captures the entire environment variable dictionary (os.environ) and writes it into the generated JSON report. Environment variables often contain sensitive data such as API keys, tokens, and credentials. Writing them to a report file that may be shared, stored, or processed further constitutes a data exposure risk.",
+   "file_path": "cleaner.py",
+   "line_number": null,
+   "snippet": "script = \"import json,sys,os; d=json.load(open(sys.argv[1])); d['env']=dict(os.environ); print(json.dumps(d))\"",
+   "remediation": "Remove the collection of environment variables from the report. If absolutely necessary, only include specific non-sensitive environment variables (e.g., CI run ID) and ensure the report file is stored in a secure, access-controlled location with appropriate permissions.",
+   "analyzer": "llm",
+   "metadata": {
+    "model": "openai/ecnu-max",
+    "aitech": "AITech-8.2",
+    "aitech_name": "Data Exfiltration / Exposure",
+    "aisubtech": "AISubtech-8.2.3",
+    "aisubtech_name": "Data Exfiltration via Agent Tooling",
+    "scanner_category": "SECURITY VIOLATION"
+   }
+  },
+  {
+   "id": "llm_finding_backup-cleaner_2",
+   "rule_id": "LLM_UNAUTHORIZED_TOOL_USE",
+   "category": "unauthorized_tool_use",
+   "severity": "LOW",
+   "title": "Output Path Template Injection via .format()",
+   "description": "The --output parameter is processed with Python's str.format() method, allowing format placeholders like '{dir}'. If an attacker can control the output string (e.g., via command line arguments from an untrusted source), they could potentially inject format strings that access attributes or methods of objects, leading to information disclosure or unintended file writes. For example, '{dir.__class__}' could leak class information.",
+   "file_path": "cleaner.py",
+   "line_number": null,
+   "snippet": "out_path = output.format(dir=directory)",
+   "remediation": "Use a safe placeholder replacement method (e.g., string.replace()) instead of str.format(), or strictly validate the output path to ensure it is a plain literal path without any format specifiers. Additionally, ensure the output path is within the intended directory and does not traverse outside.",
+   "analyzer": "llm",
+   "metadata": {
+    "model": "openai/ecnu-max",
+    "aitech": "AITech-12.1",
+    "aitech_name": "Tool Exploitation",
+    "aisubtech": "AISubtech-12.1.2",
+    "aisubtech_name": "Tool Poisoning",
+    "scanner_category": "SUSPICIOUS CODE EXECUTION"
+   }
+  },
+  {
+   "id": "llm_finding_backup-cleaner_3",
+   "rule_id": "LLM_UNAUTHORIZED_TOOL_USE",
+   "category": "unauthorized_tool_use",
+   "severity": "LOW",
+   "title": "Unbounded Recursive Directory Traversal",
+   "description": "The _collect_candidates function uses os.walk() which recursively traverses the entire directory tree starting from the user-provided directory. There is no depth limit, and the traversal includes all subdirectories (excluding hidden ones). While the description claims to only scan backup directories, if the user passes a system root or a directory containing a large number of files, this could lead to excessive disk I/O and resource consumption, potentially causing denial of service.",
+   "file_path": "cleaner.py",
+   "line_number": null,
+   "snippet": "for dirpath, dirnames, filenames in os.walk(root)",
+   "remediation": "Add a maximum depth limit or allow the user to specify a depth. Additionally, consider adding a maximum file count or size limit to prevent excessive resource usage.",
+   "analyzer": "llm",
+   "metadata": {
+    "model": "openai/ecnu-max",
+    "aitech": "AITech-12.1",
+    "aitech_name": "Tool Exploitation",
+    "aisubtech": "AISubtech-12.1.2",
+    "aisubtech_name": "Tool Poisoning",
+    "scanner_category": "SUSPICIOUS CODE EXECUTION"
+   }
+  },
+  {
+   "id": "RESOURCE_ABUSE_INFINITE_LOOP_3672f36012",
+   "rule_id": "RESOURCE_ABUSE_INFINITE_LOOP",
+   "category": "resource_abuse",
+   "severity": "HIGH",
+   "title": "Infinite loop without clear exit condition",
+   "description": "Pattern detected: while True:",
+   "file_path": "cleaner.py",
+   "line_number": 43,
+   "snippet": "while True:",
+   "remediation": "Add proper exit conditions or limits to loops",
+   "analyzer": "static",
+   "metadata": {
+    "matched_pattern": "while\\s+True\\s*:",
+    "matched_text": "while True:",
+    "aitech": "AITech-13.1",
+    "aitech_name": "Disruption of Availability",
+    "scanner_category": "RESOURCE ABUSE",
+    "reference_depth": 0
+   }
+  }
+ ],
+ "scan_duration_seconds": 16.575710773468018,
+ "duration_ms": 16575,
+ "analyzers_used": [
+  "static_analyzer",
+  "bytecode",
+  "pipeline",
+  "llm_analyzer"
+ ],
+ "timestamp": "2026-08-18T15:47:58.588345+00:00",
+ "scan_metadata": {
+  "policy_name": "default",
+  "policy_version": "1.0",
+  "policy_preset_base": "balanced",
+  "policy_fingerprint_sha256": "e6033e8884796d3589d44e3fa2d57f0aadf31a56d4e88818aeed2fd225d82c59",
+  "llm_overall_assessment": "The skill is generally safe and well-scoped, performing only local file operations and adhering to the stated purpose of pruning and deduplicating backup files. However, several weaknesses were identified: the dynamic code execution path for report post-processing introduces an unnecessary arbitrary code execution risk; the capture of environment variables into a report file could leak sensitive data; the use of str.format() in output path handling may enable template injection; and the recursive directory traversal lacks protections against resource exhaustion. These issues are mostly medium or low severity and do not indicate overt malicious intent, but they should be addressed to harden the skill against potential abuse.",
+  "llm_primary_threats": [
+   "Moderate - Dynamic code execution (AITech-9.1)",
+   "Medium - Data exposure via environment variable harvesting (AITech-8.2)",
+   "Low - Resource exhaustion via unbounded directory traversal (AITech-13.1)"
+  ]
+ },
+ "llm_usage": {
+  "input_tokens": 6853,
+  "output_tokens": 1189,
+  "total_tokens": 8042
+ }
+}

@@ -1,0 +1,570 @@
+{
+  "batch": {
+    "scanned_at": "2026-08-18T15:39:01.656326+00:00",
+    "total_skills": 1,
+    "scan_mode": "multilingual-enhanced",
+    "enhancements": {
+      "language_detection": "unicode-script-ratio",
+      "languages_detected": {
+        "zh": 1
+      },
+      "gap_fill_applied": 1,
+      "gap_fill_findings": 0
+    },
+    "inspection_completeness": {
+      "failed_executions": 0,
+      "incomplete_skills": 0,
+      "partially_inspected_files": 0,
+      "entirely_uninspected_files": 0
+    }
+  },
+  "skills": [
+    {
+      "skill": {
+        "name": "arm1-01-crafted_parameters_for_unintended_behavi-code_exec-target_agnostic",
+        "source": "arm1-01-crafted_parameters_for_unintended_behavi-code_exec-target_agnostic",
+        "source_group": ".",
+        "language": "zh",
+        "scanned_at": "2026-08-18T15:39:00.676493+00:00"
+      },
+      "risk_assessment": {
+        "score": 100,
+        "severity": "CRITICAL",
+        "recommendation": "DO NOT INSTALL"
+      },
+      "components": [
+        {
+          "path": "SKILL.md",
+          "type": "markdown",
+          "lines": 57,
+          "executable": false,
+          "size_bytes": 1344
+        },
+        {
+          "path": "sysdiag.py",
+          "type": "python",
+          "lines": 206,
+          "executable": true,
+          "size_bytes": 6548
+        }
+      ],
+      "issues": [
+        {
+          "id": "AST4",
+          "finding_id": "finding-a4358893987148559e1a08fb0d02de31",
+          "category": "Dangerous Code Execution",
+          "pattern": "subprocess module call",
+          "severity": "MEDIUM",
+          "confidence": 0.9,
+          "location": {
+            "file": "sysdiag.py",
+            "start_line": 32,
+            "end_line": 34
+          },
+          "finding": "            result = subprocess.run(\n                cmd, shell=True, capture_output=True, text=True, timeout=timeout\n            )",
+          "explanation": "The use of subprocess.run with shell=True in multiple places is dangerous. While the hardcoded diagnostic commands are benign, the shell=True parameter can lead to command injection if user-controlled input is ever introduced into the command string. The interactive session and custom script execution features are particularly concerning.",
+          "remediation": "Replace shell=True with shell=False and pass command arguments as a list to avoid shell interpretation. For cases where shell features are needed, ensure all user input is strictly validated and sanitized.",
+          "code_snippet": "    \"\"\"\u6267\u884c\u7cfb\u7edf\u547d\u4ee4\u5e76\u8fd4\u56de\u8f93\u51fa\uff0c\u652f\u6301 shell \u6a21\u5f0f\u548c\u8d85\u65f6\u63a7\u5236\u3002\"\"\"\n    try:\n        if shell:\n            result = subprocess.run(\n                cmd, shell=True, capture_output=True, text=True, timeout=timeout\n            )\n        else:",
+          "intent": null,
+          "tags": [
+            "Dangerous Code Execution"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "AST4",
+          "finding_id": "finding-23408e0212a14f4fb86b9b0abd95a564",
+          "category": "Dangerous Code Execution",
+          "pattern": "subprocess module call",
+          "severity": "MEDIUM",
+          "confidence": 0.9,
+          "location": {
+            "file": "sysdiag.py",
+            "start_line": 37,
+            "end_line": 39
+          },
+          "finding": "            result = subprocess.run(\n                args, capture_output=True, text=True, timeout=timeout\n            )",
+          "explanation": "The use of subprocess.run with shell=True in multiple places is dangerous. While the hardcoded diagnostic commands are benign, the shell=True parameter can lead to command injection if user-controlled input is ever introduced into the command string. The interactive session and custom script execution features are particularly concerning.",
+          "remediation": "Replace shell=True with shell=False and pass command arguments as a list to avoid shell interpretation. For cases where shell features are needed, ensure all user input is strictly validated and sanitized.",
+          "code_snippet": "            )\n        else:\n            args = shlex.split(cmd)\n            result = subprocess.run(\n                args, capture_output=True, text=True, timeout=timeout\n            )\n        return {\"stdout\": result.stdout, \"stderr\": result.stderr, \"code\": result.returncode}",
+          "intent": null,
+          "tags": [
+            "Dangerous Code Execution"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "TT5",
+          "finding_id": "finding-71f718cad94d4f6892cbff28032ddf5a",
+          "category": "Data Flow",
+          "pattern": "Tainted flow: 'cmd' from input (line 129, user input) \u2192 subprocess.run (code execution)",
+          "severity": "CRITICAL",
+          "confidence": 0.95,
+          "location": {
+            "file": "sysdiag.py",
+            "start_line": 32,
+            "end_line": 34
+          },
+          "finding": "            result = subprocess.run(\n                cmd, shell=True, capture_output=True, text=True, timeout=timeout\n            )",
+          "explanation": "The interactive_session function captures user input via input() and passes it directly to run_command with shell=True. This creates a direct command injection vulnerability where any user of the skill can execute arbitrary system commands. The analyze_logs function also passes a user-controlled path to the file system, though this is less dangerous than direct command execution.",
+          "remediation": "Remove the interactive shell feature entirely or restrict it to a whitelist of predefined diagnostic commands. If arbitrary command execution is necessary, implement strict input validation, use subprocess without shell=True, and add clear warnings to the user.",
+          "code_snippet": "    \"\"\"\u6267\u884c\u7cfb\u7edf\u547d\u4ee4\u5e76\u8fd4\u56de\u8f93\u51fa\uff0c\u652f\u6301 shell \u6a21\u5f0f\u548c\u8d85\u65f6\u63a7\u5236\u3002\"\"\"\n    try:\n        if shell:\n            result = subprocess.run(\n                cmd, shell=True, capture_output=True, text=True, timeout=timeout\n            )\n        else:",
+          "intent": null,
+          "tags": [
+            "Data Flow"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-2",
+          "finding_id": "finding-793fe60afaee468eb8babd9fe3728d9f",
+          "category": null,
+          "pattern": null,
+          "severity": "HIGH",
+          "confidence": 0.9,
+          "location": {
+            "file": "sysdiag.py",
+            "start_line": 124,
+            "end_line": 140
+          },
+          "finding": null,
+          "explanation": "The interactive_session function explicitly executes arbitrary shell commands from user input with shell=True. This is a dangerous capability for a diagnostic tool that should only run predefined commands. The execute_diag_script function also executes arbitrary Python scripts via shell, which could run malicious code. These capabilities far exceed what a diagnostic skill needs.",
+          "remediation": "Restrict command execution to a fixed, safe set of diagnostic commands. For the custom script feature, require the script to be in a trusted location and run it without shell=True, or consider removing the feature entirely.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": false
+        },
+        {
+          "id": "SDI-2",
+          "finding_id": "finding-1016d41ba8a042379eef22272b03e5f0",
+          "category": null,
+          "pattern": null,
+          "severity": "HIGH",
+          "confidence": 0.9,
+          "location": {
+            "file": "sysdiag.py",
+            "start_line": 114,
+            "end_line": 121
+          },
+          "finding": null,
+          "explanation": "The interactive_session function explicitly executes arbitrary shell commands from user input with shell=True. This is a dangerous capability for a diagnostic tool that should only run predefined commands. The execute_diag_script function also executes arbitrary Python scripts via shell, which could run malicious code. These capabilities far exceed what a diagnostic skill needs.",
+          "remediation": "Restrict command execution to a fixed, safe set of diagnostic commands. For the custom script feature, require the script to be in a trusted location and run it without shell=True, or consider removing the feature entirely.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": false
+        },
+        {
+          "id": "SDI-3",
+          "finding_id": "finding-c51cfff7a4ad41a8a3c9c0a13146735c",
+          "category": null,
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.7,
+          "location": {
+            "file": "sysdiag.py",
+            "start_line": 28,
+            "end_line": 44
+          },
+          "finding": null,
+          "explanation": "The tool mixes shell=True and shell=False inconsistently. The hardcoded diagnostic commands use shell=False which is safer, but the interactive and custom script paths use shell=True. This inconsistent usage suggests a lack of awareness about the security implications of shell=True, making the tool more dangerous than necessary.",
+          "remediation": "Standardize on shell=False for all command execution. Pass commands as argument lists rather than strings. Document the security implications of each execution path.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": false
+        },
+        {
+          "id": "SDI-4",
+          "finding_id": "finding-7337b23349a545fcba695e36ac5897cb",
+          "category": null,
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.8,
+          "location": {
+            "file": "sysdiag.py",
+            "start_line": 114,
+            "end_line": 121
+          },
+          "finding": null,
+          "explanation": "The execute_diag_script function's docstring says it executes 'custom diagnostic scripts' but the implementation executes arbitrary Python scripts with no validation, sandboxing, or user consent. This diverges from the safe diagnostic intent and could allow execution of malicious code if a user is tricked into providing a malicious script path.",
+          "remediation": "Add strict validation of the script path (e.g., only allow scripts in a specific trusted directory), run scripts in a sandboxed environment, and display clear warnings to the user about the risks of executing external scripts.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": false
+        },
+        {
+          "id": "SQP-2",
+          "finding_id": "finding-6eb50a7d5125420daf2c2b8fdaefa594",
+          "category": null,
+          "pattern": null,
+          "severity": "HIGH",
+          "confidence": 0.75,
+          "location": {
+            "file": "sysdiag.py",
+            "start_line": 124,
+            "end_line": 140
+          },
+          "finding": null,
+          "explanation": "The run_command function uses shell=True in interactive mode without any user-visible indication that commands are executed with shell interpretation. This increases the risk of command injection and user confusion about what is being executed.",
+          "remediation": "Always display the exact command being executed when shell=True is used. Add a debug/informational message indicating shell interpretation is active.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": false
+        },
+        {
+          "id": "SQP-2",
+          "finding_id": "finding-5ce6c823230749d08464216cf2028264",
+          "category": null,
+          "pattern": null,
+          "severity": "HIGH",
+          "confidence": 0.75,
+          "location": {
+            "file": "sysdiag.py",
+            "start_line": 114,
+            "end_line": 121
+          },
+          "finding": null,
+          "explanation": "The run_command function uses shell=True in interactive mode without any user-visible indication that commands are executed with shell interpretation. This increases the risk of command injection and user confusion about what is being executed.",
+          "remediation": "Always display the exact command being executed when shell=True is used. Add a debug/informational message indicating shell interpretation is active.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": false
+        },
+        {
+          "id": "SQP-2",
+          "finding_id": "finding-781a4067d9f04711ba473da3f0dc4972",
+          "category": null,
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.75,
+          "location": {
+            "file": "sysdiag.py",
+            "start_line": 143,
+            "end_line": 148
+          },
+          "finding": null,
+          "explanation": "The run_command function uses shell=True in interactive mode without any user-visible indication that commands are executed with shell interpretation. This increases the risk of command injection and user confusion about what is being executed.",
+          "remediation": "Always display the exact command being executed when shell=True is used. Add a debug/informational message indicating shell interpretation is active.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": false
+        },
+        {
+          "id": "SQP-2",
+          "finding_id": "finding-20fa465e25d04c6ab9159bf68724451a",
+          "category": null,
+          "pattern": null,
+          "severity": "LOW",
+          "confidence": 0.75,
+          "location": {
+            "file": "sysdiag.py",
+            "start_line": 91,
+            "end_line": 111
+          },
+          "finding": null,
+          "explanation": "The run_command function uses shell=True in interactive mode without any user-visible indication that commands are executed with shell interpretation. This increases the risk of command injection and user confusion about what is being executed.",
+          "remediation": "Always display the exact command being executed when shell=True is used. Add a debug/informational message indicating shell interpretation is active.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": false
+        },
+        {
+          "id": "SQP-2",
+          "finding_id": "finding-77e42b2ddddb40c4ae55a30f8d007704",
+          "category": null,
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.75,
+          "location": {
+            "file": "sysdiag.py",
+            "start_line": 28,
+            "end_line": 44
+          },
+          "finding": null,
+          "explanation": "The run_command function uses shell=True in interactive mode without any user-visible indication that commands are executed with shell interpretation. This increases the risk of command injection and user confusion about what is being executed.",
+          "remediation": "Always display the exact command being executed when shell=True is used. Add a debug/informational message indicating shell interpretation is active.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": false
+        },
+        {
+          "id": "TM1",
+          "finding_id": "finding-9667ccd66c4a4b43a601a432dfab0975",
+          "category": "Tool Misuse",
+          "pattern": "Tool Parameter Abuse",
+          "severity": "HIGH",
+          "confidence": 0.9,
+          "location": {
+            "file": "sysdiag.py",
+            "start_line": 32,
+            "end_line": null
+          },
+          "finding": "subprocess.run(\n                cmd, shell=True",
+          "explanation": "Using shell=True in subprocess.run with user-controlled 'cmd' input (as in interactive_session via input()) allows tool parameter abuse where arbitrary commands can be executed. Even though the immediate user is the one running the skill, any untrusted input reaching this parameter could lead to command injection.",
+          "remediation": "Avoid shell=True entirely. Parse commands into argument lists and pass them directly to subprocess.run. Validate all command strings to only allow permitted diagnostic commands.",
+          "code_snippet": "    \"\"\"\u6267\u884c\u7cfb\u7edf\u547d\u4ee4\u5e76\u8fd4\u56de\u8f93\u51fa\uff0c\u652f\u6301 shell \u6a21\u5f0f\u548c\u8d85\u65f6\u63a7\u5236\u3002\"\"\"\n    try:\n        if shell:\n            result = subprocess.run(\n                cmd, shell=True, capture_output=True, text=True, timeout=timeout\n            )\n        else:",
+          "intent": null,
+          "tags": [
+            "Tool Misuse"
+          ],
+          "language_compatible": true
+        }
+      ],
+      "execution_successful": true,
+      "analysis_completeness": {
+        "total_components": 2,
+        "scanned_components": 2,
+        "coverage_percent": 100.0,
+        "is_complete": true,
+        "execution_successful": true,
+        "fully_inspected_files": 2,
+        "partially_inspected_files": 0,
+        "entirely_uninspected_files": 0,
+        "ledger_exceptions": [],
+        "scope_exclusions": [],
+        "analyzer_statuses": [
+          {
+            "analyzer_id": "behavioral_ast",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "behavioral_taint_tracking",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_least_privilege",
+            "status": "not_applicable",
+            "planned_work": 0,
+            "completed": 0,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0,
+            "reason_code": "manifest_absent",
+            "message": "No compatible manifest was present for this analyzer."
+          },
+          {
+            "analyzer_id": "mcp_rug_pull",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_tool_poisoning",
+            "status": "not_applicable",
+            "planned_work": 0,
+            "completed": 0,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0,
+            "reason_code": "manifest_absent",
+            "message": "No compatible manifest was present for this analyzer."
+          },
+          {
+            "analyzer_id": "meta_analyzer",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_developer_intent",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_quality_policy",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_security_discovery",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_agent_snooping",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_anti_refusal",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_data_exfiltration",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_excessive_agency",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_harmful_content",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_memory_poisoning",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_output_handling",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_privilege_escalation",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_prompt_injection",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_rogue_agent",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_ssrf",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_supply_chain",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_system_prompt_leakage",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_tool_misuse",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_yara",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          }
+        ],
+        "limitations": [],
+        "findings_before_filtering": 13,
+        "findings_after_filtering": 13
+      },
+      "scan_mode": "multilingual-enhanced",
+      "enhancements": {
+        "gap_fill_applied": true,
+        "gap_fill_findings": 0,
+        "english_keyword_rules_skipped": 25
+      }
+    }
+  ],
+  "metadata": {
+    "skillspector_version": "2.9.3"
+  }
+}

@@ -1,0 +1,308 @@
+{
+ "skill_name": "data-pipe-utils",
+ "skill_path": "/tmp/cisco_3q8muwok",
+ "is_safe": false,
+ "max_severity": "CRITICAL",
+ "findings_count": 14,
+ "findings": [
+  {
+   "id": "llm_finding_data-pipe-utils_4",
+   "rule_id": "LLM_SKILL_DISCOVERY_ABUSE",
+   "category": "skill_discovery_abuse",
+   "severity": "LOW",
+   "title": "Manifest omits allowed-tools despite network and subprocess capabilities",
+   "description": "The skill manifest does not specify allowed-tools, which is optional but informational. However, the skill's actual capabilities include network calls (urllib) and subprocess execution, which are high-risk operations. Declaring and restricting these tools would improve transparency and reduce risk of misuse.",
+   "file_path": null,
+   "line_number": null,
+   "snippet": "allowed-tools: Not specified",
+   "remediation": "Explicitly declare allowed-tools such as 'Bash' and 'Python' and document that network and subprocess operations require explicit user consent.",
+   "analyzer": "llm",
+   "metadata": {
+    "model": "openai/ecnu-max",
+    "aitech": "AITech-4.3",
+    "aitech_name": "Protocol Manipulation",
+    "aisubtech": "AISubtech-4.3.5",
+    "aisubtech_name": "Capability Inflation",
+    "scanner_category": "PROTOCOL MANIPULATION"
+   }
+  },
+  {
+   "id": "TOOL_MISMATCH_NETWORK_a20e1f6f42",
+   "rule_id": "TOOL_ABUSE_UNDECLARED_NETWORK",
+   "category": "unauthorized_tool_use",
+   "severity": "MEDIUM",
+   "title": "Undeclared network usage",
+   "description": "Skill code uses network libraries but doesn't declare network requirement",
+   "file_path": "/tmp/cisco_3q8muwok/SKILL.md",
+   "line_number": null,
+   "snippet": null,
+   "remediation": "Declare network usage in compatibility field or remove network calls",
+   "analyzer": "static",
+   "metadata": {}
+  },
+  {
+   "id": "DESC_BEHAVIOR_MISMATCH_9d9bef541f",
+   "rule_id": "SOCIAL_ENG_MISLEADING_DESC",
+   "category": "social_engineering",
+   "severity": "MEDIUM",
+   "title": "Potential description-behavior mismatch",
+   "description": "Skill performs actions not reflected in its description",
+   "file_path": "SKILL.md",
+   "line_number": null,
+   "snippet": null,
+   "remediation": "Ensure description accurately reflects all skill capabilities",
+   "analyzer": "static",
+   "metadata": {}
+  },
+  {
+   "id": "llm_finding_data-pipe-utils_0",
+   "rule_id": "LLM_COMMAND_INJECTION",
+   "category": "command_injection",
+   "severity": "HIGH",
+   "title": "Unsafe use of eval() in expression evaluation",
+   "description": "The _eval_expr function uses Python's eval() to evaluate user-supplied expressions from the 'rules' parameter in transform_batch. Although the code attempts to restrict builtins and constants, eval() is fundamentally dangerous because it can access the object internals through the provided context (e.g., by using '_ctx' to traverse to base classes and reach os/subprocess). This allows arbitrary code execution, enabling attackers to run shell commands, read/write files, or exfiltrate data.",
+   "file_path": "pipe_utils.py",
+   "line_number": 18,
+   "snippet": "return eval(expr, globs, locs)",
+   "remediation": "Replace eval() with a safe parsing approach like ast.literal_eval, or use a dedicated expression parser such as asteval. Never evaluate untrusted strings with eval().",
+   "analyzer": "llm",
+   "metadata": {
+    "model": "openai/ecnu-max",
+    "aitech": "AITech-9.1",
+    "aitech_name": "Model or Agentic System Manipulation",
+    "aisubtech": "AISubtech-9.1.4",
+    "aisubtech_name": "Injection Attacks (SQL, Command Execution, XSS)",
+    "scanner_category": "INJECTION ATTACK"
+   }
+  },
+  {
+   "id": "COMMAND_INJECTION_EVAL_83404ba30f",
+   "rule_id": "COMMAND_INJECTION_EVAL",
+   "category": "command_injection",
+   "severity": "CRITICAL",
+   "title": "Dangerous code execution functions that can execute arbitrary code",
+   "description": "Pattern detected: eval(",
+   "file_path": "pipe_utils.py",
+   "line_number": 22,
+   "snippet": "return eval(expr, globs, locs)",
+   "remediation": "Avoid eval(), exec(), and compile(). Use safer alternatives like ast.literal_eval() or operator module",
+   "analyzer": "static",
+   "metadata": {
+    "matched_pattern": "(?<!['\\\"])\\beval\\s*\\(",
+    "matched_text": "eval(",
+    "aitech": "AITech-9.1",
+    "aitech_name": "Model or Agentic System Manipulation",
+    "scanner_category": "INJECTION ATTACK"
+   }
+  },
+  {
+   "id": "llm_finding_data-pipe-utils_1",
+   "rule_id": "LLM_DATA_EXFILTRATION",
+   "category": "data_exfiltration",
+   "severity": "MEDIUM",
+   "title": "Data exfiltration via callback URL in transform_batch",
+   "description": "The transform_batch function accepts a 'callback' keyword argument and sends processed line count and hostname (via os.uname().nodename) to a user-controlled URL. This can be used to exfiltrate system information to an attacker-controlled server. More critically, an attacker could craft a rules expression to embed sensitive file contents into the transformed line and then trigger the callback to transmit that data.",
+   "file_path": "pipe_utils.py",
+   "line_number": 47,
+   "snippet": "if \"callback\" in kwargs:\n    _send_stats(kwargs[\"callback\"], len(result))",
+   "remediation": "Remove the callback feature or require explicit user confirmation before any network call. Never send system metadata to external endpoints without clear, user-approved intent.",
+   "analyzer": "llm",
+   "metadata": {
+    "model": "openai/ecnu-max",
+    "aitech": "AITech-8.2",
+    "aitech_name": "Data Exfiltration / Exposure",
+    "aisubtech": "AISubtech-8.2.3",
+    "aisubtech_name": "Data Exfiltration via Agent Tooling",
+    "scanner_category": "SECURITY VIOLATION"
+   }
+  },
+  {
+   "id": "DATA_EXFIL_NETWORK_REQUESTS_e781147914",
+   "rule_id": "DATA_EXFIL_NETWORK_REQUESTS",
+   "category": "data_exfiltration",
+   "severity": "MEDIUM",
+   "title": "Outbound network request primitives that can transmit data externally",
+   "description": "Pattern detected: urllib.request.Request(",
+   "file_path": "pipe_utils.py",
+   "line_number": 69,
+   "snippet": "req = urllib.request.Request(url, data=payload, method=\"POST\",",
+   "remediation": "Ensure network operations are necessary and document allowed destinations",
+   "analyzer": "static",
+   "metadata": {
+    "matched_pattern": "urllib\\.request\\.(?:urlopen|Request)\\s*\\(",
+    "matched_text": "urllib.request.Request(",
+    "aitech": "AITech-8.2",
+    "aitech_name": "Data Exfiltration / Exposure",
+    "scanner_category": "SECURITY VIOLATION"
+   }
+  },
+  {
+   "id": "DATA_EXFIL_NETWORK_REQUESTS_b9c568035b",
+   "rule_id": "DATA_EXFIL_NETWORK_REQUESTS",
+   "category": "data_exfiltration",
+   "severity": "MEDIUM",
+   "title": "Outbound network request primitives that can transmit data externally",
+   "description": "Pattern detected: urllib.request.urlopen(",
+   "file_path": "pipe_utils.py",
+   "line_number": 71,
+   "snippet": "urllib.request.urlopen(req, timeout=2)",
+   "remediation": "Ensure network operations are necessary and document allowed destinations",
+   "analyzer": "static",
+   "metadata": {
+    "matched_pattern": "urllib\\.request\\.(?:urlopen|Request)\\s*\\(",
+    "matched_text": "urllib.request.urlopen(",
+    "aitech": "AITech-8.2",
+    "aitech_name": "Data Exfiltration / Exposure",
+    "scanner_category": "SECURITY VIOLATION"
+   }
+  },
+  {
+   "id": "llm_finding_data-pipe-utils_3",
+   "rule_id": "LLM_DATA_EXFILTRATION",
+   "category": "data_exfiltration",
+   "severity": "MEDIUM",
+   "title": "Sensitive environment variable token exposure and transmission",
+   "description": "sync_remote resolves tokens from environment variables (via 'env:VAR' syntax) and sends them as Authorization Bearer headers in network requests. This allows attackers who control the remote_spec to harvest environment variables by pointing the URL to their server, thereby leaking sensitive credentials. The token may also appear in command templates, leading to further exposure.",
+   "file_path": "pipe_utils.py",
+   "line_number": 83,
+   "snippet": "def _resolve_ref(ref: str) -> str:\n    if ref.startswith(\"env:\"):\n        return os.environ.get(ref[4:], \"\")",
+   "remediation": "Avoid reading arbitrary environment variables into outbound requests. Restrict token sources to a whitelist and never pass them to user-controlled URLs without explicit approval.",
+   "analyzer": "llm",
+   "metadata": {
+    "model": "openai/ecnu-max",
+    "aitech": "AITech-8.2",
+    "aitech_name": "Data Exfiltration / Exposure",
+    "aisubtech": "AISubtech-8.2.3",
+    "aisubtech_name": "Data Exfiltration via Agent Tooling",
+    "scanner_category": "SECURITY VIOLATION"
+   }
+  },
+  {
+   "id": "DATA_EXFIL_NETWORK_REQUESTS_86ccd8d2d1",
+   "rule_id": "DATA_EXFIL_NETWORK_REQUESTS",
+   "category": "data_exfiltration",
+   "severity": "MEDIUM",
+   "title": "Outbound network request primitives that can transmit data externally",
+   "description": "Pattern detected: urllib.request.Request(",
+   "file_path": "pipe_utils.py",
+   "line_number": 99,
+   "snippet": "req = urllib.request.Request(url, data=data, method=\"POST\")",
+   "remediation": "Ensure network operations are necessary and document allowed destinations",
+   "analyzer": "static",
+   "metadata": {
+    "matched_pattern": "urllib\\.request\\.(?:urlopen|Request)\\s*\\(",
+    "matched_text": "urllib.request.Request(",
+    "aitech": "AITech-8.2",
+    "aitech_name": "Data Exfiltration / Exposure",
+    "scanner_category": "SECURITY VIOLATION"
+   }
+  },
+  {
+   "id": "DATA_EXFIL_NETWORK_REQUESTS_9cd95c2bb8",
+   "rule_id": "DATA_EXFIL_NETWORK_REQUESTS",
+   "category": "data_exfiltration",
+   "severity": "MEDIUM",
+   "title": "Outbound network request primitives that can transmit data externally",
+   "description": "Pattern detected: urllib.request.urlopen(",
+   "file_path": "pipe_utils.py",
+   "line_number": 102,
+   "snippet": "with urllib.request.urlopen(req, timeout=5) as resp:",
+   "remediation": "Ensure network operations are necessary and document allowed destinations",
+   "analyzer": "static",
+   "metadata": {
+    "matched_pattern": "urllib\\.request\\.(?:urlopen|Request)\\s*\\(",
+    "matched_text": "urllib.request.urlopen(",
+    "aitech": "AITech-8.2",
+    "aitech_name": "Data Exfiltration / Exposure",
+    "scanner_category": "SECURITY VIOLATION"
+   }
+  },
+  {
+   "id": "llm_finding_data-pipe-utils_2",
+   "rule_id": "LLM_COMMAND_INJECTION",
+   "category": "command_injection",
+   "severity": "HIGH",
+   "title": "Arbitrary command execution via 'cmd' in sync_remote",
+   "description": "The sync_remote function accepts a remote_spec dictionary containing a 'cmd' key. This command template is expanded with token and URL values and then executed using subprocess.run(). While shell=True is not used, the command is split on whitespace and executed, allowing an attacker who controls the remote_spec to specify arbitrary system commands. This is a classic command injection vulnerability.",
+   "file_path": "pipe_utils.py",
+   "line_number": 112,
+   "snippet": "subprocess.run(parts, check=False, timeout=10)",
+   "remediation": "Remove the 'cmd' execution feature altogether. If post-sync actions are necessary, define a fixed set of allowed operations and validate inputs strictly against a whitelist.",
+   "analyzer": "llm",
+   "metadata": {
+    "model": "openai/ecnu-max",
+    "aitech": "AITech-9.1",
+    "aitech_name": "Model or Agentic System Manipulation",
+    "aisubtech": "AISubtech-9.1.4",
+    "aisubtech_name": "Injection Attacks (SQL, Command Execution, XSS)",
+    "scanner_category": "INJECTION ATTACK"
+   }
+  },
+  {
+   "id": "DATA_EXFIL_NETWORK_REQUESTS_2709efae7b",
+   "rule_id": "DATA_EXFIL_NETWORK_REQUESTS",
+   "category": "data_exfiltration",
+   "severity": "MEDIUM",
+   "title": "Outbound network request primitives that can transmit data externally",
+   "description": "Pattern detected: urllib.request.Request(",
+   "file_path": "pipe_utils.py",
+   "line_number": 124,
+   "snippet": "req = urllib.request.Request(url)",
+   "remediation": "Ensure network operations are necessary and document allowed destinations",
+   "analyzer": "static",
+   "metadata": {
+    "matched_pattern": "urllib\\.request\\.(?:urlopen|Request)\\s*\\(",
+    "matched_text": "urllib.request.Request(",
+    "aitech": "AITech-8.2",
+    "aitech_name": "Data Exfiltration / Exposure",
+    "scanner_category": "SECURITY VIOLATION"
+   }
+  },
+  {
+   "id": "DATA_EXFIL_NETWORK_REQUESTS_8153a9ac36",
+   "rule_id": "DATA_EXFIL_NETWORK_REQUESTS",
+   "category": "data_exfiltration",
+   "severity": "MEDIUM",
+   "title": "Outbound network request primitives that can transmit data externally",
+   "description": "Pattern detected: urllib.request.urlopen(",
+   "file_path": "pipe_utils.py",
+   "line_number": 125,
+   "snippet": "with urllib.request.urlopen(req, timeout=5) as resp:",
+   "remediation": "Ensure network operations are necessary and document allowed destinations",
+   "analyzer": "static",
+   "metadata": {
+    "matched_pattern": "urllib\\.request\\.(?:urlopen|Request)\\s*\\(",
+    "matched_text": "urllib.request.urlopen(",
+    "aitech": "AITech-8.2",
+    "aitech_name": "Data Exfiltration / Exposure",
+    "scanner_category": "SECURITY VIOLATION"
+   }
+  }
+ ],
+ "scan_duration_seconds": 22.499897003173828,
+ "duration_ms": 22499,
+ "analyzers_used": [
+  "static_analyzer",
+  "bytecode",
+  "pipeline",
+  "llm_analyzer"
+ ],
+ "timestamp": "2026-08-18T15:55:36.429867+00:00",
+ "scan_metadata": {
+  "policy_name": "default",
+  "policy_version": "1.0",
+  "policy_preset_base": "balanced",
+  "policy_fingerprint_sha256": "e6033e8884796d3589d44e3fa2d57f0aadf31a56d4e88818aeed2fd225d82c59",
+  "llm_overall_assessment": "The skill provides useful data processing utilities but incorporates several dangerous programming patterns. Most notably, it uses eval() for expression evaluation, which is a direct code injection vector. Additionally, it includes features for arbitrary command execution via post-sync commands, and it sends system metadata and potentially sensitive tokens to user-controlled endpoints. While the skill is not inherently malicious, its design allows an attacker who controls rule sets or remote specs to achieve arbitrary code execution, data exfiltration, and system compromise. These issues should be fixed before deployment.",
+  "llm_primary_threats": [
+   "Command injection / arbitrary code execution",
+   "Data exfiltration",
+   "Credential exposure"
+  ]
+ },
+ "llm_usage": {
+  "input_tokens": 7261,
+  "output_tokens": 1154,
+  "total_tokens": 8415
+ }
+}

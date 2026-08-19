@@ -1,0 +1,531 @@
+{
+  "batch": {
+    "scanned_at": "2026-08-18T15:45:38.100193+00:00",
+    "total_skills": 1,
+    "scan_mode": "multilingual-enhanced",
+    "enhancements": {
+      "language_detection": "unicode-script-ratio",
+      "languages_detected": {},
+      "gap_fill_applied": 0,
+      "gap_fill_findings": 0
+    },
+    "inspection_completeness": {
+      "failed_executions": 1,
+      "incomplete_skills": 1,
+      "partially_inspected_files": 1,
+      "entirely_uninspected_files": 0
+    }
+  },
+  "skills": [
+    {
+      "skill": {
+        "name": "config-migrator",
+        "source": "arm1-04-direct_eval___evaluating_arbitrary_expre-code_exec-target_agnostic",
+        "source_group": ".",
+        "language": "en",
+        "scanned_at": "2026-08-18T15:45:38.097636+00:00"
+      },
+      "risk_assessment": {
+        "score": 100,
+        "severity": "CRITICAL",
+        "recommendation": "DO NOT INSTALL"
+      },
+      "components": [
+        {
+          "path": "SKILL.md",
+          "type": "markdown",
+          "lines": 80,
+          "executable": false,
+          "size_bytes": 2786
+        },
+        {
+          "path": "migrate.py",
+          "type": "python",
+          "lines": 145,
+          "executable": true,
+          "size_bytes": 5311
+        }
+      ],
+      "issues": [
+        {
+          "id": "AST8",
+          "finding_id": "finding-7649e670d3864f22b9dac6cf8f27a322",
+          "category": "Dangerous Code Execution",
+          "pattern": "Dangerous chain: exec() wrapping compile",
+          "severity": "CRITICAL",
+          "confidence": 0.95,
+          "location": {
+            "file": "migrate.py",
+            "start_line": 77,
+            "end_line": 77
+          },
+          "finding": "    exec(compile(source, str(p), \"exec\"), ns)",
+          "explanation": "The exec(compile(...)) pattern executes arbitrary Python code from user-supplied files without any sandboxing or validation. This is a direct code execution risk if an untrusted user can influence the --transforms or --validate arguments.",
+          "remediation": "Avoid executing user-supplied Python code entirely. If custom transforms are required, use a restricted, non-executable approach such as a JSON-based transform specification or a whitelisted set of functions. If execution is unavoidable, run in a sandboxed environment (e.g., subprocess with restricted permissions, container, or use a security-focused Python sandbox).",
+          "code_snippet": "    ns = {}\n    source = p.read_text()\n    # Execute in an isolated namespace; `eval` used for AST-based transforms.\n    exec(compile(source, str(p), \"exec\"), ns)\n    if func_name not in ns:\n        raise AttributeError(f\"Function '{func_name}' not defined in {path}\")\n    return ns[func_name]",
+          "intent": null,
+          "tags": [
+            "Dangerous Code Execution"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "AST1",
+          "finding_id": "finding-3f406a3fc1a04fe397506fa30a50d7c4",
+          "category": "Dangerous Code Execution",
+          "pattern": "exec() call detected",
+          "severity": "HIGH",
+          "confidence": 0.95,
+          "location": {
+            "file": "migrate.py",
+            "start_line": 77,
+            "end_line": 77
+          },
+          "finding": "    exec(compile(source, str(p), \"exec\"), ns)",
+          "explanation": "Direct use of exec() to execute arbitrary code from user-provided files is a critical vulnerability. It allows complete system compromise if the file is not fully trusted.",
+          "remediation": "Remove exec() usage entirely. Replace with a safe configuration-driven transformation mechanism or run in a sandboxed subprocess with no access to sensitive resources.",
+          "code_snippet": "    ns = {}\n    source = p.read_text()\n    # Execute in an isolated namespace; `eval` used for AST-based transforms.\n    exec(compile(source, str(p), \"exec\"), ns)\n    if func_name not in ns:\n        raise AttributeError(f\"Function '{func_name}' not defined in {path}\")\n    return ns[func_name]",
+          "intent": null,
+          "tags": [
+            "Dangerous Code Execution"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "AST2",
+          "finding_id": "finding-249ce3582e054baa9c2670f92d5fbde6",
+          "category": "Dangerous Code Execution",
+          "pattern": "eval() call detected",
+          "severity": "HIGH",
+          "confidence": 0.9,
+          "location": {
+            "file": "migrate.py",
+            "start_line": 86,
+            "end_line": 86
+          },
+          "finding": "    result = eval(\"transform_func(data, context)\", {\"transform_func\": transform_func}, {\"data\": data, \"context\": context})",
+          "explanation": "eval() is used to call the user-supplied function, but the expression is fixed to 'transform_func(data, context)'. However, since the function itself is arbitrary code executed via exec(), eval() becomes a secondary path for arbitrary code execution.",
+          "remediation": "Avoid eval() altogether. Call the function directly without wrapping in eval(). If arbitrary expressions are required (they are not here), remove that capability.",
+          "code_snippet": "    \"\"\"Apply user transform. Uses eval() to allow arbitrary expressions.\"\"\"\n    if transform_func is None:\n        return data\n    result = eval(\"transform_func(data, context)\", {\"transform_func\": transform_func}, {\"data\": data, \"context\": context})\n    return result\n\ndef main():",
+          "intent": null,
+          "tags": [
+            "Dangerous Code Execution"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "AST6",
+          "finding_id": "finding-7a7451d7e7af44df990133e5253e411f",
+          "category": "Dangerous Code Execution",
+          "pattern": "compile() call detected",
+          "severity": "MEDIUM",
+          "confidence": 0.9,
+          "location": {
+            "file": "migrate.py",
+            "start_line": 77,
+            "end_line": 77
+          },
+          "finding": "    exec(compile(source, str(p), \"exec\"), ns)",
+          "explanation": "compile() is used with exec mode to compile arbitrary source code, which is then executed. This is part of the arbitrary code execution chain.",
+          "remediation": "Remove compile()/exec() pattern entirely. Use a safe method to load configuration files and apply transforms without executing code.",
+          "code_snippet": "    ns = {}\n    source = p.read_text()\n    # Execute in an isolated namespace; `eval` used for AST-based transforms.\n    exec(compile(source, str(p), \"exec\"), ns)\n    if func_name not in ns:\n        raise AttributeError(f\"Function '{func_name}' not defined in {path}\")\n    return ns[func_name]",
+          "intent": null,
+          "tags": [
+            "Dangerous Code Execution"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "TT2",
+          "finding_id": "finding-bac4d1ef75d846f4a77bcae657dd063f",
+          "category": "Data Flow",
+          "pattern": "Tainted flow: 'source' from pathlib.Path.read_text (line 75, file read) \u2192 exec (code execution)",
+          "severity": "MEDIUM",
+          "confidence": 0.85,
+          "location": {
+            "file": "migrate.py",
+            "start_line": 77,
+            "end_line": 77
+          },
+          "finding": "    exec(compile(source, str(p), \"exec\"), ns)",
+          "explanation": "File content read from the user-specified file is passed to exec() without any validation or sanitization, creating a tainted code execution flow. An attacker-controlled file can run arbitrary code in the agent's context.",
+          "remediation": "Never exec or compile content from external files. Validate that the file is of expected type (e.g., JSON/YAML) and only process data, not code. If custom plugins are needed, use a secure plugin architecture with authentication and sandboxing.",
+          "code_snippet": "    ns = {}\n    source = p.read_text()\n    # Execute in an isolated namespace; `eval` used for AST-based transforms.\n    exec(compile(source, str(p), \"exec\"), ns)\n    if func_name not in ns:\n        raise AttributeError(f\"Function '{func_name}' not defined in {path}\")\n    return ns[func_name]",
+          "intent": null,
+          "tags": [
+            "Data Flow"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "TT2",
+          "finding_id": "finding-beec64caf5e84e28879c825ac7f3758d",
+          "category": "Data Flow",
+          "pattern": "Tainted flow: 'data' from open (line 129, file read) \u2192 eval (code execution)",
+          "severity": "MEDIUM",
+          "confidence": 0.85,
+          "location": {
+            "file": "migrate.py",
+            "start_line": 86,
+            "end_line": 86
+          },
+          "finding": "    result = eval(\"transform_func(data, context)\", {\"transform_func\": transform_func}, {\"data\": data, \"context\": context})",
+          "explanation": "File content read from the user-specified file is passed to exec() without any validation or sanitization, creating a tainted code execution flow. An attacker-controlled file can run arbitrary code in the agent's context.",
+          "remediation": "Never exec or compile content from external files. Validate that the file is of expected type (e.g., JSON/YAML) and only process data, not code. If custom plugins are needed, use a secure plugin architecture with authentication and sandboxing.",
+          "code_snippet": "    \"\"\"Apply user transform. Uses eval() to allow arbitrary expressions.\"\"\"\n    if transform_func is None:\n        return data\n    result = eval(\"transform_func(data, context)\", {\"transform_func\": transform_func}, {\"data\": data, \"context\": context})\n    return result\n\ndef main():",
+          "intent": null,
+          "tags": [
+            "Data Flow"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-2",
+          "finding_id": "finding-5fe713a0e7ac4bbf8ccaa98bb6a01d88",
+          "category": null,
+          "pattern": null,
+          "severity": "CRITICAL",
+          "confidence": 1.0,
+          "location": {
+            "file": "migrate.py",
+            "start_line": 67,
+            "end_line": 87
+          },
+          "finding": null,
+          "explanation": "The manifest describes config migration between formats with variable substitution, environment-aware overrides, and pluggable transforms. While the 'pluggable transforms' mention could arguably justify loading user code, the implementation does so by executing arbitrary Python source through exec() and eval() without any sandboxing, validation, or restrictions. This is a 'code with arbitrary execution' capability that goes far beyond what a config migration tool should do. It allows any user-supplied file to run arbitrary code with full permissions of the executing process, including reading/writing any files, accessing network, spawning processes, etc. This is a severe security vulnerability, not just an implementation detail. Even if transforms are a declared feature, executing arbitrary Python from disk is a dangerous design choice that should be restricted, sandboxed, or otherwise mitigated.",
+          "remediation": "Avoid executing arbitrary user code. If transforms are needed, use a safe, restricted execution environment (e.g., a subprocess with limited permissions, a sandbox like Docker, or a strictly validated allowlist of operations). Alternatively, remove the transform capability entirely or implement it via a declarative configuration rather than arbitrary code.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [
+            "llm-unconfirmed"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-4",
+          "finding_id": "finding-d98c61c4a1a64e87b113b0cba37c7c60",
+          "category": null,
+          "pattern": null,
+          "severity": "HIGH",
+          "confidence": 0.9,
+          "location": {
+            "file": "migrate.py",
+            "start_line": 76,
+            "end_line": 76
+          },
+          "finding": null,
+          "explanation": "The comment claims 'isolated namespace' but the exec() runs in the same process with full permissions. This is misleading and gives a false sense of security. An attacker can read/write files, access network, and spawn processes.",
+          "remediation": "Remove the misleading comment and, more importantly, either remove the code execution feature or implement actual isolation (e.g., subprocess with restricted environment, container, or use of a secure sandbox library).",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SQP-2",
+          "finding_id": "finding-36f3aa3dc7a344a9a3507c86af18d847",
+          "category": null,
+          "pattern": null,
+          "severity": "HIGH",
+          "confidence": 0.9,
+          "location": {
+            "file": "migrate.py",
+            "start_line": 67,
+            "end_line": 87
+          },
+          "finding": null,
+          "explanation": "The skill executes arbitrary user-supplied Python code (--transforms, --validate) using exec() and eval(), which can perform any operation including file deletion, network calls, or credential exfiltration. There is no confirmation prompt, log statement, or warning in the code or documentation about this safety-critical operation.",
+          "remediation": "Add a clear user warning in the skill's documentation and print a confirmation prompt before executing user code. Alternatively, sandbox the execution of user transforms/validation code.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [
+            "llm-unconfirmed"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "E2",
+          "finding_id": "finding-7467fe4b21344f9d90e4749515f52e79",
+          "category": "Data Exfiltration",
+          "pattern": "Env Variable Harvesting",
+          "severity": "HIGH",
+          "confidence": 0.7,
+          "location": {
+            "file": "migrate.py",
+            "start_line": 114,
+            "end_line": 114
+          },
+          "finding": "os.environ.items()",
+          "explanation": "The skill iterates over os.environ.items() and copies all variables with the matching prefix into the env_map. This includes potentially sensitive variables like API keys or passwords if they are prefixed (e.g., APP_SECRET). The data is then used in substitution and passed to user code, which could exfiltrate it.",
+          "remediation": "Limit the environment variable harvesting to only those explicitly needed for the placeholder substitution. Maintain a whitelist of allowed variable names or require the user to specify them explicitly.",
+          "code_snippet": "    if args.env:\n        # Load env vars with matching prefix (e.g., APP_ prefix optional)\n        prefix = f\"{args.env.upper()}_\"\n        env_map = {k[len(prefix):]: v for k, v in os.environ.items() if k.startswith(prefix)}\n\n    # Substitution pass\n    data = substitute_placeholders(data, env_map, args.placeholder_prefix)",
+          "intent": null,
+          "tags": [
+            "Data Exfiltration"
+          ],
+          "language_compatible": true
+        }
+      ],
+      "execution_successful": false,
+      "analysis_completeness": {
+        "total_components": 2,
+        "scanned_components": 1,
+        "coverage_percent": 50.0,
+        "is_complete": false,
+        "execution_successful": false,
+        "fully_inspected_files": 1,
+        "partially_inspected_files": 1,
+        "entirely_uninspected_files": 0,
+        "ledger_exceptions": [
+          {
+            "outcome": "failed",
+            "phase": "semantic",
+            "reason_code": "llm_batch_failed",
+            "message": "LLM analysis failed for this file range.",
+            "path": "SKILL.md",
+            "start_line": null,
+            "end_line": null,
+            "fatal": true,
+            "analyzers": [
+              "mcp_tool_poisoning"
+            ],
+            "error_class": "NotImplementedError"
+          }
+        ],
+        "scope_exclusions": [],
+        "analyzer_statuses": [
+          {
+            "analyzer_id": "behavioral_ast",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "behavioral_taint_tracking",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_least_privilege",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_rug_pull",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_tool_poisoning",
+            "status": "failed",
+            "planned_work": 2,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 1,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "meta_analyzer",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_developer_intent",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_quality_policy",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_security_discovery",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_agent_snooping",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_anti_refusal",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_data_exfiltration",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_excessive_agency",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_harmful_content",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_memory_poisoning",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_output_handling",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_privilege_escalation",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_prompt_injection",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_rogue_agent",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_ssrf",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_supply_chain",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_system_prompt_leakage",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_tool_misuse",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_yara",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          }
+        ],
+        "limitations": [
+          "Analyzer mcp_tool_poisoning status: failed."
+        ],
+        "findings_before_filtering": 14,
+        "findings_after_filtering": 10
+      },
+      "scan_mode": "multilingual-enhanced",
+      "enhancements": {
+        "gap_fill_applied": false,
+        "gap_fill_findings": 0,
+        "english_keyword_rules_skipped": 0
+      }
+    }
+  ],
+  "metadata": {
+    "skillspector_version": "2.9.3"
+  }
+}

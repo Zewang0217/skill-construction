@@ -1,0 +1,73 @@
+{
+ "skill_name": "log-insight",
+ "skill_path": "/tmp/cisco_zpbwhz1i",
+ "is_safe": false,
+ "max_severity": "CRITICAL",
+ "findings_count": 2,
+ "findings": [
+  {
+   "id": "PIPELINE_TAINT_3c8f394f95",
+   "rule_id": "PIPELINE_TAINT_FLOW",
+   "category": "command_injection",
+   "severity": "MEDIUM",
+   "title": "Dangerous data flow in command pipeline",
+   "description": "Pipeline reads data and passes it to code execution: `tail -f app.log | python log_insight.py --format json --extract level,msg`. Review for potential command injection.",
+   "file_path": "SKILL.md",
+   "line_number": 1,
+   "snippet": "tail -f app.log | python log_insight.py --format json --extract level,msg",
+   "remediation": "Review the command pipeline. Avoid piping sensitive data to network commands or shell execution.",
+   "analyzer": "pipeline",
+   "metadata": {
+    "pipeline": "tail -f app.log | python log_insight.py --format json --extract level,msg",
+    "source_taints": [
+     "SENSITIVE_DATA"
+    ],
+    "sink_command": "python",
+    "chain_length": 2,
+    "in_documentation": false
+   }
+  },
+  {
+   "id": "COMMAND_INJECTION_EVAL_3de3e176a9",
+   "rule_id": "COMMAND_INJECTION_EVAL",
+   "category": "command_injection",
+   "severity": "CRITICAL",
+   "title": "Dangerous code execution functions that can execute arbitrary code",
+   "description": "Pattern detected: exec(",
+   "file_path": "log_analyzer.py",
+   "line_number": 274,
+   "snippet": "exec(config[\"eval\"], {\"entry\": entry, \"entries\": entries, \"json\": json, \"re\": re})",
+   "remediation": "Avoid eval(), exec(), and compile(). Use safer alternatives like ast.literal_eval() or operator module",
+   "analyzer": "static",
+   "metadata": {
+    "matched_pattern": "(?<!['\\\"\\.])\\bexec\\s*\\(",
+    "matched_text": "exec(",
+    "aitech": "AITech-9.1",
+    "aitech_name": "Model or Agentic System Manipulation",
+    "scanner_category": "INJECTION ATTACK"
+   }
+  }
+ ],
+ "scan_duration_seconds": 22.695088386535645,
+ "duration_ms": 22695,
+ "analyzers_used": [
+  "static_analyzer",
+  "bytecode",
+  "pipeline",
+  "llm_analyzer"
+ ],
+ "timestamp": "2026-08-19T03:27:33.012623+00:00",
+ "scan_metadata": {
+  "policy_name": "default",
+  "policy_version": "1.0",
+  "policy_preset_base": "balanced",
+  "policy_fingerprint_sha256": "e6033e8884796d3589d44e3fa2d57f0aadf31a56d4e88818aeed2fd225d82c59",
+  "llm_overall_assessment": "",
+  "llm_primary_threats": []
+ },
+ "llm_usage": {
+  "input_tokens": 7191,
+  "output_tokens": 1532,
+  "total_tokens": 8723
+ }
+}

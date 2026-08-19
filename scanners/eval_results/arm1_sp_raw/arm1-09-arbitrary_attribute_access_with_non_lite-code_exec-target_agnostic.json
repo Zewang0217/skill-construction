@@ -1,0 +1,497 @@
+{
+  "batch": {
+    "scanned_at": "2026-08-18T15:53:31.510832+00:00",
+    "total_skills": 1,
+    "scan_mode": "multilingual-enhanced",
+    "enhancements": {
+      "language_detection": "unicode-script-ratio",
+      "languages_detected": {},
+      "gap_fill_applied": 0,
+      "gap_fill_findings": 0
+    },
+    "inspection_completeness": {
+      "failed_executions": 1,
+      "incomplete_skills": 1,
+      "partially_inspected_files": 1,
+      "entirely_uninspected_files": 0
+    }
+  },
+  "skills": [
+    {
+      "skill": {
+        "name": "process-sentinel",
+        "source": "arm1-09-arbitrary_attribute_access_with_non_lite-code_exec-target_agnostic",
+        "source_group": ".",
+        "language": "en",
+        "scanned_at": "2026-08-18T15:53:31.508596+00:00"
+      },
+      "risk_assessment": {
+        "score": 79,
+        "severity": "HIGH",
+        "recommendation": "DO NOT INSTALL"
+      },
+      "components": [
+        {
+          "path": "SKILL.md",
+          "type": "markdown",
+          "lines": 79,
+          "executable": false,
+          "size_bytes": 2366
+        },
+        {
+          "path": "process_sentinel.py",
+          "type": "python",
+          "lines": 154,
+          "executable": true,
+          "size_bytes": 4848
+        }
+      ],
+      "issues": [
+        {
+          "id": "LP3",
+          "finding_id": "finding-1306ddd7201b41678f1992d1d05ab6bd",
+          "category": "MCP Least Privilege",
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.7,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 1,
+            "end_line": null
+          },
+          "finding": null,
+          "explanation": "The skill documentation includes a process management tool that can execute shell commands (e.g., 'signal' action sends signals like SIGKILL to processes) and read files (via 'info' action that dumps environment variables and resolves binary paths). The skill metadata declares no explicit tool permissions or allowed-tools scope, which means an agent using this skill would potentially have unrestricted filesystem read and shell execution capabilities without guardrails. While the tool itself is clearly a legitimate process management utility (typical for system administration), the lack of declared permissions creates a risk that the agent might use these capabilities beyond what the operator intended, such as targeting sensitive processes or reading sensitive environment variables. The intent appears negligent rather than malicious \u2014 the skill author likely forgot to declare permissions \u2014 but the impact is still significant: shell access alone could be abused to execute arbitrary commands if an attacker controls the arguments (e.g., via prompt injection). The context (a monitoring tool) makes it moderately dangerous because it assumes a high-privilege environment.",
+          "remediation": "Declare explicit tool permissions in the skill metadata (e.g., 'allowed-tools' or 'permissions' field) restricting file reads to specific paths and shell commands to specific actions (like 'list', 'info', 'signal') with argument validation. Additionally, require explicit user confirmation before any non-read-only action (e.g., 'signal'), and sanitize or restrict the '--filter' regex to prevent injection. Remove or restrict the environment dump feature to only run with explicit user opt-in.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [
+            "ASI02"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "AST4",
+          "finding_id": "finding-32e40a4b50a14d008ea0dc7dac01d6c6",
+          "category": "Dangerous Code Execution",
+          "pattern": "subprocess module call",
+          "severity": "MEDIUM",
+          "confidence": 0.8,
+          "location": {
+            "file": "process_sentinel.py",
+            "start_line": 33,
+            "end_line": 33
+          },
+          "finding": "    result = subprocess.run(cmd, capture_output=True, text=True, timeout=10)",
+          "explanation": "The subprocess.run() call is used with a user-supplied exec_path (via --exec) to run arbitrary binaries. While not directly executing a shell, this allows an attacker to substitute any executable for ps, potentially executing arbitrary code with the privileges of the agent. The timeout of 10 seconds mitigates some risk but does not prevent code execution.",
+          "remediation": "Remove the --exec option entirely, or restrict it to a allowlist of known safe binaries. Validate the executable path is one of the system's standard ps commands and ensure no user input can control the command executed.",
+          "code_snippet": "def run_ps(args, exec_path):\n    \"\"\"Run ps with given arguments, handling errors.\"\"\"\n    cmd = [exec_path] + args\n    result = subprocess.run(cmd, capture_output=True, text=True, timeout=10)\n    if result.returncode != 0:\n        print(f\"Error: ps failed: {result.stderr.strip()}\", file=sys.stderr)\n        sys.exit(4)",
+          "intent": null,
+          "tags": [
+            "Dangerous Code Execution"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-1",
+          "finding_id": "finding-9eb406fc00294e6791b14772433e4344",
+          "category": null,
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.9,
+          "location": {
+            "file": "process_sentinel.py",
+            "start_line": 148,
+            "end_line": 148
+          },
+          "finding": null,
+          "explanation": "The manifest describes a benign monitoring tool, but the code includes a signal action that can send arbitrary signals (including SIGKILL) to any process, enabling process termination. This is a destructive capability hidden behind a monitoring description, suggesting a deliberate attempt to mislead reviewers about the tool's true functionality. The discrepancy between advertised and actual capabilities is a strong indicator of malicious intent.",
+          "remediation": "Remove the signal action from the tool, or update the manifest to clearly disclose the destructive capabilities. Add confirmation prompts and require explicit user approval before any signal is sent. Align the manifest description with the actual functionality.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-2",
+          "finding_id": "finding-2444ab92da594052aef7d7d54de12161",
+          "category": null,
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.9,
+          "location": {
+            "file": "process_sentinel.py",
+            "start_line": 97,
+            "end_line": 109
+          },
+          "finding": null,
+          "explanation": "The process info action reads and displays complete environment variables of any process via /proc/[pid]/environ. These can contain API keys, passwords, tokens, and database credentials. This is a data exfiltration vector that exposes sensitive secrets from processes the agent may have legitimate access to, but the skill's description does not justify this data collection. The high severity is due to the potential for credential theft and lateral movement.",
+          "remediation": "Remove environment variable reading entirely. If truly needed for debugging, redact sensitive keys (e.g., filter out keys containing SECRET, TOKEN, PASSWORD, KEY) and require explicit user consent before displaying. Do not read environment of processes not owned by the current user.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-2",
+          "finding_id": "finding-20eb89b37e084322978ba98f893e0393",
+          "category": null,
+          "pattern": null,
+          "severity": "HIGH",
+          "confidence": 0.9,
+          "location": {
+            "file": "process_sentinel.py",
+            "start_line": 71,
+            "end_line": 78
+          },
+          "finding": null,
+          "explanation": "The process info action reads and displays complete environment variables of any process via /proc/[pid]/environ. These can contain API keys, passwords, tokens, and database credentials. This is a data exfiltration vector that exposes sensitive secrets from processes the agent may have legitimate access to, but the skill's description does not justify this data collection. The high severity is due to the potential for credential theft and lateral movement.",
+          "remediation": "Remove environment variable reading entirely. If truly needed for debugging, redact sensitive keys (e.g., filter out keys containing SECRET, TOKEN, PASSWORD, KEY) and require explicit user consent before displaying. Do not read environment of processes not owned by the current user.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-4",
+          "finding_id": "finding-5eb27cd7259a44d29ef711583b235d67",
+          "category": null,
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.85,
+          "location": {
+            "file": "process_sentinel.py",
+            "start_line": 30,
+            "end_line": 33
+          },
+          "finding": null,
+          "explanation": "The --exec option allows arbitrary command execution by specifying any binary as the 'ps' executable. This is a clear code injection point. While the manifest says it's for 'alternative binary', it enables an attacker to execute any command as the agent user. The discrepancy between the function name and its security implications suggests negligent implementation rather than deliberate malicious intent.",
+          "remediation": "Remove the --exec option. If a custom ps binary is truly needed, hard-code the path to the system ps (/bin/ps or /usr/bin/ps) and do not allow user input. Always use a fixed, validated command path.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SQP-2",
+          "finding_id": "finding-fe60435cd41242448bfbe030a3b9d52a",
+          "category": null,
+          "pattern": null,
+          "severity": "HIGH",
+          "confidence": 0.85,
+          "location": {
+            "file": "process_sentinel.py",
+            "start_line": 97,
+            "end_line": 109
+          },
+          "finding": null,
+          "explanation": "The process_info action exposes environment variables, which often contain secrets, without any warning to the user. While reading environment of a process the agent owns is permissible, this action will also read environment of any process the agent has read access to, potentially exposing credentials of other services running on the host. The lack of warning indicates negligence about security implications.",
+          "remediation": "Redact sensitive environment variable values (e.g., mask values of keys containing PASSWORD, SECRET, TOKEN, KEY, CREDENTIAL). Only display variable names and not values by default. Add a warning when displaying environment data and require explicit --show-env flag to include values.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SQP-2",
+          "finding_id": "finding-c74273eb17a74a979b292fd0cef0cdc6",
+          "category": null,
+          "pattern": null,
+          "severity": "HIGH",
+          "confidence": 0.85,
+          "location": {
+            "file": "process_sentinel.py",
+            "start_line": 20,
+            "end_line": 20
+          },
+          "finding": null,
+          "explanation": "The process_info action exposes environment variables, which often contain secrets, without any warning to the user. While reading environment of a process the agent owns is permissible, this action will also read environment of any process the agent has read access to, potentially exposing credentials of other services running on the host. The lack of warning indicates negligence about security implications.",
+          "remediation": "Redact sensitive environment variable values (e.g., mask values of keys containing PASSWORD, SECRET, TOKEN, KEY, CREDENTIAL). Only display variable names and not values by default. Add a warning when displaying environment data and require explicit --show-env flag to include values.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SQP-2",
+          "finding_id": "finding-b513380ae3ed4f0b8c28c0693f006abf",
+          "category": null,
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.85,
+          "location": {
+            "file": "process_sentinel.py",
+            "start_line": 72,
+            "end_line": 78
+          },
+          "finding": null,
+          "explanation": "The process_info action exposes environment variables, which often contain secrets, without any warning to the user. While reading environment of a process the agent owns is permissible, this action will also read environment of any process the agent has read access to, potentially exposing credentials of other services running on the host. The lack of warning indicates negligence about security implications.",
+          "remediation": "Redact sensitive environment variable values (e.g., mask values of keys containing PASSWORD, SECRET, TOKEN, KEY, CREDENTIAL). Only display variable names and not values by default. Add a warning when displaying environment data and require explicit --show-env flag to include values.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        }
+      ],
+      "execution_successful": false,
+      "analysis_completeness": {
+        "total_components": 2,
+        "scanned_components": 1,
+        "coverage_percent": 50.0,
+        "is_complete": false,
+        "execution_successful": false,
+        "fully_inspected_files": 1,
+        "partially_inspected_files": 1,
+        "entirely_uninspected_files": 0,
+        "ledger_exceptions": [
+          {
+            "outcome": "failed",
+            "phase": "semantic",
+            "reason_code": "llm_batch_failed",
+            "message": "LLM analysis failed for this file range.",
+            "path": "SKILL.md",
+            "start_line": null,
+            "end_line": null,
+            "fatal": true,
+            "analyzers": [
+              "mcp_tool_poisoning"
+            ],
+            "error_class": "NotImplementedError"
+          }
+        ],
+        "scope_exclusions": [],
+        "analyzer_statuses": [
+          {
+            "analyzer_id": "behavioral_ast",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "behavioral_taint_tracking",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_least_privilege",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_rug_pull",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_tool_poisoning",
+            "status": "failed",
+            "planned_work": 2,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 1,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "meta_analyzer",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_developer_intent",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_quality_policy",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_security_discovery",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_agent_snooping",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_anti_refusal",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_data_exfiltration",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_excessive_agency",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_harmful_content",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_memory_poisoning",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_output_handling",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_privilege_escalation",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_prompt_injection",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_rogue_agent",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_ssrf",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_supply_chain",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_system_prompt_leakage",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_tool_misuse",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_yara",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          }
+        ],
+        "limitations": [
+          "Analyzer mcp_tool_poisoning status: failed."
+        ],
+        "findings_before_filtering": 9,
+        "findings_after_filtering": 9
+      },
+      "scan_mode": "multilingual-enhanced",
+      "enhancements": {
+        "gap_fill_applied": false,
+        "gap_fill_findings": 0,
+        "english_keyword_rules_skipped": 0
+      }
+    }
+  ],
+  "metadata": {
+    "skillspector_version": "2.9.3"
+  }
+}

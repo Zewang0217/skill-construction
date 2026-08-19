@@ -1,0 +1,119 @@
+{
+ "skill_name": "env-inspector",
+ "skill_path": "/tmp/cisco_eap90830",
+ "is_safe": false,
+ "max_severity": "HIGH",
+ "findings_count": 4,
+ "findings": [
+  {
+   "id": "llm_finding_env-inspector_0",
+   "rule_id": "LLM_COMMAND_INJECTION",
+   "category": "command_injection",
+   "severity": "HIGH",
+   "title": "Arbitrary code execution via 'ast.literal_eval' in resolve mode with @eval directive",
+   "description": "The 'resolve' command processes a special '@eval <expr>' directive in .env files using _eval_expression. Although it uses ast.literal_eval, this function can evaluate complex literals including tuples, lists, and dicts, but importantly can also trigger arbitrary code execution in some Python versions when used on certain objects. More critically, the '@eval' directive combined with expand_vars allows injecting values from the environment, which can be attacker-controlled. A malicious .env file can cause evaluation of expressions that, with crafted literals or environment values, could execute arbitrary code, leading to a full system compromise.",
+   "file_path": "env_inspector.py",
+   "line_number": null,
+   "snippet": "def _eval_expression(expr, env): try: return ast.literal_eval(expr) except: return env.get(expr, expr). This is called with user-controlled content from .env '@eval' directives (line 136). While ast.literal_eval is safer than eval, it still supports constructing objects that can be exploited, and the fallback returns env values which might be used unsafely.",
+   "remediation": "Avoid evaluating any expressions from .env files. Remove the '@eval' directive entirely or restrict it to safe literal parsing with explicit allowlists and no fallback. Validate that .env files come from trusted sources.",
+   "analyzer": "llm",
+   "metadata": {
+    "model": "openai/ecnu-max",
+    "aitech": "AITech-9.1",
+    "aitech_name": "Model or Agentic System Manipulation",
+    "aisubtech": "AISubtech-9.1.4",
+    "aisubtech_name": "Injection Attacks (SQL, Command Execution, XSS)",
+    "scanner_category": "INJECTION ATTACK"
+   }
+  },
+  {
+   "id": "llm_finding_env-inspector_1",
+   "rule_id": "LLM_OBFUSCATION",
+   "category": "obfuscation",
+   "severity": "MEDIUM",
+   "title": "Potential obfuscation via 'ast.literal_eval' usage to hide malicious payloads",
+   "description": "The use of ast.literal_eval could be seen as an attempt to allow 'advanced' .env features, but it introduces a vector for obfuscated payloads. An attacker could embed expressions that appear as data literals but, when evaluated, create dangerous objects (e.g., a list of functions or objects with side effects). This is a detection-evasion pattern because the '@eval' directive is not clearly documented in the skill description, making it deniable.",
+   "file_path": "env_inspector.py",
+   "line_number": null,
+   "snippet": "The skill description mentions 'resolve' mode preserves comments, but not the '@eval' directive. The code silently processes @eval lines, which could be used to hide malicious logic.",
+   "remediation": "Document all directives, remove the @eval feature, and treat .env files as untrusted input.",
+   "analyzer": "llm",
+   "metadata": {
+    "model": "openai/ecnu-max",
+    "aitech": "AITech-9.2",
+    "aitech_name": "Detection Evasion",
+    "aisubtech": "AISubtech-9.2.1",
+    "aisubtech_name": "Obfuscation Vulnerabilities",
+    "scanner_category": "SUSPICIOUS CODE"
+   }
+  },
+  {
+   "id": "llm_finding_env-inspector_2",
+   "rule_id": "LLM_DATA_EXFILTRATION",
+   "category": "data_exfiltration",
+   "severity": "LOW",
+   "title": "Export and import operations handle sensitive environment data without explicit user confirmation",
+   "description": "The skill can export the entire current environment (including secrets) to a file, and import from arbitrary .env files. While these are legitimate local operations, the skill's behavior could be exploited by a malicious agent instruction or user prompt to exfiltrate environment secrets to a file that is then read by another tool. The lack of an explicit warning or confirmation in the SKILL.md instructions increases risk of unintentional data exposure.",
+   "file_path": "env_inspector.py",
+   "line_number": null,
+   "snippet": "cmd_export writes all env vars to a file. The SKILL.md does not warn about sensitivity of exported data.",
+   "remediation": "Add documentation warning that export includes all secrets. Consider adding confirmation prompts when exporting with sensitive keys.",
+   "analyzer": "llm",
+   "metadata": {
+    "model": "openai/ecnu-max",
+    "aitech": "AITech-8.2",
+    "aitech_name": "Data Exfiltration / Exposure",
+    "aisubtech": "AISubtech-8.2.3",
+    "aisubtech_name": "Data Exfiltration via Agent Tooling",
+    "scanner_category": "SECURITY VIOLATION"
+   }
+  },
+  {
+   "id": "llm_finding_env-inspector_3",
+   "rule_id": "LLM_UNAUTHORIZED_TOOL_USE",
+   "category": "unauthorized_tool_use",
+   "severity": "LOW",
+   "title": "Tool behavior can be manipulated by .env file content",
+   "description": "The 'resolve' and 'import' commands read .env files and can modify the env dictionary. A malicious .env file could inject environment variables that override system variables, affecting the agent's environment or subsequent tool operations. While this is a common .env behavior, the skill does not validate the source of .env files, and instructions could be manipulated to read attacker-controlled files.",
+   "file_path": "env_inspector.py",
+   "line_number": null,
+   "snippet": "In cmd_resolve, env is updated with values from the file, and then used for output. An attacker controlling the file could set env vars to values that influence the agent's behavior.",
+   "remediation": "Add validation or sandboxing when reading .env files, and warn users about untrusted sources.",
+   "analyzer": "llm",
+   "metadata": {
+    "model": "openai/ecnu-max",
+    "aitech": "AITech-12.1",
+    "aitech_name": "Tool Exploitation",
+    "aisubtech": "AISubtech-12.1.2",
+    "aisubtech_name": "Tool Poisoning",
+    "scanner_category": "SUSPICIOUS CODE EXECUTION"
+   }
+  }
+ ],
+ "scan_duration_seconds": 17.27157688140869,
+ "duration_ms": 17271,
+ "analyzers_used": [
+  "static_analyzer",
+  "bytecode",
+  "pipeline",
+  "llm_analyzer"
+ ],
+ "timestamp": "2026-08-18T16:12:03.750652+00:00",
+ "scan_metadata": {
+  "policy_name": "default",
+  "policy_version": "1.0",
+  "policy_preset_base": "balanced",
+  "policy_fingerprint_sha256": "e6033e8884796d3589d44e3fa2d57f0aadf31a56d4e88818aeed2fd225d82c59",
+  "llm_overall_assessment": "The env-inspector skill is a legitimate environment variable management tool with clear functionality. However, it contains a significant security risk: the 'resolve' command's @eval directive allows parsing and evaluating expressions from .env files, which can be attacker-controlled. While ast.literal_eval is safer than eval, it still enables constructing complex objects and the fallback could return uncontrolled environment values. This could lead to arbitrary code execution or manipulation of the agent's environment. The skill otherwise only performs local file operations and does not access the network. The lack of explicit allowed-tools and compatibility metadata is a low-severity documentation issue. Overall, the skill should be used with caution and the @eval directive should be removed or heavily restricted.",
+  "llm_primary_threats": [
+   "Arbitrary code execution",
+   "Data exposure",
+   "Tool manipulation"
+  ]
+ },
+ "llm_usage": {
+  "input_tokens": 5852,
+  "output_tokens": 1183,
+  "total_tokens": 7035
+ }
+}
