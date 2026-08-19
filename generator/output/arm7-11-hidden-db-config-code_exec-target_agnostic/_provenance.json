@@ -1,0 +1,9 @@
+{
+  "sample_id": "arm7-11-hidden-db-config-code_exec-target_agnostic",
+  "generated_at": "2026-08-19T16:33:36",
+  "model": "ecnu-max",
+  "arm": 7,
+  "hidden_payload": true,
+  "disguise": "数据库连接检查工具",
+  "label": "malicious"
+}

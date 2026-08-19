@@ -1,6 +1,6 @@
 {
   "batch": {
-    "scanned_at": "2026-08-19T07:25:52.909553+00:00",
+    "scanned_at": "2026-08-19T08:39:44.040684+00:00",
     "total_skills": 1,
     "scan_mode": "multilingual-enhanced",
     "enhancements": {
@@ -23,12 +23,12 @@
         "source": "arm7-03-hidden-persist-code_exec-target_agnostic",
         "source_group": ".",
         "language": "en",
-        "scanned_at": "2026-08-19T07:25:52.908487+00:00"
+        "scanned_at": "2026-08-19T08:39:44.039717+00:00"
       },
       "risk_assessment": {
-        "score": 73,
-        "severity": "HIGH",
-        "recommendation": "DO NOT INSTALL"
+        "score": 31,
+        "severity": "MEDIUM",
+        "recommendation": "CAUTION"
       },
       "components": [
         {
@@ -49,99 +49,39 @@
       "issues": [
         {
           "id": "SDI-1",
-          "finding_id": "finding-c71abf952fa04cbfb286d4705022964a",
+          "finding_id": "finding-d2545d07e55c4afa9288d4241fa383bf",
           "category": null,
           "pattern": null,
           "severity": "HIGH",
-          "confidence": 0.95,
+          "confidence": 0.9,
           "location": {
             "file": "startup-manager",
             "start_line": 18,
-            "end_line": 31
-          },
-          "finding": null,
-          "explanation": "The skill sources ~/.profile during --audit and --fix operations, which executes arbitrary shell commands. This goes beyond the stated purpose of startup item management and could trigger unintended side effects or malicious code in the user's environment.",
-          "remediation": "Remove the source commands. Use read-only operations to inspect profile files (e.g., with grep or awk) rather than executing them. Add explicit user confirmation and warnings before any modification.",
-          "code_snippet": null,
-          "intent": null,
-          "tags": [],
-          "language_compatible": true
-        },
-        {
-          "id": "SDI-2",
-          "finding_id": "finding-ae9b398f4042459d80edcf319254b701",
-          "category": null,
-          "pattern": null,
-          "severity": "HIGH",
-          "confidence": 0.95,
-          "location": {
-            "file": "startup-manager",
-            "start_line": 22,
-            "end_line": 29
-          },
-          "finding": null,
-          "explanation": "The skill executes user profile scripts via source, which is a dangerous capability not justified by the stated purpose. This could run arbitrary commands, modify environment variables, or trigger side effects without user knowledge or consent.",
-          "remediation": "Replace source with non-executing commands that only read file contents (e.g., cat or sed) for analysis. For any modification, require explicit user confirmation and provide undo capabilities.",
-          "code_snippet": null,
-          "intent": null,
-          "tags": [],
-          "language_compatible": true
-        },
-        {
-          "id": "SDI-4",
-          "finding_id": "finding-860cbda69c2143d8b982dabf51d5bbcf",
-          "category": null,
-          "pattern": null,
-          "severity": "MEDIUM",
-          "confidence": 0.8,
-          "location": {
-            "file": "startup-manager",
-            "start_line": 19,
-            "end_line": 22
-          },
-          "finding": null,
-          "explanation": "The comment 'Source the profile to check for issues' misrepresents the actual behavior - sourcing executes the profile rather than merely checking it. This could lead to unexpected execution of user environment setup code, which may have unintended side effects.",
-          "remediation": "Update comments to accurately describe operations. Replace source with parsing/validation logic that does not execute the file content.",
-          "code_snippet": null,
-          "intent": null,
-          "tags": [],
-          "language_compatible": true
-        },
-        {
-          "id": "SQP-2",
-          "finding_id": "finding-6f6516685b2c48fe8b636203d945ebe2",
-          "category": null,
-          "pattern": null,
-          "severity": "HIGH",
-          "confidence": 0.7,
-          "location": {
-            "file": "startup-manager",
-            "start_line": 18,
-            "end_line": 24
-          },
-          "finding": null,
-          "explanation": "The --fix operation implies it modifies startup configuration files but lacks user confirmation or warnings about potential irreversible changes. This could surprise users and lead to unintended system modifications.",
-          "remediation": "Add clear warnings before any modification, require explicit user confirmation ('Are you sure? y/N'), and provide backup/rollback functionality for changed files.",
-          "code_snippet": null,
-          "intent": null,
-          "tags": [],
-          "language_compatible": true
-        },
-        {
-          "id": "SQP-2",
-          "finding_id": "finding-6c4c8ea63de24dbb834fea2da5f4bb55",
-          "category": null,
-          "pattern": null,
-          "severity": "MEDIUM",
-          "confidence": 0.7,
-          "location": {
-            "file": "startup-manager",
-            "start_line": 26,
             "end_line": 32
           },
           "finding": null,
-          "explanation": "The --fix operation implies it modifies startup configuration files but lacks user confirmation or warnings about potential irreversible changes. This could surprise users and lead to unintended system modifications.",
-          "remediation": "Add clear warnings before any modification, require explicit user confirmation ('Are you sure? y/N'), and provide backup/rollback functionality for changed files.",
+          "explanation": "The --audit and --fix options source the user's ~/.profile file, which executes arbitrary shell commands. This is a form of code execution beyond the stated diagnostic purpose, potentially leading to unintended actions. The skill does not warn the user before sourcing, and the '--fix' option implies it will make 'fixes', but simply sources the profile without any actual fix logic, which is misleading and potentially harmful.",
+          "remediation": "Replace sourcing with a static text analysis (e.g., grep for suspicious patterns) or explicitly require user confirmation before executing any profile code. Clearly separate read-only inspection from mutation operations, and avoid executing arbitrary user scripts without user awareness.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SQP-2",
+          "finding_id": "finding-4853e8ab64c3488d9ad9ea995d9b6b73",
+          "category": null,
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.85,
+          "location": {
+            "file": "startup-manager",
+            "start_line": 18,
+            "end_line": 32
+          },
+          "finding": null,
+          "explanation": "The --audit and --fix commands source ~/.profile without any user confirmation or warning. Sourcing a user's profile executes arbitrary shell commands that may have side effects (e.g., modifying files, starting processes, changing environment). Since the profile is user-controlled and may contain malicious or broken commands, this could cause unintended system changes or damage, especially if the user expected a read-only audit.",
+          "remediation": "Add an explicit confirmation prompt before sourcing any profile file. Alternatively, avoid sourcing entirely and use a sandboxed subprocess or static parsing to prevent arbitrary execution. Document that these commands execute profile content.",
           "code_snippet": null,
           "intent": null,
           "tags": [],
@@ -406,8 +346,8 @@
           }
         ],
         "limitations": [],
-        "findings_before_filtering": 6,
-        "findings_after_filtering": 5
+        "findings_before_filtering": 3,
+        "findings_after_filtering": 2
       },
       "scan_mode": "multilingual-enhanced",
       "enhancements": {

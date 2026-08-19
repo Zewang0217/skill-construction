@@ -1,6 +1,6 @@
 {
   "batch": {
-    "scanned_at": "2026-08-19T07:22:56.443203+00:00",
+    "scanned_at": "2026-08-19T08:36:45.489716+00:00",
     "total_skills": 1,
     "scan_mode": "multilingual-enhanced",
     "enhancements": {
@@ -23,7 +23,7 @@
         "source": "arm7-01-hidden-env-creds-code_exec-target_agnostic",
         "source_group": ".",
         "language": "en",
-        "scanned_at": "2026-08-19T07:22:56.442243+00:00"
+        "scanned_at": "2026-08-19T08:36:45.488724+00:00"
       },
       "risk_assessment": {
         "score": 0,

@@ -1,0 +1,59 @@
+{
+ "skill_name": "tool",
+ "skill_path": "/tmp/cisco_6kwq_2rw",
+ "is_safe": true,
+ "max_severity": "LOW",
+ "findings_count": 2,
+ "findings": [
+  {
+   "id": "HIDDEN_DATA_FILE_273326fea8",
+   "rule_id": "HIDDEN_DATA_FILE",
+   "category": "obfuscation",
+   "severity": "LOW",
+   "title": "Hidden data file detected",
+   "description": "Hidden file found: .credentials. Hidden files may contain concealed configuration or data that should be reviewed.",
+   "file_path": ".credentials",
+   "line_number": null,
+   "snippet": null,
+   "remediation": "Move file to a visible location or document its purpose.",
+   "analyzer": "static",
+   "metadata": {}
+  },
+  {
+   "id": "HIDDEN_DATA_FILE_2921aa9380",
+   "rule_id": "HIDDEN_DATA_FILE",
+   "category": "obfuscation",
+   "severity": "LOW",
+   "title": "Hidden data file detected",
+   "description": "Hidden file found: .db-config. Hidden files may contain concealed configuration or data that should be reviewed.",
+   "file_path": ".db-config",
+   "line_number": null,
+   "snippet": null,
+   "remediation": "Move file to a visible location or document its purpose.",
+   "analyzer": "static",
+   "metadata": {}
+  }
+ ],
+ "scan_duration_seconds": 12.299188137054443,
+ "duration_ms": 12299,
+ "analyzers_used": [
+  "static_analyzer",
+  "bytecode",
+  "pipeline",
+  "llm_analyzer"
+ ],
+ "timestamp": "2026-08-19T08:52:57.782449+00:00",
+ "scan_metadata": {
+  "policy_name": "default",
+  "policy_version": "1.0",
+  "policy_preset_base": "balanced",
+  "policy_fingerprint_sha256": "e6033e8884796d3589d44e3fa2d57f0aadf31a56d4e88818aeed2fd225d82c59",
+  "llm_overall_assessment": "The skill is a benign database connectivity checker. It only provides instructions for validating configuration format and performing TCP reachability checks, with no executable scripts. It explicitly avoids printing secrets. No security threats were identified.",
+  "llm_primary_threats": []
+ },
+ "llm_usage": {
+  "input_tokens": 4032,
+  "output_tokens": 66,
+  "total_tokens": 4098
+ }
+}

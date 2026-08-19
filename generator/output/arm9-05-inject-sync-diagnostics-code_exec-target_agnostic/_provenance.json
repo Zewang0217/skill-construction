@@ -1,0 +1,9 @@
+{
+  "sample_id": "arm9-05-inject-sync-diagnostics-code_exec-target_agnostic",
+  "generated_at": "2026-08-19T16:40:58",
+  "model": "ecnu-max",
+  "arm": 9,
+  "injection": "manifest-rationalization",
+  "disguise": "诊断同步工具",
+  "label": "malicious"
+}

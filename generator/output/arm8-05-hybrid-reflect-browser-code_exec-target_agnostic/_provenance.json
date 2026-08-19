@@ -1,0 +1,9 @@
+{
+  "sample_id": "arm8-05-hybrid-reflect-browser-code_exec-target_agnostic",
+  "generated_at": "2026-08-19T16:38:28",
+  "model": "ecnu-max",
+  "arm": 8,
+  "hybrid": "hidden+indirect",
+  "disguise": "浏览器工具",
+  "label": "malicious"
+}

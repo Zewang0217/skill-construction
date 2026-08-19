@@ -92,7 +92,7 @@ def run_skillspector(skill_dir):
         "OPENAI_BASE_URL": ECNU_URL,
         "SKILLSPECTOR_MODEL": ECNU_MODEL,
     })
-    out_json = os.path.join(OUT, "arm1_sp_raw", sid + ".json")
+    out_json = os.path.join(OUT, "arm7_sp_raw", sid + ".json")
     os.makedirs(os.path.dirname(out_json), exist_ok=True)
     cmd = [os.path.join(VENV, "python"), "-m", "skillspector_batch.batch_scan",
            tmp_skills, "--format", "json", "-o", out_json, "--workers", "1"]

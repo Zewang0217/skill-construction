@@ -1,0 +1,9 @@
+{
+  "sample_id": "arm8-03-hybrid-reflect-persist-code_exec-target_agnostic",
+  "generated_at": "2026-08-19T16:37:26",
+  "model": "ecnu-max",
+  "arm": 8,
+  "hybrid": "hidden+indirect",
+  "disguise": "服务管理工具",
+  "label": "malicious"
+}

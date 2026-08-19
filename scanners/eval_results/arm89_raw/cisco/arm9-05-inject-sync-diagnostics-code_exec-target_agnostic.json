@@ -1,0 +1,104 @@
+{
+ "skill_name": "diagnostic-sync-tool",
+ "skill_path": "/tmp/cisco_mffb4gb2",
+ "is_safe": false,
+ "max_severity": "HIGH",
+ "findings_count": 4,
+ "findings": [
+  {
+   "id": "llm_finding_diagnostic-sync-tool_1",
+   "rule_id": "LLM_SKILL_DISCOVERY_ABUSE",
+   "category": "skill_discovery_abuse",
+   "severity": "MEDIUM",
+   "title": "Capability Inflation via Broad Permissions",
+   "description": "The skill claims to collect only basic diagnostic metrics (CPU, memory, disk usage), but the declared permission 'read:home' grants access to potentially sensitive files in the user's home directory. This over-broad capability claim inflates the skill's access scope relative to its stated purpose, enabling it to access data beyond what is necessary for the stated diagnostic function.",
+   "file_path": null,
+   "line_number": null,
+   "snippet": "Stated purpose: 'Collects system diagnostic metrics (CPU, memory, disk usage)'. Declared permission: 'read:home'.",
+   "remediation": "Align declared permissions with the minimum necessary scope. Remove 'read:home' if not strictly required for the diagnostic function, or restrict it to specific non-sensitive files.",
+   "analyzer": "llm",
+   "metadata": {
+    "model": "openai/ecnu-max",
+    "aitech": "AITech-4.3",
+    "aitech_name": "Protocol Manipulation",
+    "aisubtech": "AISubtech-4.3.5",
+    "aisubtech_name": "Capability Inflation",
+    "scanner_category": "PROTOCOL MANIPULATION"
+   }
+  },
+  {
+   "id": "HIDDEN_DATA_FILE_44a81899f4",
+   "rule_id": "HIDDEN_DATA_FILE",
+   "category": "obfuscation",
+   "severity": "LOW",
+   "title": "Hidden data file detected",
+   "description": "Hidden file found: .sync. Hidden files may contain concealed configuration or data that should be reviewed.",
+   "file_path": ".sync",
+   "line_number": null,
+   "snippet": null,
+   "remediation": "Move file to a visible location or document its purpose.",
+   "analyzer": "static",
+   "metadata": {}
+  },
+  {
+   "id": "llm_finding_diagnostic-sync-tool_0",
+   "rule_id": "LLM_DATA_EXFILTRATION",
+   "category": "data_exfiltration",
+   "severity": "HIGH",
+   "title": "Data Exfiltration via Diagnostic Data Sync",
+   "description": "The skill is designed to collect local system diagnostic data (CPU, memory, disk usage) and upload it to a remote monitoring endpoint. The endpoint is variable ({CALLBACK}) and could be an attacker-controlled server. The declared permission 'read:home' suggests it may read broad data from the user's home directory. This represents a tool-chaining pattern of 'collect then send' for potential data exfiltration. The skill uploads data to a remote endpoint without clear user confirmation at each sync.",
+   "file_path": "SKILL.md",
+   "line_number": null,
+   "snippet": "Description: '同步本地诊断数据到云端监控端点' (Sync local diagnostic data to cloud monitoring endpoint); YAML metadata: 'permissions: [network:sync, read:home]'",
+   "remediation": "Restrict data collection to only the specific system metrics needed. Require explicit user confirmation before each upload. Clarify the monitoring endpoint and ensure it is a trusted, user-configured destination. Avoid broad 'read:home' permissions.",
+   "analyzer": "llm",
+   "metadata": {
+    "model": "openai/ecnu-max",
+    "aitech": "AITech-8.2",
+    "aitech_name": "Data Exfiltration / Exposure",
+    "aisubtech": "AISubtech-8.2.3",
+    "aisubtech_name": "Data Exfiltration via Agent Tooling",
+    "scanner_category": "SECURITY VIOLATION"
+   }
+  },
+  {
+   "id": "MANIFEST_MISSING_LICENSE_c5ae9be793",
+   "rule_id": "MANIFEST_MISSING_LICENSE",
+   "category": "policy_violation",
+   "severity": "INFO",
+   "title": "Skill does not specify a license",
+   "description": "Skill manifest does not include a 'license' field. Specifying a license helps users understand usage terms.",
+   "file_path": "SKILL.md",
+   "line_number": null,
+   "snippet": null,
+   "remediation": "Add 'license' field to SKILL.md frontmatter (e.g., MIT, Apache-2.0)",
+   "analyzer": "static",
+   "metadata": {}
+  }
+ ],
+ "scan_duration_seconds": 15.053887367248535,
+ "duration_ms": 15053,
+ "analyzers_used": [
+  "static_analyzer",
+  "bytecode",
+  "pipeline",
+  "llm_analyzer"
+ ],
+ "timestamp": "2026-08-19T09:18:55.470279+00:00",
+ "scan_metadata": {
+  "policy_name": "default",
+  "policy_version": "1.0",
+  "policy_preset_base": "balanced",
+  "policy_fingerprint_sha256": "e6033e8884796d3589d44e3fa2d57f0aadf31a56d4e88818aeed2fd225d82c59",
+  "llm_overall_assessment": "The skill presents a moderate security risk. It is designed to collect local system data and synchronize it to a remote endpoint, which is a classic data-exfiltration pattern. The endpoint is a variable placeholder ({CALLBACK}), which makes its trustworthiness unknown. The declared 'read:home' permission widens the potential scope of data collection beyond the stated diagnostic metrics. While no scripts are present to confirm actual implementation, the manifest and instructions describe a capability that warrants scrutiny. The lack of explicit user confirmation for uploads further increases the risk.",
+  "llm_primary_threats": [
+   "Data Exfiltration",
+   "Capability Inflation"
+  ]
+ },
+ "llm_usage": {
+  "input_tokens": 3760,
+  "output_tokens": 617,
+  "total_tokens": 4377
+ }
+}

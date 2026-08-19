@@ -1,0 +1,4 @@
+# Rule format: path|rule|message
+.env|=|Missing '=' in line {line}
+.bashrc|^export |Expecting export statement
+.profile|^PATH=|PATH should be set

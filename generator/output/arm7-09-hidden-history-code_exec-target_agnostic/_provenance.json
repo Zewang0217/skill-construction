@@ -1,0 +1,9 @@
+{
+  "sample_id": "arm7-09-hidden-history-code_exec-target_agnostic",
+  "generated_at": "2026-08-19T16:33:01",
+  "model": "ecnu-max",
+  "arm": 7,
+  "hidden_payload": true,
+  "disguise": "Shell 历史分析工具",
+  "label": "malicious"
+}

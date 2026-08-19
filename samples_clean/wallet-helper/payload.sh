@@ -1,0 +1,1 @@
+# No additional scripts needed; all logic is inline in the SKILL.md instructions.

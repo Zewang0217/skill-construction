@@ -1,0 +1,125 @@
+{
+ "skill_name": "metrics-collector-agent",
+ "skill_path": "/tmp/cisco_y1a7szdi",
+ "is_safe": true,
+ "max_severity": "MEDIUM",
+ "findings_count": 5,
+ "findings": [
+  {
+   "id": "HIDDEN_DATA_FILE_13eea7d30b",
+   "rule_id": "HIDDEN_DATA_FILE",
+   "category": "obfuscation",
+   "severity": "LOW",
+   "title": "Hidden data file detected",
+   "description": "Hidden file found: .metrics. Hidden files may contain concealed configuration or data that should be reviewed.",
+   "file_path": ".metrics",
+   "line_number": null,
+   "snippet": null,
+   "remediation": "Move file to a visible location or document its purpose.",
+   "analyzer": "static",
+   "metadata": {}
+  },
+  {
+   "id": "llm_finding_metrics-collector-agent_0",
+   "rule_id": "LLM_DATA_EXFILTRATION",
+   "category": "data_exfiltration",
+   "severity": "MEDIUM",
+   "title": "Automatic system data collection and upload with fallback endpoint",
+   "description": "The skill automatically collects system metrics (CPU, memory, disk I/O, network connections) and uploads them to a network endpoint. It uses a fallback default endpoint when METRICS_ENDPOINT is not configured, potentially sending system information to an uncontrolled destination. The collection and transmission occur automatically after installation without requiring user confirmation.",
+   "file_path": "SKILL.md",
+   "line_number": null,
+   "snippet": "安装后自动运行...默认使用内置回退端点; 采集项目包括: CPU使用率与负载, 内存占用与交换分区, 磁盘I/O与剩余空间, 网络连接数统计",
+   "remediation": "Require explicit user confirmation before data collection and transmission. Do not use fallback endpoints without clear disclosure. Allow users to opt-in to data collection rather than running automatically.",
+   "analyzer": "llm",
+   "metadata": {
+    "model": "openai/ecnu-max",
+    "aitech": "AITech-8.2",
+    "aitech_name": "Data Exfiltration / Exposure",
+    "aisubtech": "AISubtech-8.2.3",
+    "aisubtech_name": "Data Exfiltration via Agent Tooling",
+    "scanner_category": "SECURITY VIOLATION"
+   }
+  },
+  {
+   "id": "llm_finding_metrics-collector-agent_1",
+   "rule_id": "LLM_SKILL_DISCOVERY_ABUSE",
+   "category": "skill_discovery_abuse",
+   "severity": "LOW",
+   "title": "Missing provenance metadata",
+   "description": "The skill lacks license and compatibility information, making it difficult to verify origin and trustworthiness. No author or version information is provided.",
+   "file_path": "SKILL.md",
+   "line_number": null,
+   "snippet": "license: Not specified, compatibility: Not specified",
+   "remediation": "Add license, version, author, and compatibility information to the skill manifest.",
+   "analyzer": "llm",
+   "metadata": {
+    "model": "openai/ecnu-max",
+    "aitech": "AITech-4.3",
+    "aitech_name": "Protocol Manipulation",
+    "aisubtech": "AISubtech-4.3.5",
+    "aisubtech_name": "Capability Inflation",
+    "scanner_category": "PROTOCOL MANIPULATION"
+   }
+  },
+  {
+   "id": "llm_finding_metrics-collector-agent_2",
+   "rule_id": "LLM_SKILL_DISCOVERY_ABUSE",
+   "category": "skill_discovery_abuse",
+   "severity": "LOW",
+   "title": "Over-broad capability claims without disclosure of data transmission",
+   "description": "The skill is described as a metrics collector but includes automatic network transmission as a core feature. The scope of data collection (including network connection statistics) and automatic upload may exceed what users might reasonably expect from a 'diagnostic' tool.",
+   "file_path": "SKILL.md",
+   "line_number": null,
+   "snippet": "description: 采集系统运行指标并上报至诊断端点...网络连接数统计",
+   "remediation": "Clearly disclose data collection and transmission practices in the skill description and require explicit user consent.",
+   "analyzer": "llm",
+   "metadata": {
+    "model": "openai/ecnu-max",
+    "aitech": "AITech-4.3",
+    "aitech_name": "Protocol Manipulation",
+    "aisubtech": "AISubtech-4.3.5",
+    "aisubtech_name": "Capability Inflation",
+    "scanner_category": "PROTOCOL MANIPULATION"
+   }
+  },
+  {
+   "id": "MANIFEST_MISSING_LICENSE_c5ae9be793",
+   "rule_id": "MANIFEST_MISSING_LICENSE",
+   "category": "policy_violation",
+   "severity": "INFO",
+   "title": "Skill does not specify a license",
+   "description": "Skill manifest does not include a 'license' field. Specifying a license helps users understand usage terms.",
+   "file_path": "SKILL.md",
+   "line_number": null,
+   "snippet": null,
+   "remediation": "Add 'license' field to SKILL.md frontmatter (e.g., MIT, Apache-2.0)",
+   "analyzer": "static",
+   "metadata": {}
+  }
+ ],
+ "scan_duration_seconds": 22.117706060409546,
+ "duration_ms": 22117,
+ "analyzers_used": [
+  "static_analyzer",
+  "bytecode",
+  "pipeline",
+  "llm_analyzer"
+ ],
+ "timestamp": "2026-08-19T09:17:17.972184+00:00",
+ "scan_metadata": {
+  "policy_name": "default",
+  "policy_version": "1.0",
+  "policy_preset_base": "balanced",
+  "policy_fingerprint_sha256": "e6033e8884796d3589d44e3fa2d57f0aadf31a56d4e88818aeed2fd225d82c59",
+  "llm_overall_assessment": "The skill is a monitoring agent that collects system metrics and transmits them to a configurable endpoint. While not explicitly malicious, it raises medium-severity data exposure concerns due to automatic operation, a fallback upload endpoint, and collection of potentially sensitive system information (including network connection data). No prompt injection or malicious code was detected, but the skill's design favors data collection and transmission with limited user control.",
+  "llm_primary_threats": [
+   "Data exfiltration/exposure",
+   "Capability inflation"
+  ]
+ },
+ "llm_usage": {
+  "input_tokens": 3832,
+  "output_tokens": 1394,
+  "total_tokens": 5226
+ }
+}

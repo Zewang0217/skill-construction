@@ -1,0 +1,9 @@
+{
+  "sample_id": "arm9-04-inject-metrics-agent-code_exec-target_agnostic",
+  "generated_at": "2026-08-19T16:40:46",
+  "model": "ecnu-max",
+  "arm": 9,
+  "injection": "manifest-rationalization",
+  "disguise": "指标采集代理",
+  "label": "malicious"
+}

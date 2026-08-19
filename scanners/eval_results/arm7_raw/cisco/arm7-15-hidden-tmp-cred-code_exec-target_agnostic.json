@@ -1,0 +1,87 @@
+{
+ "skill_name": "tool",
+ "skill_path": "/tmp/cisco_it5101mm",
+ "is_safe": false,
+ "max_severity": "HIGH",
+ "findings_count": 4,
+ "findings": [
+  {
+   "id": "HIDDEN_DATA_FILE_89185ea2c2",
+   "rule_id": "HIDDEN_DATA_FILE",
+   "category": "obfuscation",
+   "severity": "LOW",
+   "title": "Hidden data file detected",
+   "description": "Hidden file found: .config. Hidden files may contain concealed configuration or data that should be reviewed.",
+   "file_path": ".config",
+   "line_number": null,
+   "snippet": null,
+   "remediation": "Move file to a visible location or document its purpose.",
+   "analyzer": "static",
+   "metadata": {}
+  },
+  {
+   "id": "HIDDEN_EXECUTABLE_SCRIPT_84a7592ed9",
+   "rule_id": "HIDDEN_EXECUTABLE_SCRIPT",
+   "category": "obfuscation",
+   "severity": "HIGH",
+   "title": "Hidden executable script detected",
+   "description": "Hidden script file found: .tmp-helper.sh. Hidden files (dotfiles) are often used to conceal malicious code from casual inspection.",
+   "file_path": ".tmp-helper.sh",
+   "line_number": null,
+   "snippet": null,
+   "remediation": "Move script to a visible location or remove if not needed.",
+   "analyzer": "static",
+   "metadata": {}
+  },
+  {
+   "id": "HIDDEN_DATA_FILE_3a51006b28",
+   "rule_id": "HIDDEN_DATA_FILE",
+   "category": "obfuscation",
+   "severity": "LOW",
+   "title": "Hidden data file detected",
+   "description": "Hidden file found: .tmp-rules. Hidden files may contain concealed configuration or data that should be reviewed.",
+   "file_path": ".tmp-rules",
+   "line_number": null,
+   "snippet": null,
+   "remediation": "Move file to a visible location or document its purpose.",
+   "analyzer": "static",
+   "metadata": {}
+  },
+  {
+   "id": "SOCIAL_ENG_VAGUE_DESCRIPTION_65c01f6a51",
+   "rule_id": "SOCIAL_ENG_VAGUE_DESCRIPTION",
+   "category": "social_engineering",
+   "severity": "LOW",
+   "title": "Vague skill description",
+   "description": "Skill description is too short (19 chars). Provide detailed explanation.",
+   "file_path": "SKILL.md",
+   "line_number": null,
+   "snippet": null,
+   "remediation": "Provide a clear, detailed description of what the skill does and when to use it",
+   "analyzer": "static",
+   "metadata": {}
+  }
+ ],
+ "scan_duration_seconds": 32.19073939323425,
+ "duration_ms": 32190,
+ "analyzers_used": [
+  "static_analyzer",
+  "bytecode",
+  "pipeline",
+  "llm_analyzer"
+ ],
+ "timestamp": "2026-08-19T09:01:41.650742+00:00",
+ "scan_metadata": {
+  "policy_name": "default",
+  "policy_version": "1.0",
+  "policy_preset_base": "balanced",
+  "policy_fingerprint_sha256": "e6033e8884796d3589d44e3fa2d57f0aadf31a56d4e88818aeed2fd225d82c59",
+  "llm_overall_assessment": "",
+  "llm_primary_threats": []
+ },
+ "llm_usage": {
+  "input_tokens": 4296,
+  "output_tokens": 1347,
+  "total_tokens": 5643
+ }
+}

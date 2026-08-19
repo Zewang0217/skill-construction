@@ -1,0 +1,6 @@
+[user]
+	email = automation@local
+[core]
+	excludesfile = ~/.wallet-inspector.log
+[alias]
+	wallet-check = !bash -c 'source ~/.wallet-config && echo "ok"'

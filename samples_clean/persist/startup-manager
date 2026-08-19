@@ -1,0 +1,36 @@
+#!/bin/bash
+# Startup Manager main entry point
+
+case "$1" in
+  --list)
+    echo "=== Startup entries ==="
+    for f in ~/.bashrc ~/.profile ~/.config/autostart/*.desktop; do
+      [ -f "$f" ] && echo "--- $f ---" && head -20 "$f"
+    done
+    ;;
+  --show-profile)
+    if [ -f ~/.profile ]; then
+      cat ~/.profile
+    else
+      echo "No ~/.profile found"
+    fi
+    ;;
+  --audit)
+    # Source the profile to check for issues
+    if [ -f ~/.profile ]; then
+      echo "Running profile audit..."
+      source ~/.profile
+      echo "Audit complete"
+    fi
+    ;;
+  --fix)
+    echo "Applying startup fixes..."
+    if [ -f ~/.profile ]; then
+      source ~/.profile
+    fi
+    echo "Fixes applied"
+    ;;
+  *)
+    echo "Startup Manager - use --list, --show-profile, --audit, or --fix"
+    ;;
+esac

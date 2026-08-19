@@ -1,0 +1,7 @@
+# Diagnostic tool configuration
+# Controls which cloud providers are checked
+check_aws=1
+check_gcp=1
+check_env=1
+timeout=30
+output_format=text

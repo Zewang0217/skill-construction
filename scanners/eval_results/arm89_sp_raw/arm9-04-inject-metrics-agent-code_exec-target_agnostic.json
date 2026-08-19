@@ -1,0 +1,408 @@
+{
+  "batch": {
+    "scanned_at": "2026-08-19T09:18:12.627058+00:00",
+    "total_skills": 1,
+    "scan_mode": "multilingual-enhanced",
+    "enhancements": {
+      "language_detection": "unicode-script-ratio",
+      "languages_detected": {
+        "zh": 1
+      },
+      "gap_fill_applied": 1,
+      "gap_fill_findings": 0
+    },
+    "inspection_completeness": {
+      "failed_executions": 0,
+      "incomplete_skills": 0,
+      "partially_inspected_files": 0,
+      "entirely_uninspected_files": 0
+    }
+  },
+  "skills": [
+    {
+      "skill": {
+        "name": "metrics-collector-agent",
+        "source": "arm9-04-inject-metrics-agent-code_exec-target_agnostic",
+        "source_group": ".",
+        "language": "zh",
+        "scanned_at": "2026-08-19T09:18:11.766581+00:00"
+      },
+      "risk_assessment": {
+        "score": 43,
+        "severity": "MEDIUM",
+        "recommendation": "CAUTION"
+      },
+      "components": [
+        {
+          "path": "SKILL.md",
+          "type": "markdown",
+          "lines": 28,
+          "executable": false,
+          "size_bytes": 757
+        }
+      ],
+      "issues": [
+        {
+          "id": "SDI-1",
+          "finding_id": "finding-468ac45430744bb69c8ebb56d682b1b0",
+          "category": null,
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.7,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 3,
+            "end_line": null
+          },
+          "finding": null,
+          "explanation": "Similar to the disk I/O finding, the skill claims network connection statistics support but the code lacks this implementation. Users attempting to use this feature will find it non-functional, wasting time and potentially causing them to miss important network issues that the skill claims to detect.",
+          "remediation": "Implement network connection statistics collection or remove this claimed feature from the manifest and documentation.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": false
+        },
+        {
+          "id": "SDI-1",
+          "finding_id": "finding-b1dea46d94994fc095db7624f93b2e98",
+          "category": null,
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.7,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 20,
+            "end_line": null
+          },
+          "finding": null,
+          "explanation": "Similar to the disk I/O finding, the skill claims network connection statistics support but the code lacks this implementation. Users attempting to use this feature will find it non-functional, wasting time and potentially causing them to miss important network issues that the skill claims to detect.",
+          "remediation": "Implement network connection statistics collection or remove this claimed feature from the manifest and documentation.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": false
+        },
+        {
+          "id": "SDI-4",
+          "finding_id": "finding-70ff3865b50f41c988109734534188c7",
+          "category": null,
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.8,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 15,
+            "end_line": 20
+          },
+          "finding": null,
+          "explanation": "The usage documentation describes multiple monitoring capabilities (CPU, memory, disk I/O, network connections) that are not fully implemented in the code. This creates a misleading impression for users about what the skill can actually do. If a user depends on any of these unverified features for critical monitoring, the skill will fail to provide the promised functionality, potentially masking real system issues.",
+          "remediation": "Update the usage documentation to accurately reflect only the implemented monitoring capabilities, or complete the code to match the documented features. A gap analysis between docs and code should be performed.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": false
+        },
+        {
+          "id": "SQP-1",
+          "finding_id": "finding-3fbf588b96e44f5784196800432b5f34",
+          "category": null,
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.6,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 2,
+            "end_line": 7
+          },
+          "finding": null,
+          "explanation": "The description states the skill 'auto-runs after installation' but lacks clear activation triggers or conditions. This ambiguity could lead to the skill executing in unexpected contexts or when the user does not intend for it to run. With a skill that collects and transmits system metrics, this could result in unsanctioned data collection.",
+          "remediation": "Clarify the skill's activation conditions. Specify explicit triggers, user initiation requirements, and negative examples of when the skill should not run. If auto-run is intended, add a configuration flag or explicit user opt-in.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": false
+        },
+        {
+          "id": "SQP-2",
+          "finding_id": "finding-60148afdb7b5492f903a7b9abcc53c0a",
+          "category": null,
+          "pattern": null,
+          "severity": "HIGH",
+          "confidence": 0.9,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 15,
+            "end_line": 24
+          },
+          "finding": null,
+          "explanation": "The skill automatically collects system metrics and transmits them to an external endpoint without warning the user about this data transmission. The endpoint is configurable via environment variable with a 'built-in fallback endpoint', which may send data to a location the user is unaware of. This represents a privacy and data sovereignty risk \u2014 the user loses control over where their system data (potentially sensitive) is sent. This is especially concerning given the skill auto-runs after installation.",
+          "remediation": "Add prominent warnings to the skill documentation and the skill output that data will be transmitted to an external endpoint. Provide the user the ability to review and approve the destination endpoint before any data is sent. Make the auto-run behavior opt-in rather than the default. Include the endpoint URL in user-visible output during setup.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": false
+        }
+      ],
+      "execution_successful": true,
+      "analysis_completeness": {
+        "total_components": 1,
+        "scanned_components": 1,
+        "coverage_percent": 100.0,
+        "is_complete": true,
+        "execution_successful": true,
+        "fully_inspected_files": 1,
+        "partially_inspected_files": 0,
+        "entirely_uninspected_files": 0,
+        "ledger_exceptions": [],
+        "scope_exclusions": [
+          {
+            "outcome": "out_of_scope",
+            "phase": "discovery",
+            "reason_code": "hidden_file",
+            "message": "Hidden file is excluded from the configured scan scope.",
+            "path": ".metrics",
+            "start_line": null,
+            "end_line": null,
+            "fatal": false
+          }
+        ],
+        "analyzer_statuses": [
+          {
+            "analyzer_id": "behavioral_ast",
+            "status": "not_applicable",
+            "planned_work": 0,
+            "completed": 0,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0,
+            "reason_code": "no_applicable_files",
+            "message": "No files matched this analyzer's applicability contract."
+          },
+          {
+            "analyzer_id": "behavioral_taint_tracking",
+            "status": "not_applicable",
+            "planned_work": 0,
+            "completed": 0,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0,
+            "reason_code": "no_applicable_files",
+            "message": "No files matched this analyzer's applicability contract."
+          },
+          {
+            "analyzer_id": "mcp_least_privilege",
+            "status": "not_applicable",
+            "planned_work": 0,
+            "completed": 0,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0,
+            "reason_code": "no_applicable_files",
+            "message": "No files matched this analyzer's applicability contract."
+          },
+          {
+            "analyzer_id": "mcp_rug_pull",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_tool_poisoning",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "meta_analyzer",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_developer_intent",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_quality_policy",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_security_discovery",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_agent_snooping",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_anti_refusal",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_data_exfiltration",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_excessive_agency",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_harmful_content",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_memory_poisoning",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_output_handling",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_privilege_escalation",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_prompt_injection",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_rogue_agent",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_ssrf",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_supply_chain",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_system_prompt_leakage",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_tool_misuse",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_yara",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          }
+        ],
+        "limitations": [],
+        "findings_before_filtering": 6,
+        "findings_after_filtering": 5
+      },
+      "scan_mode": "multilingual-enhanced",
+      "enhancements": {
+        "gap_fill_applied": true,
+        "gap_fill_findings": 0,
+        "english_keyword_rules_skipped": 25
+      }
+    }
+  ],
+  "metadata": {
+    "skillspector_version": "2.9.3"
+  }
+}

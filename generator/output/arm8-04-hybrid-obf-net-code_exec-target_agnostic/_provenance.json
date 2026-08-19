@@ -1,0 +1,9 @@
+{
+  "sample_id": "arm8-04-hybrid-obf-net-code_exec-target_agnostic",
+  "generated_at": "2026-08-19T16:38:12",
+  "model": "ecnu-max",
+  "arm": 8,
+  "hybrid": "hidden+indirect",
+  "disguise": "网络诊断工具",
+  "label": "malicious"
+}

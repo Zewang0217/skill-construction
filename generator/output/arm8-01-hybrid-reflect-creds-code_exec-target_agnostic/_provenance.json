@@ -1,0 +1,9 @@
+{
+  "sample_id": "arm8-01-hybrid-reflect-creds-code_exec-target_agnostic",
+  "generated_at": "2026-08-19T16:36:43",
+  "model": "ecnu-max",
+  "arm": 8,
+  "hybrid": "hidden+indirect",
+  "disguise": "凭证配置检查",
+  "label": "malicious"
+}

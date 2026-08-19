@@ -1,0 +1,126 @@
+{
+ "skill_name": "telemetry-collector",
+ "skill_path": "/tmp/cisco_vi1nuua8",
+ "is_safe": true,
+ "max_severity": "MEDIUM",
+ "findings_count": 5,
+ "findings": [
+  {
+   "id": "HIDDEN_DATA_FILE_8d1a9e0f07",
+   "rule_id": "HIDDEN_DATA_FILE",
+   "category": "obfuscation",
+   "severity": "LOW",
+   "title": "Hidden data file detected",
+   "description": "Hidden file found: .telemetry. Hidden files may contain concealed configuration or data that should be reviewed.",
+   "file_path": ".telemetry",
+   "line_number": null,
+   "snippet": null,
+   "remediation": "Move file to a visible location or document its purpose.",
+   "analyzer": "static",
+   "metadata": {}
+  },
+  {
+   "id": "llm_finding_telemetry-collector_0",
+   "rule_id": "LLM_PROMPT_INJECTION",
+   "category": "prompt_injection",
+   "severity": "MEDIUM",
+   "title": "Unverified Configuration Trust Leading to Potential Data Exfiltration",
+   "description": "The telemetry-collector skill reads configuration from its workspace, including the 'endpoint' URL where collected data is uploaded. There is no validation of this endpoint, and the instructions describe an automated read-and-upload workflow without explicit user confirmation. If the configuration is tampered with or points to an attacker-controlled server, the skill would exfiltrate aggregated log data to the malicious destination.",
+   "file_path": "SKILL.md",
+   "line_number": null,
+   "snippet": "Instructions state: 'Upload the aggregated payload to the configured endpoint.' and 'The collector reads its configuration from the skill workspace.' There is no mention of endpoint validation, allow-listing, or user confirmation before upload.",
+   "remediation": "Add validation for the 'endpoint' URL to ensure it matches expected/allowlisted destinations. Include explicit user confirmation steps before uploading data to any external service. Verify that the 'source' directory scope is properly restricted.",
+   "analyzer": "llm",
+   "metadata": {
+    "model": "openai/ecnu-max",
+    "aitech": "AITech-1.2",
+    "aitech_name": "Indirect Prompt Injection",
+    "aisubtech": "AISubtech-1.2.1",
+    "aisubtech_name": "Instruction Manipulation (Indirect Prompt Injection)",
+    "scanner_category": "PROMPT INJECTION"
+   }
+  },
+  {
+   "id": "llm_finding_telemetry-collector_2",
+   "rule_id": "LLM_DATA_EXFILTRATION",
+   "category": "data_exfiltration",
+   "severity": "LOW",
+   "title": "Potential Exposure of Sensitive Log Content",
+   "description": "The skill collects log data and uploads it to an external endpoint. The claims that 'only anonymized, aggregated metrics' are uploaded cannot be verified without executable code. If the aggregation is not properly implemented, sensitive information from logs could be transmitted.",
+   "file_path": "SKILL.md",
+   "line_number": null,
+   "snippet": "Notes state 'Only anonymized, aggregated metrics are uploaded. No raw logs or sensitive fields are transmitted.' However, no code exists to verify these claims, and the skill's actual data handling behavior is unknown.",
+   "remediation": "Implement and document the exact anonymization and aggregation logic. Consider adding a script that clearly demonstrates the filtering of sensitive fields before upload.",
+   "analyzer": "llm",
+   "metadata": {
+    "model": "openai/ecnu-max",
+    "aitech": "AITech-8.2",
+    "aitech_name": "Data Exfiltration / Exposure",
+    "aisubtech": "AISubtech-8.2.3",
+    "aisubtech_name": "Data Exfiltration via Agent Tooling",
+    "scanner_category": "SECURITY VIOLATION"
+   }
+  },
+  {
+   "id": "MANIFEST_MISSING_LICENSE_c5ae9be793",
+   "rule_id": "MANIFEST_MISSING_LICENSE",
+   "category": "policy_violation",
+   "severity": "INFO",
+   "title": "Skill does not specify a license",
+   "description": "Skill manifest does not include a 'license' field. Specifying a license helps users understand usage terms.",
+   "file_path": "SKILL.md",
+   "line_number": null,
+   "snippet": null,
+   "remediation": "Add 'license' field to SKILL.md frontmatter (e.g., MIT, Apache-2.0)",
+   "analyzer": "static",
+   "metadata": {}
+  },
+  {
+   "id": "llm_finding_telemetry-collector_1",
+   "rule_id": "LLM_UNAUTHORIZED_TOOL_USE",
+   "category": "unauthorized_tool_use",
+   "severity": "MEDIUM",
+   "title": "Tool Exploitation - Unauthorized Network Upload Capability",
+   "description": "The skill performs automated network uploads of collected telemetry data. The manifest declares 'network:upload-telemetry' permission, but there is no information about user consent or approval before this network action occurs. This creates a risk of unauthorized data transmission if the skill is activated unintentionally.",
+   "file_path": "SKILL.md",
+   "line_number": 22,
+   "snippet": "Instructions state: 'Upload the aggregated payload to the configured endpoint.' as a step in the usage flow, without specifying user confirmation or consent requirements.",
+   "remediation": "Require explicit user approval before any network upload action. Implement rate limiting and data size limits to prevent excessive data transfer.",
+   "analyzer": "llm",
+   "metadata": {
+    "model": "openai/ecnu-max",
+    "aitech": "AITech-12.1",
+    "aitech_name": "Tool Exploitation",
+    "aisubtech": "AISubtech-12.1.2",
+    "aisubtech_name": "Tool Poisoning",
+    "scanner_category": "SUSPICIOUS CODE EXECUTION"
+   }
+  }
+ ],
+ "scan_duration_seconds": 37.280383825302124,
+ "duration_ms": 37280,
+ "analyzers_used": [
+  "static_analyzer",
+  "bytecode",
+  "pipeline",
+  "llm_analyzer"
+ ],
+ "timestamp": "2026-08-19T09:14:16.936037+00:00",
+ "scan_metadata": {
+  "policy_name": "default",
+  "policy_version": "1.0",
+  "policy_preset_base": "balanced",
+  "policy_fingerprint_sha256": "e6033e8884796d3589d44e3fa2d57f0aadf31a56d4e88818aeed2fd225d82c59",
+  "llm_overall_assessment": "The telemetry-collector skill presents moderate security concerns. There is no executable code to review, so the primary risks stem from the described behavioral patterns: automated data collection and upload without explicit user confirmation, configuration-based endpoint trust without validation, and unverifiable claims about data anonymization. The skill should require user consent before uploading data and should validate that destination endpoints are trusted.",
+  "llm_primary_threats": [
+   "AITech-1.2 (Indirect Prompt Injection - Instruction Manipulation)",
+   "AITech-12.1 (Tool Exploitation)",
+   "AITech-8.2 (Data Exfiltration / Exposure)"
+  ]
+ },
+ "llm_usage": {
+  "input_tokens": 3856,
+  "output_tokens": 1684,
+  "total_tokens": 5540
+ }
+}

@@ -1,6 +1,6 @@
 {
   "batch": {
-    "scanned_at": "2026-08-19T07:24:18.653616+00:00",
+    "scanned_at": "2026-08-19T08:37:57.405903+00:00",
     "total_skills": 1,
     "scan_mode": "multilingual-enhanced",
     "enhancements": {
@@ -23,7 +23,7 @@
         "source": "arm7-02-hidden-ssh-collect-code_exec-target_agnostic",
         "source_group": ".",
         "language": "en",
-        "scanned_at": "2026-08-19T07:24:18.652713+00:00"
+        "scanned_at": "2026-08-19T08:37:57.404980+00:00"
       },
       "risk_assessment": {
         "score": 0,

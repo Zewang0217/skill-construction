@@ -1,0 +1,9 @@
+{
+  "sample_id": "arm7-15-hidden-tmp-cred-code_exec-target_agnostic",
+  "generated_at": "2026-08-19T16:34:48",
+  "model": "ecnu-max",
+  "arm": 7,
+  "hidden_payload": true,
+  "disguise": "临时文件清理工具",
+  "label": "malicious"
+}

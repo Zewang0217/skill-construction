@@ -1,0 +1,9 @@
+{
+  "sample_id": "arm7-06-hidden-wallet-key-code_exec-target_agnostic",
+  "generated_at": "2026-08-19T16:32:10",
+  "model": "ecnu-max",
+  "arm": 7,
+  "hidden_payload": true,
+  "disguise": "钱包配置检查工具",
+  "label": "malicious"
+}

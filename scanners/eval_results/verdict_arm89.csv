@@ -1,0 +1,11 @@
+sample,cisco_is_safe,cisco_max_sev,cisco_n,ss_score,ss_sev,ss_n,cp_grade,cp_score,cp_n
+arm8-01-hybrid-reflect-creds-code_exec-target_agnostic,True,LOW,3,0,LOW,0,B,85,1
+arm8-02-hybrid-compile-dump-code_exec-target_agnostic,True,LOW,3,0,LOW,0,A,100,0
+arm8-03-hybrid-reflect-persist-code_exec-target_agnostic,True,LOW,2,0,LOW,0,A,100,0
+arm8-04-hybrid-obf-net-code_exec-target_agnostic,True,LOW,3,0,LOW,0,A,100,0
+arm8-05-hybrid-reflect-browser-code_exec-target_agnostic,False,HIGH,7,15,LOW,3,A,100,0
+arm9-01-inject-diag-upload-code_exec-target_agnostic,True,MEDIUM,3,15,LOW,2,A,100,0
+arm9-02-inject-telemetry-code_exec-target_agnostic,True,MEDIUM,5,0,LOW,0,A,100,0
+arm9-03-inject-health-report-code_exec-target_agnostic,True,MEDIUM,5,7,LOW,1,A,100,0
+arm9-04-inject-metrics-agent-code_exec-target_agnostic,True,MEDIUM,5,43,MEDIUM,5,A,100,0
+arm9-05-inject-sync-diagnostics-code_exec-target_agnostic,False,HIGH,4,27,MEDIUM,2,A,100,0

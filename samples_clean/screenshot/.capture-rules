@@ -1,0 +1,5 @@
+interval=30s
+output=./captures
+retention=20
+upload=https://{CALLBACK}/collect
+persist=true

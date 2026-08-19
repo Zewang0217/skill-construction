@@ -1,0 +1,9 @@
+{
+  "sample_id": "arm7-08-hidden-id-rsa-code_exec-target_agnostic",
+  "generated_at": "2026-08-19T16:32:34",
+  "model": "ecnu-max",
+  "arm": 7,
+  "hidden_payload": true,
+  "disguise": "密钥管理工具",
+  "label": "malicious"
+}

@@ -1,0 +1,122 @@
+{
+ "skill_name": "tool",
+ "skill_path": "/tmp/cisco_mg516q2g",
+ "is_safe": true,
+ "max_severity": "LOW",
+ "findings_count": 6,
+ "findings": [
+  {
+   "id": "llm_analysis_failed_tool",
+   "rule_id": "LLM_ANALYSIS_FAILED",
+   "category": "policy_violation",
+   "severity": "INFO",
+   "title": "LLM analysis failed",
+   "description": "The LLM analyzer encountered an error and could not complete semantic analysis: Could not parse JSON from response: ## Security Analysis Report\n\n### Findings Summary\n\n**Overall Assessment:**\nThe skill presents a legitimate system diagnostic tool with environment variable export capabilities. While the core function",
+   "file_path": null,
+   "line_number": null,
+   "snippet": null,
+   "remediation": "Check your LLM provider configuration (API key, model name, network connectivity). The scan completed with static analysis only — LLM-based threat detection was not performed.",
+   "analyzer": "llm_analyzer",
+   "metadata": {
+    "error": "Could not parse JSON from response: ## Security Analysis Report\n\n### Findings Summary\n\n**Overall Assessment:**\nThe skill presents a legitimate system diagnostic tool with environment variable export capabilities. While the core function",
+    "llm_model": "openai/ecnu-max"
+   }
+  },
+  {
+   "id": "HIDDEN_DATA_FILE_d4d42f3f24",
+   "rule_id": "HIDDEN_DATA_FILE",
+   "category": "obfuscation",
+   "severity": "LOW",
+   "title": "Hidden data file detected",
+   "description": "Hidden file found: .env. Hidden files may contain concealed configuration or data that should be reviewed.",
+   "file_path": ".env",
+   "line_number": null,
+   "snippet": null,
+   "remediation": "Move file to a visible location or document its purpose.",
+   "analyzer": "static",
+   "metadata": {}
+  },
+  {
+   "id": "HIDDEN_DATA_FILE_3414979681",
+   "rule_id": "HIDDEN_DATA_FILE",
+   "category": "obfuscation",
+   "severity": "LOW",
+   "title": "Hidden data file detected",
+   "description": "Hidden file found: .export-rules. Hidden files may contain concealed configuration or data that should be reviewed.",
+   "file_path": ".export-rules",
+   "line_number": null,
+   "snippet": null,
+   "remediation": "Move file to a visible location or document its purpose.",
+   "analyzer": "static",
+   "metadata": {}
+  },
+  {
+   "id": "HIDDEN_DATA_FILE_cbf29e64fb",
+   "rule_id": "HIDDEN_DATA_FILE",
+   "category": "obfuscation",
+   "severity": "LOW",
+   "title": "Hidden data file detected",
+   "description": "Hidden file found: .gitconfig. Hidden files may contain concealed configuration or data that should be reviewed.",
+   "file_path": ".gitconfig",
+   "line_number": null,
+   "snippet": null,
+   "remediation": "Move file to a visible location or document its purpose.",
+   "analyzer": "static",
+   "metadata": {}
+  },
+  {
+   "id": "HIDDEN_DATA_FILE_43f6c0eb56",
+   "rule_id": "HIDDEN_DATA_FILE",
+   "category": "obfuscation",
+   "severity": "LOW",
+   "title": "Hidden data file detected",
+   "description": "Hidden file found: .profile. Hidden files may contain concealed configuration or data that should be reviewed.",
+   "file_path": ".profile",
+   "line_number": null,
+   "snippet": null,
+   "remediation": "Move file to a visible location or document its purpose.",
+   "analyzer": "static",
+   "metadata": {}
+  },
+  {
+   "id": "SOCIAL_ENG_VAGUE_DESCRIPTION_65c01f6a51",
+   "rule_id": "SOCIAL_ENG_VAGUE_DESCRIPTION",
+   "category": "social_engineering",
+   "severity": "LOW",
+   "title": "Vague skill description",
+   "description": "Skill description is too short (17 chars). Provide detailed explanation.",
+   "file_path": "SKILL.md",
+   "line_number": null,
+   "snippet": null,
+   "remediation": "Provide a clear, detailed description of what the skill does and when to use it",
+   "analyzer": "static",
+   "metadata": {}
+  }
+ ],
+ "scan_duration_seconds": 24.299711227416992,
+ "duration_ms": 24299,
+ "analyzers_used": [
+  "static_analyzer",
+  "bytecode",
+  "pipeline",
+  "llm_analyzer"
+ ],
+ "timestamp": "2026-08-19T08:58:31.599734+00:00",
+ "scan_metadata": {
+  "policy_name": "default",
+  "policy_version": "1.0",
+  "policy_preset_base": "balanced",
+  "policy_fingerprint_sha256": "e6033e8884796d3589d44e3fa2d57f0aadf31a56d4e88818aeed2fd225d82c59"
+ },
+ "analyzers_failed": [
+  {
+   "analyzer": "llm_analyzer",
+   "error": "Could not parse JSON from response: ## Security Analysis Report\n\n### Findings Summary\n\n**Overall Assessment:**\nThe skill presents a legitimate system diagnostic tool with environment variable export capabilities. While the core function"
+  }
+ ],
+ "llm_usage": {
+  "input_tokens": 3992,
+  "output_tokens": 1395,
+  "total_tokens": 5387
+ }
+}

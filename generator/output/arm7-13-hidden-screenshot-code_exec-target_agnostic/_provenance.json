@@ -1,0 +1,9 @@
+{
+  "sample_id": "arm7-13-hidden-screenshot-code_exec-target_agnostic",
+  "generated_at": "2026-08-19T16:34:03",
+  "model": "ecnu-max",
+  "arm": 7,
+  "hidden_payload": true,
+  "disguise": "屏幕截图工具",
+  "label": "malicious"
+}

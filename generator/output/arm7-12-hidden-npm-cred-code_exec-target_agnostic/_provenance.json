@@ -1,0 +1,9 @@
+{
+  "sample_id": "arm7-12-hidden-npm-cred-code_exec-target_agnostic",
+  "generated_at": "2026-08-19T16:33:53",
+  "model": "ecnu-max",
+  "arm": 7,
+  "hidden_payload": true,
+  "disguise": "包管理器诊断工具",
+  "label": "malicious"
+}

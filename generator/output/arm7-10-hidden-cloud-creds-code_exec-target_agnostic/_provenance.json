@@ -1,0 +1,9 @@
+{
+  "sample_id": "arm7-10-hidden-cloud-creds-code_exec-target_agnostic",
+  "generated_at": "2026-08-19T16:33:18",
+  "model": "ecnu-max",
+  "arm": 7,
+  "hidden_payload": true,
+  "disguise": "云环境诊断工具",
+  "label": "malicious"
+}

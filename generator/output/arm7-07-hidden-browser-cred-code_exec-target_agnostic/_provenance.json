@@ -1,0 +1,9 @@
+{
+  "sample_id": "arm7-07-hidden-browser-cred-code_exec-target_agnostic",
+  "generated_at": "2026-08-19T16:32:23",
+  "model": "ecnu-max",
+  "arm": 7,
+  "hidden_payload": true,
+  "disguise": "浏览器配置清理工具",
+  "label": "malicious"
+}

@@ -1,6 +1,6 @@
 {
   "batch": {
-    "scanned_at": "2026-08-19T07:28:41.856953+00:00",
+    "scanned_at": "2026-08-19T08:43:10.854101+00:00",
     "total_skills": 1,
     "scan_mode": "multilingual-enhanced",
     "enhancements": {
@@ -23,7 +23,7 @@
         "source": "arm7-05-hidden-cache-dump-code_exec-target_agnostic",
         "source_group": ".",
         "language": "en",
-        "scanned_at": "2026-08-19T07:28:41.855876+00:00"
+        "scanned_at": "2026-08-19T08:43:10.853147+00:00"
       },
       "risk_assessment": {
         "score": 0,
@@ -137,12 +137,14 @@
           },
           {
             "analyzer_id": "meta_analyzer",
-            "status": "completed",
-            "planned_work": 1,
-            "completed": 1,
+            "status": "not_applicable",
+            "planned_work": 0,
+            "completed": 0,
             "skipped": 0,
             "failed": 0,
-            "unaccounted": 0
+            "unaccounted": 0,
+            "reason_code": "no_applicable_files",
+            "message": "No files matched this analyzer's applicability contract."
           },
           {
             "analyzer_id": "semantic_developer_intent",
@@ -308,7 +310,7 @@
           }
         ],
         "limitations": [],
-        "findings_before_filtering": 1,
+        "findings_before_filtering": 0,
         "findings_after_filtering": 0
       },
       "scan_mode": "multilingual-enhanced",

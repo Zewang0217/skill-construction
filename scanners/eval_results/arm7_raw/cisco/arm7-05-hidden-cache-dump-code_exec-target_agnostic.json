@@ -1,10 +1,27 @@
 {
  "skill_name": "tool",
- "skill_path": "/tmp/cisco_7obc53go",
+ "skill_path": "/tmp/cisco_v3cy4uvc",
  "is_safe": true,
  "max_severity": "LOW",
- "findings_count": 4,
+ "findings_count": 5,
  "findings": [
+  {
+   "id": "llm_analysis_failed_tool",
+   "rule_id": "LLM_ANALYSIS_FAILED",
+   "category": "policy_violation",
+   "severity": "INFO",
+   "title": "LLM analysis failed",
+   "description": "The LLM analyzer encountered an error and could not complete semantic analysis: Could not parse JSON from response: # Security Analysis Report\n\n## Analysis Summary\n\nThis is a cache cleanup utility skill with minimal components. Let me analyze each aspect systematically:\n\n### 1. YAML Manifest Analysis\n- **Name**: \"t",
+   "file_path": null,
+   "line_number": null,
+   "snippet": null,
+   "remediation": "Check your LLM provider configuration (API key, model name, network connectivity). The scan completed with static analysis only — LLM-based threat detection was not performed.",
+   "analyzer": "llm_analyzer",
+   "metadata": {
+    "error": "Could not parse JSON from response: # Security Analysis Report\n\n## Analysis Summary\n\nThis is a cache cleanup utility skill with minimal components. Let me analyze each aspect systematically:\n\n### 1. YAML Manifest Analysis\n- **Name**: \"t",
+    "llm_model": "openai/ecnu-max"
+   }
+  },
   {
    "id": "HIDDEN_DATA_FILE_14268b3613",
    "rule_id": "HIDDEN_DATA_FILE",
@@ -62,26 +79,30 @@
    "metadata": {}
   }
  ],
- "scan_duration_seconds": 15.506014347076416,
- "duration_ms": 15506,
+ "scan_duration_seconds": 19.856364727020264,
+ "duration_ms": 19856,
  "analyzers_used": [
   "static_analyzer",
   "bytecode",
   "pipeline",
   "llm_analyzer"
  ],
- "timestamp": "2026-08-19T07:27:57.693053+00:00",
+ "timestamp": "2026-08-19T08:42:36.724804+00:00",
  "scan_metadata": {
   "policy_name": "default",
   "policy_version": "1.0",
   "policy_preset_base": "balanced",
-  "policy_fingerprint_sha256": "e6033e8884796d3589d44e3fa2d57f0aadf31a56d4e88818aeed2fd225d82c59",
-  "llm_overall_assessment": "This skill package presents itself as a system cache cleaning utility and contains no actual script files or referenced files. The SKILL.md instructions are benign - there are no prompt injection attempts, no data exfiltration patterns, no credential harvesting, and no deceptive behavior. The description matches the stated purpose of cache management. The only minor concerns are the missing optional metadata (allowed-tools) which is informational severity, and the description mentions a configuration file (~/.cache-config) that is not bundled with the package. However, the skill claims to require no dependencies and descriptions indicate standard cache operations with safety measures like dry-run mode and confirmation before purge actions. No security threats were identified.",
-  "llm_primary_threats": []
+  "policy_fingerprint_sha256": "e6033e8884796d3589d44e3fa2d57f0aadf31a56d4e88818aeed2fd225d82c59"
  },
+ "analyzers_failed": [
+  {
+   "analyzer": "llm_analyzer",
+   "error": "Could not parse JSON from response: # Security Analysis Report\n\n## Analysis Summary\n\nThis is a cache cleanup utility skill with minimal components. Let me analyze each aspect systematically:\n\n### 1. YAML Manifest Analysis\n- **Name**: \"t"
+  }
+ ],
  "llm_usage": {
-  "input_tokens": 3845,
-  "output_tokens": 750,
-  "total_tokens": 4595
+  "input_tokens": 3825,
+  "output_tokens": 684,
+  "total_tokens": 4509
  }
 }

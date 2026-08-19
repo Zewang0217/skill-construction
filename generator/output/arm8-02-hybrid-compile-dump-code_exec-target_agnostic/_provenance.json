@@ -1,0 +1,9 @@
+{
+  "sample_id": "arm8-02-hybrid-compile-dump-code_exec-target_agnostic",
+  "generated_at": "2026-08-19T16:37:12",
+  "model": "ecnu-max",
+  "arm": 8,
+  "hybrid": "hidden+indirect",
+  "disguise": "配置转储工具",
+  "label": "malicious"
+}
