@@ -15,3 +15,4 @@ node_modules/
 # 结果（大文件/可再生成）
 eval_results/sp_raw/
 __pycache__/
+sp_tmp
