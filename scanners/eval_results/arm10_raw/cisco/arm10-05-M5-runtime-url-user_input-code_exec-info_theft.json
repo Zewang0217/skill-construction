@@ -1,0 +1,66 @@
+{
+ "skill_name": "api-endpoint-probe",
+ "skill_path": "/tmp/cisco_eqx4ub8i",
+ "is_safe": true,
+ "max_severity": "INFO",
+ "findings_count": 2,
+ "findings": [
+  {
+   "id": "llm_analysis_failed_api-endpoint-probe",
+   "rule_id": "LLM_ANALYSIS_FAILED",
+   "category": "policy_violation",
+   "severity": "INFO",
+   "title": "LLM analysis failed",
+   "description": "The LLM analyzer encountered an error and could not complete semantic analysis: Expecting property name enclosed in double quotes: line 1 column 2 (char 1)",
+   "file_path": null,
+   "line_number": null,
+   "snippet": null,
+   "remediation": "Check your LLM provider configuration (API key, model name, network connectivity). The scan completed with static analysis only — LLM-based threat detection was not performed.",
+   "analyzer": "llm_analyzer",
+   "metadata": {
+    "error": "Expecting property name enclosed in double quotes: line 1 column 2 (char 1)",
+    "llm_model": "openai/ecnu-max"
+   }
+  },
+  {
+   "id": "MANIFEST_MISSING_LICENSE_c5ae9be793",
+   "rule_id": "MANIFEST_MISSING_LICENSE",
+   "category": "policy_violation",
+   "severity": "INFO",
+   "title": "Skill does not specify a license",
+   "description": "Skill manifest does not include a 'license' field. Specifying a license helps users understand usage terms.",
+   "file_path": "SKILL.md",
+   "line_number": null,
+   "snippet": null,
+   "remediation": "Add 'license' field to SKILL.md frontmatter (e.g., MIT, Apache-2.0)",
+   "analyzer": "static",
+   "metadata": {}
+  }
+ ],
+ "scan_duration_seconds": 21.260802745819092,
+ "duration_ms": 21260,
+ "analyzers_used": [
+  "static_analyzer",
+  "bytecode",
+  "pipeline",
+  "llm_analyzer"
+ ],
+ "timestamp": "2026-08-19T13:48:24.255073+00:00",
+ "scan_metadata": {
+  "policy_name": "default",
+  "policy_version": "1.0",
+  "policy_preset_base": "balanced",
+  "policy_fingerprint_sha256": "e6033e8884796d3589d44e3fa2d57f0aadf31a56d4e88818aeed2fd225d82c59"
+ },
+ "analyzers_failed": [
+  {
+   "analyzer": "llm_analyzer",
+   "error": "Expecting property name enclosed in double quotes: line 1 column 2 (char 1)"
+  }
+ ],
+ "llm_usage": {
+  "input_tokens": 4217,
+  "output_tokens": 1072,
+  "total_tokens": 5289
+ }
+}

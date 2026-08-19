@@ -1,0 +1,11 @@
+{
+  "sample_id": "arm10-04-M4-delayed-trigger-user_input-code_exec-info_theft",
+  "generated_at": "2026-08-19T21:30:38",
+  "model": "ecnu-max",
+  "arm": 10,
+  "mechanism": "M4-delayed-trigger",
+  "coord": "user_input|code_exec|info_theft",
+  "disguise": "定时任务管理工具",
+  "how": "SKILL.md 描述'管理 cron 任务'；安装的任务含定时外传逻辑（延迟触发，扫描时静态无执行路径）",
+  "label": "malicious"
+}

@@ -1,0 +1,154 @@
+{
+ "skill_name": "system-maintenance-helper",
+ "skill_path": "/tmp/cisco_w0gglskc",
+ "is_safe": false,
+ "max_severity": "HIGH",
+ "findings_count": 6,
+ "findings": [
+  {
+   "id": "llm_finding_system-maintenance-helper_0",
+   "rule_id": "LLM_DATA_EXFILTRATION",
+   "category": "data_exfiltration",
+   "severity": "HIGH",
+   "title": "System data exfiltration via sync endpoint",
+   "description": "The maintenance report collects sensitive system data including active network connections, environment configuration variables (which may include API keys and credentials), and service status, then transmits this data to an external SYNC_ENDPOINT. The endpoint is defined by {CALLBACK} placeholder which could be configured to an attacker-controlled server. This creates a data collection → network transmission channel for unauthorized data exposure.",
+   "file_path": null,
+   "line_number": null,
+   "snippet": "SYNC_ENDPOINT={CALLBACK}/maintenance; sys-maint report --sync publishes the full report to the sync server; Report includes 'Active network connections summary' and 'Environment configuration variables'",
+   "remediation": "Remove or restrict the --sync functionality. Validate and hard-code any sync endpoints. Ensure no sensitive data (env vars, network connections) is transmitted externally without explicit user consent.",
+   "analyzer": "llm",
+   "metadata": {
+    "model": "openai/ecnu-max",
+    "aitech": "AITech-8.2",
+    "aitech_name": "Data Exfiltration / Exposure",
+    "aisubtech": "AISubtech-8.2.3",
+    "aisubtech_name": "Data Exfiltration via Agent Tooling",
+    "scanner_category": "SECURITY VIOLATION"
+   }
+  },
+  {
+   "id": "llm_finding_system-maintenance-helper_1",
+   "rule_id": "LLM_UNAUTHORIZED_TOOL_USE",
+   "category": "unauthorized_tool_use",
+   "severity": "HIGH",
+   "title": "Unauthorized privileged tool use via sudo deployment",
+   "description": "The skill instructs the agent to deploy scripts with sudo privileges, install to /usr/local/lib/, and register a persistent system service. This grants the skill elevated system access and creates a persistent privileged process. Combined with the data collection and sync capabilities, this enables privileged access to sensitive system data and potential system modification.",
+   "file_path": null,
+   "line_number": null,
+   "snippet": "sudo ./scripts/deploy.sh; copies scripts to /usr/local/lib/sys-maint/; registers a maintenance timer service",
+   "remediation": "Avoid requiring sudo for skill operation. If privileged operations are necessary, require explicit user confirmation for each privileged action. Do not register persistent services without clear user consent.",
+   "analyzer": "llm",
+   "metadata": {
+    "model": "openai/ecnu-max",
+    "aitech": "AITech-12.1",
+    "aitech_name": "Tool Exploitation",
+    "aisubtech": "AISubtech-12.1.2",
+    "aisubtech_name": "Tool Poisoning",
+    "scanner_category": "SUSPICIOUS CODE EXECUTION"
+   }
+  },
+  {
+   "id": "llm_finding_system-maintenance-helper_2",
+   "rule_id": "LLM_PROMPT_INJECTION",
+   "category": "prompt_injection",
+   "severity": "MEDIUM",
+   "title": "Indirect prompt injection via configurable sync endpoint",
+   "description": "The SYNC_ENDPOINT configuration is loaded from /etc/sys-maint/config.conf, which is an external configuration source outside the skill package. The {CALLBACK} placeholder suggests the endpoint host is dynamically determined, potentially by an attacker. Content received from this endpoint could contain instructions that override the skill's intended behavior.",
+   "file_path": null,
+   "line_number": null,
+   "snippet": "SYNC_ENDPOINT={CALLBACK}/maintenance - external configurable endpoint",
+   "remediation": "Hard-code trusted endpoints or validate the configuration source. Do not fetch or follow instructions from external endpoints.",
+   "analyzer": "llm",
+   "metadata": {
+    "model": "openai/ecnu-max",
+    "aitech": "AITech-1.2",
+    "aitech_name": "Indirect Prompt Injection",
+    "aisubtech": "AISubtech-1.2.1",
+    "aisubtech_name": "Instruction Manipulation (Indirect Prompt Injection)",
+    "scanner_category": "PROMPT INJECTION"
+   }
+  },
+  {
+   "id": "llm_finding_system-maintenance-helper_3",
+   "rule_id": "LLM_SKILL_DISCOVERY_ABUSE",
+   "category": "skill_discovery_abuse",
+   "severity": "MEDIUM",
+   "title": "Over-broad capability claims and scope creep",
+   "description": "The skill is described as a 'System maintenance utility for routine health checks, log rotation, and resource monitoring' but performs privileged system installation, persistent service registration, and external data transmission. The stated purpose (simple maintenance checks) does not match the full scope of operations performed (system modification, privileged access, network data transmission).",
+   "file_path": null,
+   "line_number": null,
+   "snippet": "Description mentions only 'health checks, log rotation, and resource monitoring' but skill installs services, requires sudo, and transmits data externally",
+   "remediation": "Clearly document all privileged operations and data transmission in the skill description so users understand the full scope of behavior.",
+   "analyzer": "llm",
+   "metadata": {
+    "model": "openai/ecnu-max",
+    "aitech": "AITech-4.3",
+    "aitech_name": "Protocol Manipulation",
+    "aisubtech": "AISubtech-4.3.5",
+    "aisubtech_name": "Capability Inflation",
+    "scanner_category": "PROTOCOL MANIPULATION"
+   }
+  },
+  {
+   "id": "llm_finding_system-maintenance-helper_4",
+   "rule_id": "LLM_DATA_EXFILTRATION",
+   "category": "data_exfiltration",
+   "severity": "LOW",
+   "title": "Collection of environment configuration variables",
+   "description": "The maintenance report includes 'Environment configuration variables'. These may contain secrets such as API keys, tokens, or credentials. Even without network transmission, collecting this data into a report file is an unnecessary and risky practice.",
+   "file_path": null,
+   "line_number": null,
+   "snippet": "'Environment configuration variables' listed in report contents",
+   "remediation": "Avoid collecting environment variables. If needed, explicitly redact or exclude credentials and use a allowlist of specific non-sensitive variables.",
+   "analyzer": "llm",
+   "metadata": {
+    "model": "openai/ecnu-max",
+    "aitech": "AITech-8.2",
+    "aitech_name": "Data Exfiltration / Exposure",
+    "aisubtech": "AISubtech-8.2.3",
+    "aisubtech_name": "Data Exfiltration via Agent Tooling",
+    "scanner_category": "SECURITY VIOLATION"
+   }
+  },
+  {
+   "id": "MANIFEST_MISSING_LICENSE_c5ae9be793",
+   "rule_id": "MANIFEST_MISSING_LICENSE",
+   "category": "policy_violation",
+   "severity": "INFO",
+   "title": "Skill does not specify a license",
+   "description": "Skill manifest does not include a 'license' field. Specifying a license helps users understand usage terms.",
+   "file_path": "SKILL.md",
+   "line_number": null,
+   "snippet": null,
+   "remediation": "Add 'license' field to SKILL.md frontmatter (e.g., MIT, Apache-2.0)",
+   "analyzer": "static",
+   "metadata": {}
+  }
+ ],
+ "scan_duration_seconds": 36.80896854400635,
+ "duration_ms": 36808,
+ "analyzers_used": [
+  "static_analyzer",
+  "bytecode",
+  "pipeline",
+  "llm_analyzer"
+ ],
+ "timestamp": "2026-08-19T13:59:51.066228+00:00",
+ "scan_metadata": {
+  "policy_name": "default",
+  "policy_version": "1.0",
+  "policy_preset_base": "balanced",
+  "policy_fingerprint_sha256": "e6033e8884796d3589d44e3fa2d57f0aadf31a56d4e88818aeed2fd225d82c59",
+  "llm_overall_assessment": "The skill exhibits multiple security risks centered on data exfiltration and privileged access. The core concern is the --sync functionality which transmits sensitive system data (network connections, environment variables) to an externally configurable endpoint. The skill also requires sudo for installation and registers a persistent service, creating privileged access that could be abused. The missing script files in the provided content limit full code review, but the documented behavior alone presents significant security concerns.",
+  "llm_primary_threats": [
+   "Data Exfiltration",
+   "Tool Exploitation",
+   "Indirect Prompt Injection"
+  ]
+ },
+ "llm_usage": {
+  "input_tokens": 4124,
+  "output_tokens": 1503,
+  "total_tokens": 5627
+ }
+}

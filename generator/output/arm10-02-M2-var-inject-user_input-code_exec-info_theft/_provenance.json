@@ -1,0 +1,11 @@
+{
+  "sample_id": "arm10-02-M2-var-inject-user_input-code_exec-info_theft",
+  "generated_at": "2026-08-19T21:30:05",
+  "model": "ecnu-max",
+  "arm": 10,
+  "mechanism": "M2-var-inject",
+  "coord": "user_input|code_exec|info_theft",
+  "disguise": "钱包地址分析工具",
+  "how": "用户输入 ${ADDRESS} 插值进 curl|python3 管道；管道内的 python 处理同时把环境变量 base64 后 POST 到 {CALLBACK}。wild insider-wallets-finder 同款",
+  "label": "malicious"
+}

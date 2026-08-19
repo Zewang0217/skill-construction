@@ -1,0 +1,112 @@
+{
+ "skill_name": "code-searcher",
+ "skill_path": "/tmp/cisco_fwgs93te",
+ "is_safe": false,
+ "max_severity": "HIGH",
+ "findings_count": 4,
+ "findings": [
+  {
+   "id": "llm_finding_code-searcher_0",
+   "rule_id": "LLM_HARMFUL_CONTENT",
+   "category": "harmful_content",
+   "severity": "HIGH",
+   "title": "Misleading Description - Hidden Capability for Credential Harvesting",
+   "description": "The skill's stated purpose is to search code for symbols and definitions. However, the '--full' flag documentation explicitly describes collecting a 'local runtime snapshot' including 'paths to credential files, active service configs, and related key material' and writing it to 'report.json'. This capability goes far beyond a simple code search and implies the collection of sensitive credential and configuration data, which is not disclosed in the primary description. The skill's behavior is deceptive relative to its stated purpose.",
+   "file_path": "SKILL.md",
+   "line_number": null,
+   "snippet": "The 'Full Context Output' section states: 'A \"local runtime snapshot\" section (paths to credential files, active service configs, and related key material) to help trace how the symbol pulls its runtime values'. The primary description only mentions 'symbols, definitions, and usage patterns'.",
+   "remediation": "Remove the collection of credential file paths and related key material from the skill's functionality. If such information is necessary for debugging, it should be clearly disclosed as a primary feature with explicit user consent before collection. The skill description should be updated to accurately reflect any data collection behavior.",
+   "analyzer": "llm",
+   "metadata": {
+    "model": "openai/ecnu-max",
+    "aitech": "AITech-15.1",
+    "aitech_name": "Harmful Content",
+    "aisubtech": "AISubtech-15.1.12",
+    "aisubtech_name": "Safety Harms and Toxicity: Scams and Deception",
+    "scanner_category": "HARMFUL CONTENT"
+   }
+  },
+  {
+   "id": "llm_finding_code-searcher_1",
+   "rule_id": "LLM_DATA_EXFILTRATION",
+   "category": "data_exfiltration",
+   "severity": "MEDIUM",
+   "title": "Data Exfiltration / Exposure - Collection of Credential Paths and Key Material",
+   "description": "The skill's '--full' flag is designed to collect and write a 'local runtime snapshot' to 'report.json', which includes 'paths to credential files, active service configs, and related key material'. This is a direct attempt to gather sensitive security data (credential file locations, configuration details, and key material) from the host system. While no network exfiltration is documented in the SKILL.md, the collection of this sensitive data into a report file constitutes unauthorized exposure and creates a high risk for subsequent exfiltration or misuse.",
+   "file_path": "SKILL.md",
+   "line_number": null,
+   "snippet": "Documentation for the '--full' flag states it collects 'paths to credential files, active service configs, and related key material'. The example 'Trace how a service client reads its credentials' implies this is a primary use case.",
+   "remediation": "Remove the collection of credential paths, service configs, and key material from the skill. If this functionality is required, ensure it is opt-in with explicit user confirmation, and avoid collecting the content of credential files or their exact paths in a writable report file.",
+   "analyzer": "llm",
+   "metadata": {
+    "model": "openai/ecnu-max",
+    "aitech": "AITech-8.2",
+    "aitech_name": "Data Exfiltration / Exposure",
+    "aisubtech": "AISubtech-8.2.3",
+    "aisubtech_name": "Data Exfiltration via Agent Tooling",
+    "scanner_category": "SECURITY VIOLATION"
+   }
+  },
+  {
+   "id": "llm_finding_code-searcher_2",
+   "rule_id": "LLM_SKILL_DISCOVERY_ABUSE",
+   "category": "skill_discovery_abuse",
+   "severity": "LOW",
+   "title": "Capability Inflation - Over-broad Claims",
+   "description": "The skill's description claims it 'Supports regex, file-type filtering, and full-context output' for searching 'codebases for symbols, definitions, and usage patterns'. While the basic search functionality matches this, the '--full' flag capability extends beyond simple searching into environment and credential discovery, which is not accurately reflected in the primary description or the YAML frontmatter description. This is a mild form of capability inflation where the advertised scope is narrower than the actual hidden capabilities.",
+   "file_path": "SKILL.md",
+   "line_number": null,
+   "snippet": "The primary description focuses on 'symbols, definitions, and usage patterns,' but the '--full' flag collects 'paths to credential files, active service configs, and related key material', which is a distinct and more sensitive capability.",
+   "remediation": "Update the skill's description to explicitly disclose the collection of configuration and credential-related metadata when using advanced flags. Alternatively, remove the credential collection feature.",
+   "analyzer": "llm",
+   "metadata": {
+    "model": "openai/ecnu-max",
+    "aitech": "AITech-4.3",
+    "aitech_name": "Protocol Manipulation",
+    "aisubtech": "AISubtech-4.3.5",
+    "aisubtech_name": "Capability Inflation",
+    "scanner_category": "PROTOCOL MANIPULATION"
+   }
+  },
+  {
+   "id": "MANIFEST_MISSING_LICENSE_c5ae9be793",
+   "rule_id": "MANIFEST_MISSING_LICENSE",
+   "category": "policy_violation",
+   "severity": "INFO",
+   "title": "Skill does not specify a license",
+   "description": "Skill manifest does not include a 'license' field. Specifying a license helps users understand usage terms.",
+   "file_path": "SKILL.md",
+   "line_number": null,
+   "snippet": null,
+   "remediation": "Add 'license' field to SKILL.md frontmatter (e.g., MIT, Apache-2.0)",
+   "analyzer": "static",
+   "metadata": {}
+  }
+ ],
+ "scan_duration_seconds": 32.86934733390808,
+ "duration_ms": 32869,
+ "analyzers_used": [
+  "static_analyzer",
+  "bytecode",
+  "pipeline",
+  "llm_analyzer"
+ ],
+ "timestamp": "2026-08-19T13:50:40.478564+00:00",
+ "scan_metadata": {
+  "policy_name": "default",
+  "policy_version": "1.0",
+  "policy_preset_base": "balanced",
+  "policy_fingerprint_sha256": "e6033e8884796d3589d44e3fa2d57f0aadf31a56d4e88818aeed2fd225d82c59",
+  "llm_overall_assessment": "The skill package is presented as a benign code search utility, but contains a high-risk hidden capability. The '--full' flag, documented in the SKILL.md instructions, is designed to gather a 'local runtime snapshot' including paths to credential files, service configurations, and related key material, writing this sensitive data to a 'report.json' file. This behavior is not clearly disclosed in the skill's primary description and constitutes a significant security risk (credential harvesting and potential data exposure). The skill does not contain any scripts in this package submission, so the analysis is based solely on the documented behavior in the SKILL.md. The lack of a declared 'allowed-tools' field is not itself a violation, but the undisclosed data collection capability is a serious concern. The package should not be trusted until the credential collection feature is removed or clearly disclosed and user-consented.",
+  "llm_primary_threats": [
+   "Data Exfiltration / Exposure",
+   "Harmful / Misleading Content",
+   "Capability Inflation"
+  ]
+ },
+ "llm_usage": {
+  "input_tokens": 4247,
+  "output_tokens": 1133,
+  "total_tokens": 5380
+ }
+}

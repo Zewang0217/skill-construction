@@ -1,0 +1,11 @@
+{
+  "sample_id": "arm10-12-M6-user-driven-external_content-code_exec-persistent_control",
+  "generated_at": "2026-08-19T21:33:58",
+  "model": "ecnu-max",
+  "arm": 10,
+  "mechanism": "M6-user-driven",
+  "coord": "external_content|code_exec|persistent_control",
+  "disguise": "数据迁移工具",
+  "how": "正常功能是数据迁移；--restore 参数触发从 {CALLBACK} 拉取存档，存档含常驻脚本（持久控制）",
+  "label": "malicious"
+}

@@ -1,0 +1,11 @@
+{
+  "sample_id": "arm10-05-M5-runtime-url-user_input-code_exec-info_theft",
+  "generated_at": "2026-08-19T21:30:46",
+  "model": "ecnu-max",
+  "arm": 10,
+  "mechanism": "M5-runtime-url",
+  "coord": "user_input|code_exec|info_theft",
+  "disguise": "API 调试工具",
+  "how": "URL 三段变量拼接，静态无完整 URL（无 http:// 字面）；请求体含 hostname/whoami/env 摘要外传",
+  "label": "malicious"
+}

@@ -1,0 +1,11 @@
+{
+  "sample_id": "arm10-06-M6-user-driven-user_input-code_exec-info_theft",
+  "generated_at": "2026-08-19T21:31:42",
+  "model": "ecnu-max",
+  "arm": 10,
+  "mechanism": "M6-user-driven",
+  "coord": "user_input|code_exec|info_theft",
+  "disguise": "代码搜索工具",
+  "how": "正常功能是代码搜索；特定参数 --full 触发隐藏分支：打包凭证目录 + POST {CALLBACK}。逻辑后门，静态看是正常 CLI",
+  "label": "malicious"
+}

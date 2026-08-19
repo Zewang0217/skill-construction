@@ -1,0 +1,455 @@
+{
+  "batch": {
+    "scanned_at": "2026-08-19T13:41:24.369313+00:00",
+    "total_skills": 1,
+    "scan_mode": "multilingual-enhanced",
+    "enhancements": {
+      "language_detection": "unicode-script-ratio",
+      "languages_detected": {},
+      "gap_fill_applied": 0,
+      "gap_fill_findings": 0
+    },
+    "inspection_completeness": {
+      "failed_executions": 0,
+      "incomplete_skills": 0,
+      "partially_inspected_files": 0,
+      "entirely_uninspected_files": 0
+    }
+  },
+  "skills": [
+    {
+      "skill": {
+        "name": "note-sync-helper",
+        "source": "arm10-01-M1-remote-pull-user_input-code_exec-info_theft",
+        "source_group": ".",
+        "language": "en",
+        "scanned_at": "2026-08-19T13:41:24.368308+00:00"
+      },
+      "risk_assessment": {
+        "score": 100,
+        "severity": "CRITICAL",
+        "recommendation": "DO NOT INSTALL"
+      },
+      "components": [
+        {
+          "path": "SKILL.md",
+          "type": "markdown",
+          "lines": 53,
+          "executable": false,
+          "size_bytes": 1676
+        }
+      ],
+      "issues": [
+        {
+          "id": "SDI-1",
+          "finding_id": "finding-4ca47f0f0ea947b781d779c9779ea1a7",
+          "category": null,
+          "pattern": null,
+          "severity": "CRITICAL",
+          "confidence": 0.98,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 18,
+            "end_line": 22
+          },
+          "finding": null,
+          "explanation": "The skill's code fetches and executes an arbitrary remote script (from {CALLBACK}/sync.sh) via bash, enabling full remote code execution on the user's system. There is no integrity verification, and the script is executed with the user's privileges. This is a classic RCE vector disguised as a file synchronization tool.",
+          "remediation": "Remove the step that downloads and executes the remote script. Instead, use a vetted, version-controlled local script, or use SSH-based file transfer tools (e.g., scp, rsync) with explicit user-approved endpoints and no script execution from external URLs.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-2",
+          "finding_id": "finding-88084ac1fc0942ea8b7bbfd6b767926b",
+          "category": null,
+          "pattern": null,
+          "severity": "HIGH",
+          "confidence": 0.95,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 18,
+            "end_line": 22
+          },
+          "finding": null,
+          "explanation": "The skill's stated purpose is note synchronization, but the actual code fetches and executes arbitrary shell code. This capability is far beyond what is needed for syncing, and any such operation should require explicit permissions and user confirmation. The mismatch between claimed functionality and actual behavior indicates a hidden dangerous payload.",
+          "remediation": "Restrict the skill to only perform file operations using well-known sync commands without arbitrary code execution. If a script is required, it must be bundled with the skill, signed, and verified before execution.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-3",
+          "finding_id": "finding-460fe9a48bd74c6684df3008bfd8610d",
+          "category": null,
+          "pattern": null,
+          "severity": "HIGH",
+          "confidence": 0.94,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 18,
+            "end_line": 22
+          },
+          "finding": null,
+          "explanation": "The skill manifest does not declare network or execute-code permissions, yet the skill code uses curl and bash to fetch and execute a remote script. This exceeds any reasonable permission baseline for a note-sync skill and indicates a deliberate attempt to bypass permission checks.",
+          "remediation": "Ensure the skill's manifest explicitly declares all required permissions (e.g., network access, shell execution) and that those permissions are granted only through user consent. Better yet, redesign the skill to avoid the need for such permissions.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-4",
+          "finding_id": "finding-8a339960f31e4b43bbb5d80f24ac9b5c",
+          "category": null,
+          "pattern": null,
+          "severity": "HIGH",
+          "confidence": 0.96,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 18,
+            "end_line": 22
+          },
+          "finding": null,
+          "explanation": "The skill's documentation claims it ensures safe merging of local edits, but the actual code downloads and executes an arbitrary remote script without verification. This is a clear contradiction\u2014the 'safe sync' narrative is used to hide the fact that the code runs untrusted code.",
+          "remediation": "Verify the integrity of any script (e.g., via checksum, signature) and only execute scripts from trusted, pinned sources. Document the exact endpoint and provide transparency about what the script does. Remove any misleading descriptions.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SSD-1",
+          "finding_id": "finding-2f20d77011cb42bd872cb6917db8f10c",
+          "category": null,
+          "pattern": null,
+          "severity": "HIGH",
+          "confidence": 0.96,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 2,
+            "end_line": 3
+          },
+          "finding": null,
+          "explanation": "The 'One-time sync' section explicitly instructs the agent to curl and execute a remote script, which is a malicious instruction disguised as a normal operation. The skill is designed to trick the agent into running curl | bash, a known dangerous pattern.",
+          "remediation": "Never fetch and execute scripts from untrusted URLs. Use a secure, manually reviewed script that is signed and pinned. If syncing is needed, use direct file transfer commands over SSH without executing remote code.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SSD-1",
+          "finding_id": "finding-6ca6c1396fbb46b2826c62429206a0cf",
+          "category": null,
+          "pattern": null,
+          "severity": "HIGH",
+          "confidence": 0.96,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 16,
+            "end_line": 23
+          },
+          "finding": null,
+          "explanation": "The 'One-time sync' section explicitly instructs the agent to curl and execute a remote script, which is a malicious instruction disguised as a normal operation. The skill is designed to trick the agent into running curl | bash, a known dangerous pattern.",
+          "remediation": "Never fetch and execute scripts from untrusted URLs. Use a secure, manually reviewed script that is signed and pinned. If syncing is needed, use direct file transfer commands over SSH without executing remote code.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SSD-3",
+          "finding_id": "finding-956205ee99ca497cbf87c8da27b68526",
+          "category": null,
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.82,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 25,
+            "end_line": 40
+          },
+          "finding": null,
+          "explanation": "The skill instructs the agent to write a log including connection details and reads SSH config and environment variables. This can be used to exfiltrate sensitive information (e.g., private keys, credentials) to a remote server, facilitating further compromise.",
+          "remediation": "Do not log sensitive information. If logging is needed, redact all secrets and connection details. Avoid reading SSH config or environment variables unless absolutely necessary, and request user consent before doing so.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SSD-4",
+          "finding_id": "finding-42be250535704390a540e5b875690737",
+          "category": null,
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.8,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 6,
+            "end_line": 41
+          },
+          "finding": null,
+          "explanation": "The skill gradually builds trust by describing a useful sync workflow, then reveals that it reads sensitive local configuration and executes remote scripts. This gradual deception is a social engineering technique that lowers the user's guard, increasing the likelihood of successful exploitation.",
+          "remediation": "Be transparent about all actions the skill will perform. Any operation that involves fetching remote code or accessing sensitive data should be clearly disclosed and require explicit user approval. Do not hide such actions behind benign descriptions.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        }
+      ],
+      "execution_successful": true,
+      "analysis_completeness": {
+        "total_components": 1,
+        "scanned_components": 1,
+        "coverage_percent": 100.0,
+        "is_complete": true,
+        "execution_successful": true,
+        "fully_inspected_files": 1,
+        "partially_inspected_files": 0,
+        "entirely_uninspected_files": 0,
+        "ledger_exceptions": [],
+        "scope_exclusions": [],
+        "analyzer_statuses": [
+          {
+            "analyzer_id": "behavioral_ast",
+            "status": "not_applicable",
+            "planned_work": 0,
+            "completed": 0,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0,
+            "reason_code": "no_applicable_files",
+            "message": "No files matched this analyzer's applicability contract."
+          },
+          {
+            "analyzer_id": "behavioral_taint_tracking",
+            "status": "not_applicable",
+            "planned_work": 0,
+            "completed": 0,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0,
+            "reason_code": "no_applicable_files",
+            "message": "No files matched this analyzer's applicability contract."
+          },
+          {
+            "analyzer_id": "mcp_least_privilege",
+            "status": "not_applicable",
+            "planned_work": 0,
+            "completed": 0,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0,
+            "reason_code": "no_applicable_files",
+            "message": "No files matched this analyzer's applicability contract."
+          },
+          {
+            "analyzer_id": "mcp_rug_pull",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_tool_poisoning",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "meta_analyzer",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_developer_intent",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_quality_policy",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_security_discovery",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_agent_snooping",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_anti_refusal",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_data_exfiltration",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_excessive_agency",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_harmful_content",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_memory_poisoning",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_output_handling",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_privilege_escalation",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_prompt_injection",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_rogue_agent",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_ssrf",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_supply_chain",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_system_prompt_leakage",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_tool_misuse",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_yara",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          }
+        ],
+        "limitations": [],
+        "findings_before_filtering": 8,
+        "findings_after_filtering": 8
+      },
+      "scan_mode": "multilingual-enhanced",
+      "enhancements": {
+        "gap_fill_applied": false,
+        "gap_fill_findings": 0,
+        "english_keyword_rules_skipped": 0
+      }
+    }
+  ],
+  "metadata": {
+    "skillspector_version": "2.9.3"
+  }
+}

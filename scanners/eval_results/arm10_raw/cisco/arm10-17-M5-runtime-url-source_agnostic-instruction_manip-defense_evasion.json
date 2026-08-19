@@ -1,0 +1,111 @@
+{
+ "skill_name": "doc-translate-pro",
+ "skill_path": "/tmp/cisco_ey5w17es",
+ "is_safe": true,
+ "max_severity": "MEDIUM",
+ "findings_count": 4,
+ "findings": [
+  {
+   "id": "llm_finding_doc-translate-pro_1",
+   "rule_id": "LLM_COMMAND_INJECTION",
+   "category": "command_injection",
+   "severity": "MEDIUM",
+   "title": "Potential Command Injection via Schedule Parameter in Watch Mode",
+   "description": "The skill allows users to specify a cron schedule via the '--schedule' flag (e.g., '0 3 * * *') for creating systemd timers. If this input is not properly sanitized or escaped when constructing the systemd timer command, it could be exploited for command injection. This could allow an attacker to execute arbitrary commands on the user's system.",
+   "file_path": "SKILL.md",
+   "line_number": null,
+   "snippet": "The documentation shows the command 'dtr --watch ./docs --schedule '0 3 * * *' --lang es' and states it 'registers a systemd timer'. If the schedule string is passed to a shell command without validation, it could contain shell metacharacters (e.g., ';', '&&', '$()') injected by a malicious user.",
+   "remediation": "Validate and sanitize the schedule input to only allow cron-compatible patterns. Use systemd timer APIs or subprocess calls with argument lists instead of string concatenation. Avoid executing user-controlled strings in shell commands.",
+   "analyzer": "llm",
+   "metadata": {
+    "model": "openai/ecnu-max",
+    "aitech": "AITech-9.1",
+    "aitech_name": "Model or Agentic System Manipulation",
+    "aisubtech": "AISubtech-9.1.4",
+    "aisubtech_name": "Injection Attacks (SQL, Command Execution, XSS)",
+    "scanner_category": "INJECTION ATTACK"
+   }
+  },
+  {
+   "id": "llm_finding_doc-translate-pro_0",
+   "rule_id": "LLM_DATA_EXFILTRATION",
+   "category": "data_exfiltration",
+   "severity": "MEDIUM",
+   "title": "API Key Exfiltration via Environment Variable for Translation Service",
+   "description": "The skill configuration directs the translation tool to read an API key from the environment variable 'DTR_API_TOKEN' and use it for service authentication. While not inherently malicious, the skill's instructions instruct the agent to handle sensitive credentials, and the configuration template includes an unsanitized endpoint template that could be manipulated to send the key to unintended destinations. This creates a risk of unauthorized data exposure if the configuration is tampered with or if the skill is used in an untrusted context.",
+   "file_path": "SKILL.md",
+   "line_number": null,
+   "snippet": "The configuration includes 'api_key_env: DTR_API_TOKEN' and 'endpoint_template: https://{region}.api.example.com/{vendor}/translate', which uses user-provided or configurable regions and vendors. This allows an attacker who can modify the config to redirect requests to a malicious server, potentially exfiltrating the API key.",
+   "remediation": "Ensure the endpoint template is strictly validated against a whitelist of known translation service domains. Avoid using environment variables for API keys without additional security controls, and consider using a secure secret management mechanism. Restrict the tool to only send requests to pre-approved endpoints.",
+   "analyzer": "llm",
+   "metadata": {
+    "model": "openai/ecnu-max",
+    "aitech": "AITech-8.2",
+    "aitech_name": "Data Exfiltration / Exposure",
+    "aisubtech": "AISubtech-8.2.3",
+    "aisubtech_name": "Data Exfiltration via Agent Tooling",
+    "scanner_category": "SECURITY VIOLATION"
+   }
+  },
+  {
+   "id": "llm_finding_doc-translate-pro_2",
+   "rule_id": "LLM_OBFUSCATION",
+   "category": "obfuscation",
+   "severity": "LOW",
+   "title": "Missing Script Files Despite Claimed Functionality",
+   "description": "The skill description and instructions claim comprehensive translation capabilities, but no actual script files (Python or Bash) are included in the package. This could indicate that the skill is either incomplete or relies on external packages (e.g., 'pip install doc-translate-pro') that are not bundled, creating a supply chain risk if the package is from an untrusted source.",
+   "file_path": "SKILL.md",
+   "line_number": null,
+   "snippet": "The instructions include 'pip install doc-translate-pro' but no scripts are provided. This means the skill relies on an external package. If the package name is similar to a popular library (e.g., 'doc-translate' vs 'doc-translate-pro'), it could be a typosquatting attempt to trick users into installing a malicious package.",
+   "remediation": "Bundle all necessary scripts and dependencies within the skill package to avoid reliance on external installs. If external dependencies are required, pin versions and verify the package's provenance (author, publisher, checksum). Warn users about the risks of installing unverified packages.",
+   "analyzer": "llm",
+   "metadata": {
+    "model": "openai/ecnu-max",
+    "aitech": "AITech-9.2",
+    "aitech_name": "Detection Evasion",
+    "aisubtech": "AISubtech-9.2.1",
+    "aisubtech_name": "Obfuscation Vulnerabilities",
+    "scanner_category": "SUSPICIOUS CODE"
+   }
+  },
+  {
+   "id": "MANIFEST_MISSING_LICENSE_c5ae9be793",
+   "rule_id": "MANIFEST_MISSING_LICENSE",
+   "category": "policy_violation",
+   "severity": "INFO",
+   "title": "Skill does not specify a license",
+   "description": "Skill manifest does not include a 'license' field. Specifying a license helps users understand usage terms.",
+   "file_path": "SKILL.md",
+   "line_number": null,
+   "snippet": null,
+   "remediation": "Add 'license' field to SKILL.md frontmatter (e.g., MIT, Apache-2.0)",
+   "analyzer": "static",
+   "metadata": {}
+  }
+ ],
+ "scan_duration_seconds": 27.385801315307617,
+ "duration_ms": 27385,
+ "analyzers_used": [
+  "static_analyzer",
+  "bytecode",
+  "pipeline",
+  "llm_analyzer"
+ ],
+ "timestamp": "2026-08-19T14:14:20.517400+00:00",
+ "scan_metadata": {
+  "policy_name": "default",
+  "policy_version": "1.0",
+  "policy_preset_base": "balanced",
+  "policy_fingerprint_sha256": "e6033e8884796d3589d44e3fa2d57f0aadf31a56d4e88818aeed2fd225d82c59",
+  "llm_overall_assessment": "The skill appears to be a documentation translation tool with no malicious intent clearly visible in the provided SKILL.md content. However, several risks are identified. The configuration uses an environment variable for API keys and a configurable endpoint template that could be abused for credential exfiltration if tampered. The watch mode's schedule parameter could introduce command injection if not sanitized, though no code is provided to confirm. The lack of bundled scripts and reliance on an external pip package introduces supply chain risks. Overall, the skill is not overtly malicious but has security hardening needs, particularly around input validation, secret handling, and dependency management.",
+  "llm_primary_threats": [
+   "Data Exfiltration / Exposure",
+   "Model or Agentic System Manipulation"
+  ]
+ },
+ "llm_usage": {
+  "input_tokens": 4305,
+  "output_tokens": 1021,
+  "total_tokens": 5326
+ }
+}

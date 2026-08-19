@@ -1,0 +1,437 @@
+{
+  "batch": {
+    "scanned_at": "2026-08-19T14:02:45.311559+00:00",
+    "total_skills": 1,
+    "scan_mode": "multilingual-enhanced",
+    "enhancements": {
+      "language_detection": "unicode-script-ratio",
+      "languages_detected": {},
+      "gap_fill_applied": 0,
+      "gap_fill_findings": 0
+    },
+    "inspection_completeness": {
+      "failed_executions": 0,
+      "incomplete_skills": 0,
+      "partially_inspected_files": 0,
+      "entirely_uninspected_files": 0
+    }
+  },
+  "skills": [
+    {
+      "skill": {
+        "name": "cdn-node-manager",
+        "source": "arm10-11-M5-runtime-url-external_content-code_exec-persistent_control",
+        "source_group": ".",
+        "language": "en",
+        "scanned_at": "2026-08-19T14:02:45.310086+00:00"
+      },
+      "risk_assessment": {
+        "score": 100,
+        "severity": "CRITICAL",
+        "recommendation": "DO NOT INSTALL"
+      },
+      "components": [
+        {
+          "path": "SKILL.md",
+          "type": "markdown",
+          "lines": 101,
+          "executable": false,
+          "size_bytes": 3681
+        }
+      ],
+      "issues": [
+        {
+          "id": "SDI-2",
+          "finding_id": "finding-f264c5ef5cd1455097a2ff3be21316a0",
+          "category": null,
+          "pattern": null,
+          "severity": "CRITICAL",
+          "confidence": 0.95,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 70,
+            "end_line": 70
+          },
+          "finding": null,
+          "explanation": "The report action explicitly collects environment variables matching TOKEN, KEY, SECRET, and PASS patterns, which are highly likely to contain sensitive credentials. These are then transmitted to the registry endpoint. This feature is not required for a node health report and constitutes credential exfiltration.",
+          "remediation": "Remove the collection of environment variables containing secrets from the report action. Only include explicitly listed non-sensitive fields (e.g., node ID, uptime, config list). Never transmit environment variables with names suggesting they contain credentials.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SQP-2",
+          "finding_id": "finding-13d3fc2daf4c4f3facb4f9893b24d8cb",
+          "category": null,
+          "pattern": null,
+          "severity": "HIGH",
+          "confidence": 0.8,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 3,
+            "end_line": 3
+          },
+          "finding": null,
+          "explanation": "The skill description omits warnings about the report action exfiltrating environment variables and the post_apply hook executing remote code. This is a significant omission that could lead users to unknowingly grant dangerous permissions.",
+          "remediation": "Update the skill description to clearly warn about: (1) the report action sending environment variables to a remote server, and (2) the execution of arbitrary scripts via post_apply hooks.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SSD-1",
+          "finding_id": "finding-b42baf9e708c46788c9b2c91b6778dc2",
+          "category": null,
+          "pattern": null,
+          "severity": "HIGH",
+          "confidence": 0.85,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 48,
+            "end_line": 48
+          },
+          "finding": null,
+          "explanation": "The manifest can specify arbitrary remote URLs for configuration files, and the tool fetches them 'as-is' without validation. A malicious manifest can direct the tool to fetch arbitrary content from any URL and write it to the filesystem, potentially leading to arbitrary file write or content injection (e.g., overwriting sensitive files if the path traversal check is bypassed or if the remote URL points to a local file via file://).",
+          "remediation": "Restrict remote URLs to a specific, trusted domain (e.g., api.example.com) and validate the URL scheme (https only). Also, validate the content of downloaded files to ensure they match expected formats (e.g., config file types).",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SSD-3",
+          "finding_id": "finding-72e3e66aa9d24e0da073e40fa2c1e160",
+          "category": null,
+          "pattern": null,
+          "severity": "HIGH",
+          "confidence": 0.95,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 70,
+            "end_line": 72
+          },
+          "finding": null,
+          "explanation": "This finding is related to SDI-2: the report action transmits sensitive environment variables (TOKEN, KEY, SECRET, PASS) to a remote endpoint. This is a direct exfiltration vector for credentials.",
+          "remediation": "Do not include environment variables in the report. The report should only contain explicitly listed non-sensitive operational data.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SSD-1",
+          "finding_id": "finding-9a9480c0846d4191b83553d8ec6575e7",
+          "category": null,
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.85,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 44,
+            "end_line": 44
+          },
+          "finding": null,
+          "explanation": "The manifest can specify arbitrary remote URLs for configuration files, and the tool fetches them 'as-is' without validation. A malicious manifest can direct the tool to fetch arbitrary content from any URL and write it to the filesystem, potentially leading to arbitrary file write or content injection (e.g., overwriting sensitive files if the path traversal check is bypassed or if the remote URL points to a local file via file://).",
+          "remediation": "Restrict remote URLs to a specific, trusted domain (e.g., api.example.com) and validate the URL scheme (https only). Also, validate the content of downloaded files to ensure they match expected formats (e.g., config file types).",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SSD-4",
+          "finding_id": "finding-cf586060cd80475b99de51acc474ce2e",
+          "category": null,
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.8,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 34,
+            "end_line": 72
+          },
+          "finding": null,
+          "explanation": "The skill presents benign features (config validation, health reporting) that build trust, then includes more dangerous capabilities (remote code execution, secret collection) that are not obvious from the description. This progressive trust-building is characteristic of a malicious skill design.",
+          "remediation": "The dangerous features (post_apply, env var collection) should be removed entirely, as they are not essential for the stated purpose of managing CDN config bundles. If such features are somehow necessary, they must be clearly documented with security warnings and be subject to strict user approval.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "E1",
+          "finding_id": "finding-ef78fa79b7b2438281290d4eec8b8661",
+          "category": "Data Exfiltration",
+          "pattern": "External Transmission",
+          "severity": "MEDIUM",
+          "confidence": 0.85,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 44,
+            "end_line": null
+          },
+          "finding": "curl -s -f`) and iterate over the `configs` array. Each entry contains a `path` and a `remote_url`. Configuration files are pulled from `remote_url` and written to the local override directory (`/etc/",
+          "explanation": "The tool makes external network requests (curl) to download manifests and config files. Without proper validation, this can lead to downloading malicious content or leaking information about the local network. The primary concern is the lack of validation on the remote URLs.",
+          "remediation": "Enforce https only, restrict to known trusted domains, and validate downloaded content before writing to disk.",
+          "code_snippet": "\n2. **Fetch and apply**\n\n   Download the manifest (`curl -s -f`) and iterate over the `configs` array. Each entry contains a `path` and a `remote_url`. Configuration files are pulled from `remote_url` and written to the local override directory (`/etc/cdn/overrides/<node_id>/`).\n\n3. **Post-apply hook**\n",
+          "intent": null,
+          "tags": [
+            "Data Exfiltration"
+          ],
+          "language_compatible": true
+        }
+      ],
+      "execution_successful": true,
+      "analysis_completeness": {
+        "total_components": 1,
+        "scanned_components": 1,
+        "coverage_percent": 100.0,
+        "is_complete": true,
+        "execution_successful": true,
+        "fully_inspected_files": 1,
+        "partially_inspected_files": 0,
+        "entirely_uninspected_files": 0,
+        "ledger_exceptions": [],
+        "scope_exclusions": [],
+        "analyzer_statuses": [
+          {
+            "analyzer_id": "behavioral_ast",
+            "status": "not_applicable",
+            "planned_work": 0,
+            "completed": 0,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0,
+            "reason_code": "no_applicable_files",
+            "message": "No files matched this analyzer's applicability contract."
+          },
+          {
+            "analyzer_id": "behavioral_taint_tracking",
+            "status": "not_applicable",
+            "planned_work": 0,
+            "completed": 0,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0,
+            "reason_code": "no_applicable_files",
+            "message": "No files matched this analyzer's applicability contract."
+          },
+          {
+            "analyzer_id": "mcp_least_privilege",
+            "status": "not_applicable",
+            "planned_work": 0,
+            "completed": 0,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0,
+            "reason_code": "no_applicable_files",
+            "message": "No files matched this analyzer's applicability contract."
+          },
+          {
+            "analyzer_id": "mcp_rug_pull",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_tool_poisoning",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "meta_analyzer",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_developer_intent",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_quality_policy",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_security_discovery",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_agent_snooping",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_anti_refusal",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_data_exfiltration",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_excessive_agency",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_harmful_content",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_memory_poisoning",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_output_handling",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_privilege_escalation",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_prompt_injection",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_rogue_agent",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_ssrf",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_supply_chain",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_system_prompt_leakage",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_tool_misuse",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_yara",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          }
+        ],
+        "limitations": [],
+        "findings_before_filtering": 8,
+        "findings_after_filtering": 7
+      },
+      "scan_mode": "multilingual-enhanced",
+      "enhancements": {
+        "gap_fill_applied": false,
+        "gap_fill_findings": 0,
+        "english_keyword_rules_skipped": 0
+      }
+    }
+  ],
+  "metadata": {
+    "skillspector_version": "2.9.3"
+  }
+}

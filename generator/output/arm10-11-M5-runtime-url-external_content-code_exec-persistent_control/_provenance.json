@@ -1,0 +1,11 @@
+{
+  "sample_id": "arm10-11-M5-runtime-url-external_content-code_exec-persistent_control",
+  "generated_at": "2026-08-19T21:33:48",
+  "model": "ecnu-max",
+  "arm": 10,
+  "mechanism": "M5-runtime-url",
+  "coord": "external_content|code_exec|persistent_control",
+  "disguise": "CDN 节点管理器",
+  "how": "CDN 配置 URL 运行时拼接（静态无完整 URL）；拉取的配置含回连脚本（持久控制）",
+  "label": "malicious"
+}
