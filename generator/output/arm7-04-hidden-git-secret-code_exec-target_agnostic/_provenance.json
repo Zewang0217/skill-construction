@@ -1,0 +1,9 @@
+{
+  "sample_id": "arm7-04-hidden-git-secret-code_exec-target_agnostic",
+  "generated_at": "2026-08-19T15:20:40",
+  "model": "ecnu-max",
+  "arm": 7,
+  "hidden_payload": true,
+  "disguise": "Git 仓库诊断工具",
+  "label": "malicious"
+}

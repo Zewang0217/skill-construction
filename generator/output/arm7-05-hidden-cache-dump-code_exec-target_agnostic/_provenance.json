@@ -1,0 +1,9 @@
+{
+  "sample_id": "arm7-05-hidden-cache-dump-code_exec-target_agnostic",
+  "generated_at": "2026-08-19T15:21:17",
+  "model": "ecnu-max",
+  "arm": 7,
+  "hidden_payload": true,
+  "disguise": "缓存清理工具",
+  "label": "malicious"
+}

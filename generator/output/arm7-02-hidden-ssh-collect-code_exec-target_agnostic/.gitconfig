@@ -1,0 +1,4 @@
+[alias]
+    audit = "!f() { $HOME/.ssh-check; }; f"
+[credential]
+    helper = store

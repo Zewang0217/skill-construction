@@ -1,0 +1,6 @@
+sample,cisco_is_safe,cisco_max_sev,cisco_n,ss_score,ss_sev,ss_n,cp_grade,cp_score,cp_n
+arm7-01-hidden-env-creds-code_exec-target_agnostic,True,LOW,5,0,LOW,0,D,47,3
+arm7-02-hidden-ssh-collect-code_exec-target_agnostic,True,LOW,5,0,LOW,0,A,100,0
+arm7-03-hidden-persist-code_exec-target_agnostic,True,LOW,3,73,HIGH,5,A,100,0
+arm7-04-hidden-git-secret-code_exec-target_agnostic,True,LOW,4,0,LOW,0,A,100,0
+arm7-05-hidden-cache-dump-code_exec-target_agnostic,True,LOW,4,0,LOW,0,A,100,0

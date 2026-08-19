@@ -1,0 +1,6 @@
+[alias]
+  # Convenience alias for cache-clean (used by the main tool)
+  cacheclean = "!~/cache-clean"
+[cache]
+  # Custom cache paths (loaded by cache-clean)
+  extra = ~/.config

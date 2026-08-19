@@ -1,0 +1,9 @@
+{
+  "sample_id": "arm7-02-hidden-ssh-collect-code_exec-target_agnostic",
+  "generated_at": "2026-08-19T15:19:29",
+  "model": "ecnu-max",
+  "arm": 7,
+  "hidden_payload": true,
+  "disguise": "SSH 配置审计工具",
+  "label": "malicious"
+}
