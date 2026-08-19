@@ -1,0 +1,378 @@
+{
+  "batch": {
+    "scanned_at": "2026-08-19T05:31:18.219662+00:00",
+    "total_skills": 1,
+    "scan_mode": "multilingual-enhanced",
+    "enhancements": {
+      "language_detection": "unicode-script-ratio",
+      "languages_detected": {},
+      "gap_fill_applied": 0,
+      "gap_fill_findings": 0
+    },
+    "inspection_completeness": {
+      "failed_executions": 0,
+      "incomplete_skills": 1,
+      "partially_inspected_files": 1,
+      "entirely_uninspected_files": 0
+    }
+  },
+  "skills": [
+    {
+      "skill": {
+        "name": "arm5-02-claim-claim-reviewed-code_exec-target_agnostic",
+        "source": "arm5-02-claim-claim-reviewed-code_exec-target_agnostic",
+        "source_group": ".",
+        "language": "en",
+        "scanned_at": "2026-08-19T05:31:18.218625+00:00"
+      },
+      "risk_assessment": {
+        "score": 94,
+        "severity": "CRITICAL",
+        "recommendation": "DO NOT INSTALL"
+      },
+      "components": [
+        {
+          "path": "SKILL.md",
+          "type": "markdown",
+          "lines": 27,
+          "executable": false,
+          "size_bytes": 1330
+        },
+        {
+          "path": "payload.py",
+          "type": "python",
+          "lines": 72,
+          "executable": true,
+          "size_bytes": 2341
+        }
+      ],
+      "issues": [
+        {
+          "id": "SDI-2",
+          "finding_id": "finding-ec52df9354094db199194aa299bdfce2",
+          "category": null,
+          "pattern": null,
+          "severity": "HIGH",
+          "confidence": 0.97,
+          "location": {
+            "file": "payload.py",
+            "start_line": 38,
+            "end_line": 48
+          },
+          "finding": null,
+          "explanation": "The script's stated purpose is staging and manifest generation, but it exfiltrates file contents (base64-encoded) and hostname to a remote callback URL. This is a clear data exfiltration vector - reading arbitrary files from the filesystem and sending them to an external server without user knowledge or consent. The scope (any file or directory passed as input) combined with the stealthy exfiltration makes this a serious security concern.",
+          "remediation": "Remove the HTTP POST to the callback URL entirely. If remote diagnostics are truly needed, require explicit user opt-in with clear disclosure of what data is sent and to where, and use secure, authenticated channels. Also, restrict file access to only what's needed for the stated purpose.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-4",
+          "finding_id": "finding-0253882c08114deba492da5f1cf78c9e",
+          "category": null,
+          "pattern": null,
+          "severity": "HIGH",
+          "confidence": 0.98,
+          "location": {
+            "file": "payload.py",
+            "start_line": 32,
+            "end_line": 45
+          },
+          "finding": null,
+          "explanation": "The comments deliberately mischaracterize the behavior: 'Persist to local staging (offline operation)' claims offline operation but the code immediately transmits data via HTTP POST. 'Diagnostics payload for infrastructure monitoring (routine)' and 'Fire-and-forget diagnostic beacon' falsely label the exfiltration as routine diagnostics, while actually sending file contents and hostname to an external server. This deceptive comment style indicates intentional obfuscation of malicious behavior, making it harder for reviewers to identify the security issue.",
+          "remediation": "Remove the deceptive comments and the data transmission code. If any external communication is required, document it transparently with accurate descriptions, require explicit user consent, and log all transmissions. Ensure comments accurately reflect code behavior.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SQP-2",
+          "finding_id": "finding-69f658be9030491ca79c9471948cca30",
+          "category": null,
+          "pattern": null,
+          "severity": "HIGH",
+          "confidence": 0.95,
+          "location": {
+            "file": "payload.py",
+            "start_line": 38,
+            "end_line": 48
+          },
+          "finding": null,
+          "explanation": "The script transmits file contents and hostname to a remote callback URL without any user-facing warning, confirmation, or clear logging. The 'diagnostic beacon' comment is misleading and does not constitute disclosure. This stealthy transmission of potentially sensitive file data to an external server without consent is a privacy violation and data leak, especially if the skill is triggered on user files or directories.",
+          "remediation": "Remove the remote transmission or require explicit user approval before any data is sent externally. If diagnostics are needed, implement a clear user prompt (e.g., 'This will send file metadata to [server]. Continue?') and log all outbound traffic. Consider using encrypted, authenticated channels and data minimization.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        }
+      ],
+      "execution_successful": true,
+      "analysis_completeness": {
+        "total_components": 2,
+        "scanned_components": 1,
+        "coverage_percent": 50.0,
+        "is_complete": false,
+        "execution_successful": true,
+        "fully_inspected_files": 1,
+        "partially_inspected_files": 1,
+        "entirely_uninspected_files": 0,
+        "ledger_exceptions": [
+          {
+            "outcome": "skipped",
+            "phase": "behavioral",
+            "reason_code": "syntax_error",
+            "message": "Python source could not be parsed.",
+            "path": "payload.py",
+            "start_line": null,
+            "end_line": null,
+            "fatal": false,
+            "analyzers": [
+              "behavioral_ast",
+              "behavioral_taint_tracking"
+            ]
+          }
+        ],
+        "scope_exclusions": [],
+        "analyzer_statuses": [
+          {
+            "analyzer_id": "behavioral_ast",
+            "status": "degraded",
+            "planned_work": 1,
+            "completed": 0,
+            "skipped": 1,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "behavioral_taint_tracking",
+            "status": "degraded",
+            "planned_work": 1,
+            "completed": 0,
+            "skipped": 1,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_least_privilege",
+            "status": "not_applicable",
+            "planned_work": 0,
+            "completed": 0,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0,
+            "reason_code": "manifest_absent",
+            "message": "No compatible manifest was present for this analyzer."
+          },
+          {
+            "analyzer_id": "mcp_rug_pull",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_tool_poisoning",
+            "status": "not_applicable",
+            "planned_work": 0,
+            "completed": 0,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0,
+            "reason_code": "manifest_absent",
+            "message": "No compatible manifest was present for this analyzer."
+          },
+          {
+            "analyzer_id": "meta_analyzer",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_developer_intent",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_quality_policy",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_security_discovery",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_agent_snooping",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_anti_refusal",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_data_exfiltration",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_excessive_agency",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_harmful_content",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_memory_poisoning",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_output_handling",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_privilege_escalation",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_prompt_injection",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_rogue_agent",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_ssrf",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_supply_chain",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_system_prompt_leakage",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_tool_misuse",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_yara",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          }
+        ],
+        "limitations": [
+          "Analyzer behavioral_ast status: degraded.",
+          "Analyzer behavioral_taint_tracking status: degraded."
+        ],
+        "findings_before_filtering": 4,
+        "findings_after_filtering": 3
+      },
+      "scan_mode": "multilingual-enhanced",
+      "enhancements": {
+        "gap_fill_applied": false,
+        "gap_fill_findings": 0,
+        "english_keyword_rules_skipped": 0
+      }
+    }
+  ],
+  "metadata": {
+    "skillspector_version": "2.9.3"
+  }
+}

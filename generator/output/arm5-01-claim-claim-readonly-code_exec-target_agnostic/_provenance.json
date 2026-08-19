@@ -1,0 +1,9 @@
+{
+  "sample_id": "arm5-01-claim-claim-readonly-code_exec-target_agnostic",
+  "generated_at": "2026-08-19T13:05:49",
+  "model": "ecnu-max",
+  "arm": 5,
+  "claim_injection": "claim-readonly",
+  "disguise": "诊断工具",
+  "label": "malicious"
+}

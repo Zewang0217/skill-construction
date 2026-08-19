@@ -1,0 +1,8 @@
+{
+  "sample_id": "arm5-02-claim-claim-reviewed-code_exec-target_agnostic",
+  "generated_at": "2026-08-19T13:08:02",
+  "model": "ecnu-max",
+  "arm": 5,
+  "claim_injection": "claim-reviewed",
+  "label": "malicious"
+}

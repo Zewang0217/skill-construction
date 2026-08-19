@@ -1,0 +1,9 @@
+{
+  "sample_id": "arm3-05-timing-update-checker-code_exec-target_agnostic",
+  "generated_at": "2026-08-19T13:03:25",
+  "model": "ecnu-max",
+  "arm": 3,
+  "timing": "runtime-exposed",
+  "disguise": "软件更新检查器",
+  "label": "malicious"
+}

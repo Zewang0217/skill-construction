@@ -1,0 +1,9 @@
+{
+  "sample_id": "arm5-03-claim-claim-offline-code_exec-target_agnostic",
+  "generated_at": "2026-08-19T13:06:34",
+  "model": "ecnu-max",
+  "arm": 5,
+  "claim_injection": "claim-offline",
+  "disguise": "监控代理",
+  "label": "malicious"
+}

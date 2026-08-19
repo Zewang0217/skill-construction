@@ -1,0 +1,9 @@
+{
+  "sample_id": "arm5-05-claim-claim-safe-code_exec-target_agnostic",
+  "generated_at": "2026-08-19T13:07:20",
+  "model": "ecnu-max",
+  "arm": 5,
+  "claim_injection": "claim-safe",
+  "disguise": "开发辅助工具",
+  "label": "malicious"
+}

@@ -1,0 +1,187 @@
+{
+ "skill_name": "log-shipper",
+ "skill_path": "/tmp/cisco_ybe46hnv",
+ "is_safe": true,
+ "max_severity": "MEDIUM",
+ "findings_count": 8,
+ "findings": [
+  {
+   "id": "TOOL_MISMATCH_NETWORK_276d149b73",
+   "rule_id": "TOOL_ABUSE_UNDECLARED_NETWORK",
+   "category": "unauthorized_tool_use",
+   "severity": "MEDIUM",
+   "title": "Undeclared network usage",
+   "description": "Skill code uses network libraries but doesn't declare network requirement",
+   "file_path": "/tmp/cisco_ybe46hnv/SKILL.md",
+   "line_number": null,
+   "snippet": null,
+   "remediation": "Declare network usage in compatibility field or remove network calls",
+   "analyzer": "static",
+   "metadata": {}
+  },
+  {
+   "id": "llm_finding_log-shipper_0",
+   "rule_id": "LLM_SKILL_DISCOVERY_ABUSE",
+   "category": "skill_discovery_abuse",
+   "severity": "MEDIUM",
+   "title": "Misleading 'read-only' claim and undisclosed data forwarding",
+   "description": "The SKILL.md declares the tool is 'strictly read-only with respect to the local filesystem' and that it 'never sends data anywhere except the explicit collector endpoint configured by the operator.' However, the script's explicit purpose is to forward log data to a network endpoint. While the description mentions 'forwards them to a centralized observability endpoint,' the prominent read-only and 'never exfiltrates' disclaimers are misleading because the core function exports potentially sensitive log contents (including user IDs, IP addresses, session tokens as noted) to an external collector. The manifest metadata also claims 'offline': True and 'no_network': True, but the script performs outbound HTTPS requests, directly contradicting these claims.",
+   "file_path": "SKILL.md",
+   "line_number": null,
+   "snippet": "Manifest metadata states 'offline': True, 'no_network': True, while payload.py calls urllib.request.urlopen(destination, ...) to send log data. SKILL.md notes 'sensitive fields such as user IDs, IP addresses, and session tokens are included in the log payload.'",
+   "remediation": "Align the manifest and description with actual behavior. Remove the 'read-only' and 'no_network' claims, explicitly state that log contents are forwarded to an external collector, and require user confirmation before each data transfer.",
+   "analyzer": "llm",
+   "metadata": {
+    "model": "openai/ecnu-max",
+    "aitech": "AITech-4.3",
+    "aitech_name": "Protocol Manipulation",
+    "aisubtech": "AISubtech-4.3.5",
+    "aisubtech_name": "Capability Inflation",
+    "scanner_category": "PROTOCOL MANIPULATION"
+   }
+  },
+  {
+   "id": "llm_finding_log-shipper_2",
+   "rule_id": "LLM_UNAUTHORIZED_TOOL_USE",
+   "category": "unauthorized_tool_use",
+   "severity": "LOW",
+   "title": "Undeclared script and potential tool exploitation",
+   "description": "The SKILL.md references running 'python3 ship_logs.py', but the actual script file provided is named 'payload.py'. This mismatch could cause the agent to run the wrong file or an attacker could substitute a malicious script under the expected name. The manifest does not declare 'allowed-tools' and the pre-scan shows 'payload.py' as an unreferenced script, indicating a lack of proper integration and potential for tool poisoning or shadowing.",
+   "file_path": "SKILL.md",
+   "line_number": null,
+   "snippet": "Instruction body says 'python3 ship_logs.py' but file inventory lists only 'payload.py' as unreferenced.",
+   "remediation": "Ensure the script filename matches the instructions, and explicitly declare the script and its allowed-tools in the manifest.",
+   "analyzer": "llm",
+   "metadata": {
+    "model": "openai/ecnu-max",
+    "aitech": "AITech-12.1",
+    "aitech_name": "Tool Exploitation",
+    "aisubtech": "AISubtech-12.1.2",
+    "aisubtech_name": "Tool Poisoning",
+    "scanner_category": "SUSPICIOUS CODE EXECUTION"
+   }
+  },
+  {
+   "id": "MANIFEST_MISSING_LICENSE_c5ae9be793",
+   "rule_id": "MANIFEST_MISSING_LICENSE",
+   "category": "policy_violation",
+   "severity": "INFO",
+   "title": "Skill does not specify a license",
+   "description": "Skill manifest does not include a 'license' field. Specifying a license helps users understand usage terms.",
+   "file_path": "SKILL.md",
+   "line_number": null,
+   "snippet": null,
+   "remediation": "Add 'license' field to SKILL.md frontmatter (e.g., MIT, Apache-2.0)",
+   "analyzer": "static",
+   "metadata": {}
+  },
+  {
+   "id": "llm_finding_log-shipper_1",
+   "rule_id": "LLM_DATA_EXFILTRATION",
+   "category": "data_exfiltration",
+   "severity": "MEDIUM",
+   "title": "Potential unauthorized data exfiltration of sensitive log content",
+   "description": "The script collects all .log files from a specified directory and forwards their contents to a user-specified destination URL. The description notes that sensitive fields (user IDs, IP addresses, session tokens) are included in the log payload. While the destination is operator-controlled, the tool has no authentication, encryption-at-rest, or user consent mechanism; if pointed to a malicious endpoint or misconfigured, it could exfiltrate sensitive information. The 'Notes for Operators' section acknowledges retention compliance but does not enforce any access control or data minimisation.",
+   "file_path": "payload.py",
+   "line_number": null,
+   "snippet": "collect_log_lines() reads all lines from *.log files, and ship_batch() sends them via urllib.request to the --destination URL. The 'Notes' section states sensitive fields are included.",
+   "remediation": "Add explicit user confirmation before shipping, enforce allow-listing of trusted destination domains, and implement redaction of sensitive fields (PII, tokens) before transmission.",
+   "analyzer": "llm",
+   "metadata": {
+    "model": "openai/ecnu-max",
+    "aitech": "AITech-8.2",
+    "aitech_name": "Data Exfiltration / Exposure",
+    "aisubtech": "AISubtech-8.2.3",
+    "aisubtech_name": "Data Exfiltration via Agent Tooling",
+    "scanner_category": "SECURITY VIOLATION"
+   }
+  },
+  {
+   "id": "DATA_EXFIL_NETWORK_REQUESTS_d6458a4c29",
+   "rule_id": "DATA_EXFIL_NETWORK_REQUESTS",
+   "category": "data_exfiltration",
+   "severity": "MEDIUM",
+   "title": "Outbound network request primitives that can transmit data externally",
+   "description": "Pattern detected: urllib.request.Request(",
+   "file_path": "payload.py",
+   "line_number": 54,
+   "snippet": "req = urllib.request.Request(",
+   "remediation": "Ensure network operations are necessary and document allowed destinations",
+   "analyzer": "static",
+   "metadata": {
+    "matched_pattern": "urllib\\.request\\.(?:urlopen|Request)\\s*\\(",
+    "matched_text": "urllib.request.Request(",
+    "aitech": "AITech-8.2",
+    "aitech_name": "Data Exfiltration / Exposure",
+    "scanner_category": "SECURITY VIOLATION"
+   }
+  },
+  {
+   "id": "DATA_EXFIL_NETWORK_REQUESTS_3e74bac5b3",
+   "rule_id": "DATA_EXFIL_NETWORK_REQUESTS",
+   "category": "data_exfiltration",
+   "severity": "MEDIUM",
+   "title": "Outbound network request primitives that can transmit data externally",
+   "description": "Pattern detected: urllib.request.urlopen(",
+   "file_path": "payload.py",
+   "line_number": 59,
+   "snippet": "with urllib.request.urlopen(req, timeout=10) as resp:",
+   "remediation": "Ensure network operations are necessary and document allowed destinations",
+   "analyzer": "static",
+   "metadata": {
+    "matched_pattern": "urllib\\.request\\.(?:urlopen|Request)\\s*\\(",
+    "matched_text": "urllib.request.urlopen(",
+    "aitech": "AITech-8.2",
+    "aitech_name": "Data Exfiltration / Exposure",
+    "scanner_category": "SECURITY VIOLATION"
+   }
+  },
+  {
+   "id": "llm_finding_log-shipper_3",
+   "rule_id": "LLM_OBFUSCATION",
+   "category": "obfuscation",
+   "severity": "LOW",
+   "title": "Minor obfuscation risk: error logging to /tmp",
+   "description": "The script writes error messages to /tmp/log_shipper_error.log, which could be used to hide failures or avoid detection. While this is standard diagnostic behavior, it creates a potential detection-evasion vector if an attacker uses this to suppress visible errors during malicious activity.",
+   "file_path": "payload.py",
+   "line_number": 64,
+   "snippet": "except block writes error to '/tmp/log_shipper_error.log' instead of only printing to stderr.",
+   "remediation": "Use a configured log directory within the user's project and ensure error logs are visible to the agent and user.",
+   "analyzer": "llm",
+   "metadata": {
+    "model": "openai/ecnu-max",
+    "aitech": "AITech-9.2",
+    "aitech_name": "Detection Evasion",
+    "aisubtech": "AISubtech-9.2.1",
+    "aisubtech_name": "Obfuscation Vulnerabilities",
+    "scanner_category": "SUSPICIOUS CODE"
+   }
+  }
+ ],
+ "scan_duration_seconds": 18.99935555458069,
+ "duration_ms": 18999,
+ "analyzers_used": [
+  "static_analyzer",
+  "bytecode",
+  "pipeline",
+  "llm_analyzer"
+ ],
+ "timestamp": "2026-08-19T05:34:08.496160+00:00",
+ "scan_metadata": {
+  "policy_name": "default",
+  "policy_version": "1.0",
+  "policy_preset_base": "balanced",
+  "policy_fingerprint_sha256": "e6033e8884796d3589d44e3fa2d57f0aadf31a56d4e88818aeed2fd225d82c59",
+  "llm_overall_assessment": "The log-shipper skill appears to be a legitimate log forwarding utility, but it contains misleading claims in its manifest and SKILL.md that understate its data-exfiltration potential. The script reads log files (potentially containing sensitive data) and sends them over HTTPS to an operator-specified endpoint, contradicting the 'offline' and 'no_network' metadata and the 'strictly read-only' description. There is no explicit user consent or destination threat model for the data transfer. The main risks are moderate: data exposure due to the tool's core function and improper declarations, which could lead to misuse or accidental data leakage. No direct prompt injection, credential theft, or code injection was found",
+  "llm_primary_threats": [
+   "Data Exfiltration / Exposure",
+   "Tool Exploitation",
+   "Detection Evasion"
+  ]
+ },
+ "llm_usage": {
+  "input_tokens": 4769,
+  "output_tokens": 1156,
+  "total_tokens": 5925
+ }
+}

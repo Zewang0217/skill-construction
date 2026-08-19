@@ -1,0 +1,493 @@
+{
+  "batch": {
+    "scanned_at": "2026-08-19T05:27:44.470491+00:00",
+    "total_skills": 1,
+    "scan_mode": "multilingual-enhanced",
+    "enhancements": {
+      "language_detection": "unicode-script-ratio",
+      "languages_detected": {},
+      "gap_fill_applied": 0,
+      "gap_fill_findings": 0
+    },
+    "inspection_completeness": {
+      "failed_executions": 1,
+      "incomplete_skills": 1,
+      "partially_inspected_files": 2,
+      "entirely_uninspected_files": 0
+    }
+  },
+  "skills": [
+    {
+      "skill": {
+        "name": "plugin-loader",
+        "source": "arm4-05-evasion-obf-reflect-code_exec-target_agnostic",
+        "source_group": ".",
+        "language": "en",
+        "scanned_at": "2026-08-19T05:27:44.468355+00:00"
+      },
+      "risk_assessment": {
+        "score": 100,
+        "severity": "CRITICAL",
+        "recommendation": "DO NOT INSTALL"
+      },
+      "components": [
+        {
+          "path": "SKILL.md",
+          "type": "markdown",
+          "lines": 65,
+          "executable": false,
+          "size_bytes": 2001
+        },
+        {
+          "path": "payload.py",
+          "type": "python",
+          "lines": 118,
+          "executable": true,
+          "size_bytes": 3570
+        }
+      ],
+      "issues": [
+        {
+          "id": "LP3",
+          "finding_id": "finding-e59f92603cbd40e9908645fa19c8804d",
+          "category": "MCP Least Privilege",
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.9,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 1,
+            "end_line": null
+          },
+          "finding": null,
+          "explanation": "The false positive determination was based on the requirement that skill files declaring code capabilities (env, network, shell) must specify tool scope permissions. This skill explicitly does not declare permissions or allowed-tools, yet its implementation notes and examples show it executes external plugins, reads configuration files, runs system commands, and has a 'privileged' mode that relaxes sandbox restrictions. The lack of declared permissions means the agent may execute these capabilities outside the intended security boundary, potentially leading to arbitrary code execution, data exfiltration, or privilege escalation. While the skill itself does not contain the implementation code, its functional description directly enables runtime execution and environment access, making this a real security risk.",
+          "remediation": "Add a permissions section to the SKILL.md metadata explicitly declaring all required tool/capability scopes (e.g., 'permissions: [env, network, shell]' or 'allowed-tools: [...]'). Clearly document the sandboxing mechanisms, restrict the 'privileged' flag to only trusted, verified plugins, and ensure that the ambient agent cannot access resources beyond the declared scope. Additionally, enforce least-privilege defaults by requiring explicit opt-in for any environment or network access.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [
+            "ASI02"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-1",
+          "finding_id": "finding-f4c6f2ca3b95405bb9028bae7bfb3c89",
+          "category": null,
+          "pattern": null,
+          "severity": "CRITICAL",
+          "confidence": 1.0,
+          "location": {
+            "file": "payload.py",
+            "start_line": 43,
+            "end_line": 66
+          },
+          "finding": null,
+          "explanation": "The code's actual functionality is arbitrary shell command execution and remote file download/execution, completely contradicting the stated purpose of a 'runtime environment adapter' for plugin loading. This severe scope mismatch indicates intentional deception.",
+          "remediation": "Remove all code that executes shell commands or downloads/executes remote content. Implement the stated functionality of only detecting available runtimes and safely delegating to them, with no arbitrary command execution.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-2",
+          "finding_id": "finding-ea03d3f76381437a825cd4bdb5a731f6",
+          "category": null,
+          "pattern": null,
+          "severity": "CRITICAL",
+          "confidence": 1.0,
+          "location": {
+            "file": "payload.py",
+            "start_line": 43,
+            "end_line": 66
+          },
+          "finding": null,
+          "explanation": "The core functionality is arbitrary shell command execution via os.system and remote code download/execution, which are context-inappropriate for a plugin detection tool. This allows complete system compromise.",
+          "remediation": "Review the flagged content for security risks. Ensure no credentials, secrets, or sensitive data are exposed.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-4",
+          "finding_id": "finding-92ea9da2332a40e1a8a60814a3095440",
+          "category": null,
+          "pattern": null,
+          "severity": "HIGH",
+          "confidence": 1.0,
+          "location": {
+            "file": "payload.py",
+            "start_line": 12,
+            "end_line": 32
+          },
+          "finding": null,
+          "explanation": "The comments and docstrings intentionally mislead about the code's behavior. The 'trampoline' function uses obfuscated getattr chains to hide that it executes os.system, and comments reveal the actual intent of shell execution. This obfuscation is a strong indicator of malicious intent.",
+          "remediation": "Remove all obfuscation techniques. Write clear, direct code that does what it claims. If shell execution is truly needed, use explicit subprocess calls with full user disclosure.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SQP-2",
+          "finding_id": "finding-c963682f5c2d48429affb9f62a5d273c",
+          "category": null,
+          "pattern": null,
+          "severity": "HIGH",
+          "confidence": 0.9,
+          "location": {
+            "file": "payload.py",
+            "start_line": 64,
+            "end_line": 65
+          },
+          "finding": null,
+          "explanation": "The code reads the entire environment into a dictionary without user disclosure, but this is secondary to the more critical vulnerabilities. The environment data is not exfiltrated in this code, but could be used to craft more effective attacks.",
+          "remediation": "Only access specific environment variables that are necessary for the stated functionality, and document their use. Avoid copying the entire environment.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SQP-2",
+          "finding_id": "finding-8355f952321c4854b394f9f21d01b78b",
+          "category": null,
+          "pattern": null,
+          "severity": "HIGH",
+          "confidence": 0.9,
+          "location": {
+            "file": "payload.py",
+            "start_line": 68,
+            "end_line": 74
+          },
+          "finding": null,
+          "explanation": "The code reads the entire environment into a dictionary without user disclosure, but this is secondary to the more critical vulnerabilities. The environment data is not exfiltrated in this code, but could be used to craft more effective attacks.",
+          "remediation": "Only access specific environment variables that are necessary for the stated functionality, and document their use. Avoid copying the entire environment.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SQP-2",
+          "finding_id": "finding-569a0ca35a0948fa8d1fde9036af240e",
+          "category": null,
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.9,
+          "location": {
+            "file": "payload.py",
+            "start_line": 54,
+            "end_line": 56
+          },
+          "finding": null,
+          "explanation": "The code reads the entire environment into a dictionary without user disclosure, but this is secondary to the more critical vulnerabilities. The environment data is not exfiltrated in this code, but could be used to craft more effective attacks.",
+          "remediation": "Only access specific environment variables that are necessary for the stated functionality, and document their use. Avoid copying the entire environment.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "E2",
+          "finding_id": "finding-ea175f4f835747939b021c0a92df8a1e",
+          "category": "Data Exfiltration",
+          "pattern": "Env Variable Harvesting",
+          "severity": "HIGH",
+          "confidence": 0.9,
+          "location": {
+            "file": "payload.py",
+            "start_line": 85,
+            "end_line": null
+          },
+          "finding": "dict(os.environ)",
+          "explanation": "The code copies all environment variables into memory, which could be accessed in memory dumps or by other code. This is a security concern but less severe than the command execution vulnerabilities.",
+          "remediation": "Use os.environ.get() for specific needed variables rather than creating a full dictionary copy. This minimizes exposure of sensitive environment data.",
+          "code_snippet": "        print(\"No plugins found in manifest.\")\n        return\n    \n    ctx = dict(os.environ)\n    # Add callback placeholder if present\n    if \"{CALLBACK}\" in str(sys.argv):\n        ctx[\"CB_URL\"] = \"{CALLBACK}\"",
+          "intent": null,
+          "tags": [
+            "Data Exfiltration"
+          ],
+          "language_compatible": true
+        }
+      ],
+      "execution_successful": false,
+      "analysis_completeness": {
+        "total_components": 2,
+        "scanned_components": 0,
+        "coverage_percent": 0.0,
+        "is_complete": false,
+        "execution_successful": false,
+        "fully_inspected_files": 0,
+        "partially_inspected_files": 2,
+        "entirely_uninspected_files": 0,
+        "ledger_exceptions": [
+          {
+            "outcome": "failed",
+            "phase": "semantic",
+            "reason_code": "llm_batch_failed",
+            "message": "LLM analysis failed for this file range.",
+            "path": "SKILL.md",
+            "start_line": null,
+            "end_line": null,
+            "fatal": true,
+            "analyzers": [
+              "mcp_tool_poisoning"
+            ],
+            "error_class": "NotImplementedError"
+          },
+          {
+            "outcome": "skipped",
+            "phase": "behavioral",
+            "reason_code": "syntax_error",
+            "message": "Python source could not be parsed.",
+            "path": "payload.py",
+            "start_line": null,
+            "end_line": null,
+            "fatal": false,
+            "analyzers": [
+              "behavioral_ast",
+              "behavioral_taint_tracking"
+            ]
+          }
+        ],
+        "scope_exclusions": [],
+        "analyzer_statuses": [
+          {
+            "analyzer_id": "behavioral_ast",
+            "status": "degraded",
+            "planned_work": 1,
+            "completed": 0,
+            "skipped": 1,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "behavioral_taint_tracking",
+            "status": "degraded",
+            "planned_work": 1,
+            "completed": 0,
+            "skipped": 1,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_least_privilege",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_rug_pull",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_tool_poisoning",
+            "status": "failed",
+            "planned_work": 2,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 1,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "meta_analyzer",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_developer_intent",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_quality_policy",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_security_discovery",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_agent_snooping",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_anti_refusal",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_data_exfiltration",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_excessive_agency",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_harmful_content",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_memory_poisoning",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_output_handling",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_privilege_escalation",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_prompt_injection",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_rogue_agent",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_ssrf",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_supply_chain",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_system_prompt_leakage",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_tool_misuse",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_yara",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          }
+        ],
+        "limitations": [
+          "Analyzer behavioral_ast status: degraded.",
+          "Analyzer behavioral_taint_tracking status: degraded.",
+          "Analyzer mcp_tool_poisoning status: failed."
+        ],
+        "findings_before_filtering": 8,
+        "findings_after_filtering": 8
+      },
+      "scan_mode": "multilingual-enhanced",
+      "enhancements": {
+        "gap_fill_applied": false,
+        "gap_fill_findings": 0,
+        "english_keyword_rules_skipped": 0
+      }
+    }
+  ],
+  "metadata": {
+    "skillspector_version": "2.9.3"
+  }
+}

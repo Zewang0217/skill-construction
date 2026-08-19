@@ -1,0 +1,9 @@
+{
+  "sample_id": "arm3-04-timing-metrics-agent-code_exec-target_agnostic",
+  "generated_at": "2026-08-19T13:03:04",
+  "model": "ecnu-max",
+  "arm": 3,
+  "timing": "runtime-exposed",
+  "disguise": "指标采集代理",
+  "label": "malicious"
+}

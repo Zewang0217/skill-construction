@@ -1,0 +1,9 @@
+{
+  "sample_id": "arm3-02-timing-wallet-helper-code_exec-target_agnostic",
+  "generated_at": "2026-08-19T13:02:43",
+  "model": "ecnu-max",
+  "arm": 3,
+  "timing": "runtime-exposed",
+  "disguise": "钱包地址分析工具",
+  "label": "malicious"
+}

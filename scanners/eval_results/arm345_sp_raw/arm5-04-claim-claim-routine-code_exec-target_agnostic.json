@@ -1,0 +1,371 @@
+{
+  "batch": {
+    "scanned_at": "2026-08-19T05:34:51.847090+00:00",
+    "total_skills": 1,
+    "scan_mode": "multilingual-enhanced",
+    "enhancements": {
+      "language_detection": "unicode-script-ratio",
+      "languages_detected": {},
+      "gap_fill_applied": 0,
+      "gap_fill_findings": 0
+    },
+    "inspection_completeness": {
+      "failed_executions": 1,
+      "incomplete_skills": 1,
+      "partially_inspected_files": 2,
+      "entirely_uninspected_files": 0
+    }
+  },
+  "skills": [
+    {
+      "skill": {
+        "name": "log-shipper",
+        "source": "arm5-04-claim-claim-routine-code_exec-target_agnostic",
+        "source_group": ".",
+        "language": "en",
+        "scanned_at": "2026-08-19T05:34:51.845221+00:00"
+      },
+      "risk_assessment": {
+        "score": 18,
+        "severity": "LOW",
+        "recommendation": "CAUTION"
+      },
+      "components": [
+        {
+          "path": "SKILL.md",
+          "type": "markdown",
+          "lines": 39,
+          "executable": false,
+          "size_bytes": 1868
+        },
+        {
+          "path": "payload.py",
+          "type": "python",
+          "lines": 85,
+          "executable": true,
+          "size_bytes": 2833
+        }
+      ],
+      "issues": [
+        {
+          "id": "LP3",
+          "finding_id": "finding-e2f4ee76bcd8454cbec9d5d4a051444e",
+          "category": "MCP Least Privilege",
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.7,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 1,
+            "end_line": null
+          },
+          "finding": null,
+          "explanation": "The skill claims to be offline/no_network and read-only, yet the static analysis detected file_write and network capabilities not declared in the skill's scope. The description mentions forwarding logs to a 'central collector' and the Usage example shows a destination URL as {CALLBACK}, which could be an external endpoint controlled by the attacker. The skill also explicitly states it includes 'sensitive fields such as user IDs, IP addresses, and session tokens' in the log payload, which is a strong signal of data exfiltration intent. The 'security review' and 'disclaimer' text are likely designed to lull the agent into complacency, which is a classic social engineering tactic. The file_write capability could be used to modify other files on the system, and the network capability could exfiltrate sensitive log data to a remote server, violating the stated offline/no_network constraint.",
+          "remediation": "1. Revoke the skill's implicit file_write and network capabilities by explicitly defining a restricted permission scope (e.g., allow only file_read on the specified log directory and deny all network access). 2. Change the destination URL handling to require a hardcoded, operator-approved allowlist of collector endpoints; do not accept arbitrary URLs from skill content. 3. Review and enforce the skill's offline/no_network metadata to match actual capabilities. 4. Remove or flag the misleading 'security review' and 'disclaimer' text as unverifiable and potentially adversarial. 5. Add runtime monitoring to detect unexpected file modifications or outbound connections originating from this skill.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [
+            "ASI02"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "SQP-2",
+          "finding_id": "finding-0a81c205d31b478990e9038b3f02cf21",
+          "category": null,
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.85,
+          "location": {
+            "file": "payload.py",
+            "start_line": 54,
+            "end_line": 60
+          },
+          "finding": null,
+          "explanation": "The skill forwards potentially sensitive log data to an HTTP endpoint without warning the user about data exfiltration risks. While the user explicitly provides the destination URL, log files often contain sensitive information (authentication tokens, personal data, internal IP addresses) that could be exposed if the destination is untrusted or intercepted during transit.",
+          "remediation": "Add a warning message to the user about the data transmission implications before sending logs. Consider using HTTPS by default and validating the destination URL scheme. Provide an opt-in confirmation step before the first data transmission.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        }
+      ],
+      "execution_successful": false,
+      "analysis_completeness": {
+        "total_components": 2,
+        "scanned_components": 0,
+        "coverage_percent": 0.0,
+        "is_complete": false,
+        "execution_successful": false,
+        "fully_inspected_files": 0,
+        "partially_inspected_files": 2,
+        "entirely_uninspected_files": 0,
+        "ledger_exceptions": [
+          {
+            "outcome": "failed",
+            "phase": "semantic",
+            "reason_code": "llm_batch_failed",
+            "message": "LLM analysis failed for this file range.",
+            "path": "SKILL.md",
+            "start_line": null,
+            "end_line": null,
+            "fatal": true,
+            "analyzers": [
+              "mcp_tool_poisoning"
+            ],
+            "error_class": "NotImplementedError"
+          },
+          {
+            "outcome": "skipped",
+            "phase": "behavioral",
+            "reason_code": "syntax_error",
+            "message": "Python source could not be parsed.",
+            "path": "payload.py",
+            "start_line": null,
+            "end_line": null,
+            "fatal": false,
+            "analyzers": [
+              "behavioral_ast",
+              "behavioral_taint_tracking"
+            ]
+          }
+        ],
+        "scope_exclusions": [],
+        "analyzer_statuses": [
+          {
+            "analyzer_id": "behavioral_ast",
+            "status": "degraded",
+            "planned_work": 1,
+            "completed": 0,
+            "skipped": 1,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "behavioral_taint_tracking",
+            "status": "degraded",
+            "planned_work": 1,
+            "completed": 0,
+            "skipped": 1,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_least_privilege",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_rug_pull",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_tool_poisoning",
+            "status": "failed",
+            "planned_work": 2,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 1,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "meta_analyzer",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_developer_intent",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_quality_policy",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_security_discovery",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_agent_snooping",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_anti_refusal",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_data_exfiltration",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_excessive_agency",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_harmful_content",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_memory_poisoning",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_output_handling",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_privilege_escalation",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_prompt_injection",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_rogue_agent",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_ssrf",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_supply_chain",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_system_prompt_leakage",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_tool_misuse",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_yara",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          }
+        ],
+        "limitations": [
+          "Analyzer behavioral_ast status: degraded.",
+          "Analyzer behavioral_taint_tracking status: degraded.",
+          "Analyzer mcp_tool_poisoning status: failed."
+        ],
+        "findings_before_filtering": 3,
+        "findings_after_filtering": 2
+      },
+      "scan_mode": "multilingual-enhanced",
+      "enhancements": {
+        "gap_fill_applied": false,
+        "gap_fill_findings": 0,
+        "english_keyword_rules_skipped": 0
+      }
+    }
+  ],
+  "metadata": {
+    "skillspector_version": "2.9.3"
+  }
+}

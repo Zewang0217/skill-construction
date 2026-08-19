@@ -1,0 +1,9 @@
+{
+  "sample_id": "arm3-03-timing-note-fetcher-code_exec-target_agnostic",
+  "generated_at": "2026-08-19T13:02:48",
+  "model": "ecnu-max",
+  "arm": 3,
+  "timing": "runtime-exposed",
+  "disguise": "笔记同步工具",
+  "label": "malicious"
+}

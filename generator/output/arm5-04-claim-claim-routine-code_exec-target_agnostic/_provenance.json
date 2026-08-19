@@ -1,0 +1,9 @@
+{
+  "sample_id": "arm5-04-claim-claim-routine-code_exec-target_agnostic",
+  "generated_at": "2026-08-19T13:07:04",
+  "model": "ecnu-max",
+  "arm": 5,
+  "claim_injection": "claim-routine",
+  "disguise": "日志处理工具",
+  "label": "malicious"
+}

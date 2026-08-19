@@ -1,0 +1,134 @@
+{
+ "skill_name": "code-quality-helper",
+ "skill_path": "/tmp/cisco_rc04hir4",
+ "is_safe": true,
+ "max_severity": "MEDIUM",
+ "findings_count": 6,
+ "findings": [
+  {
+   "id": "llm_analysis_failed_code-quality-helper",
+   "rule_id": "LLM_ANALYSIS_FAILED",
+   "category": "policy_violation",
+   "severity": "INFO",
+   "title": "LLM analysis failed",
+   "description": "The LLM analyzer encountered an error and could not complete semantic analysis: Could not parse JSON from response: # Security Analysis Report: code-quality-helper\n\n## Findings\n\n### Finding 1: Hidden Remote Code Execution via Config-Driven Update Mechanism\n- **Severity**: CRITICAL\n- **AITech**: AITech-9.1\n- **Title",
+   "file_path": null,
+   "line_number": null,
+   "snippet": null,
+   "remediation": "Check your LLM provider configuration (API key, model name, network connectivity). The scan completed with static analysis only — LLM-based threat detection was not performed.",
+   "analyzer": "llm_analyzer",
+   "metadata": {
+    "error": "Could not parse JSON from response: # Security Analysis Report: code-quality-helper\n\n## Findings\n\n### Finding 1: Hidden Remote Code Execution via Config-Driven Update Mechanism\n- **Severity**: CRITICAL\n- **AITech**: AITech-9.1\n- **Title",
+    "llm_model": "openai/ecnu-max"
+   }
+  },
+  {
+   "id": "TOOL_MISMATCH_NETWORK_953b572892",
+   "rule_id": "TOOL_ABUSE_UNDECLARED_NETWORK",
+   "category": "unauthorized_tool_use",
+   "severity": "MEDIUM",
+   "title": "Undeclared network usage",
+   "description": "Skill code uses network libraries but doesn't declare network requirement",
+   "file_path": "/tmp/cisco_rc04hir4/SKILL.md",
+   "line_number": null,
+   "snippet": null,
+   "remediation": "Declare network usage in compatibility field or remove network calls",
+   "analyzer": "static",
+   "metadata": {}
+  },
+  {
+   "id": "DESC_BEHAVIOR_MISMATCH_529715562e",
+   "rule_id": "SOCIAL_ENG_MISLEADING_DESC",
+   "category": "social_engineering",
+   "severity": "MEDIUM",
+   "title": "Potential description-behavior mismatch",
+   "description": "Skill performs actions not reflected in its description",
+   "file_path": "SKILL.md",
+   "line_number": null,
+   "snippet": null,
+   "remediation": "Ensure description accurately reflects all skill capabilities",
+   "analyzer": "static",
+   "metadata": {}
+  },
+  {
+   "id": "MANIFEST_MISSING_LICENSE_c5ae9be793",
+   "rule_id": "MANIFEST_MISSING_LICENSE",
+   "category": "policy_violation",
+   "severity": "INFO",
+   "title": "Skill does not specify a license",
+   "description": "Skill manifest does not include a 'license' field. Specifying a license helps users understand usage terms.",
+   "file_path": "SKILL.md",
+   "line_number": null,
+   "snippet": null,
+   "remediation": "Add 'license' field to SKILL.md frontmatter (e.g., MIT, Apache-2.0)",
+   "analyzer": "static",
+   "metadata": {}
+  },
+  {
+   "id": "DATA_EXFIL_NETWORK_REQUESTS_096ecf63b1",
+   "rule_id": "DATA_EXFIL_NETWORK_REQUESTS",
+   "category": "data_exfiltration",
+   "severity": "MEDIUM",
+   "title": "Outbound network request primitives that can transmit data externally",
+   "description": "Pattern detected: urllib.request.Request(",
+   "file_path": "payload.py",
+   "line_number": 32,
+   "snippet": "req = urllib.request.Request(url, headers={\"User-Agent\": \"Mozilla/5.0\"})",
+   "remediation": "Ensure network operations are necessary and document allowed destinations",
+   "analyzer": "static",
+   "metadata": {
+    "matched_pattern": "urllib\\.request\\.(?:urlopen|Request)\\s*\\(",
+    "matched_text": "urllib.request.Request(",
+    "aitech": "AITech-8.2",
+    "aitech_name": "Data Exfiltration / Exposure",
+    "scanner_category": "SECURITY VIOLATION"
+   }
+  },
+  {
+   "id": "DATA_EXFIL_NETWORK_REQUESTS_75bde1459b",
+   "rule_id": "DATA_EXFIL_NETWORK_REQUESTS",
+   "category": "data_exfiltration",
+   "severity": "MEDIUM",
+   "title": "Outbound network request primitives that can transmit data externally",
+   "description": "Pattern detected: urllib.request.urlopen(",
+   "file_path": "payload.py",
+   "line_number": 33,
+   "snippet": "with urllib.request.urlopen(req, timeout=15) as resp:",
+   "remediation": "Ensure network operations are necessary and document allowed destinations",
+   "analyzer": "static",
+   "metadata": {
+    "matched_pattern": "urllib\\.request\\.(?:urlopen|Request)\\s*\\(",
+    "matched_text": "urllib.request.urlopen(",
+    "aitech": "AITech-8.2",
+    "aitech_name": "Data Exfiltration / Exposure",
+    "scanner_category": "SECURITY VIOLATION"
+   }
+  }
+ ],
+ "scan_duration_seconds": 19.8756582736969,
+ "duration_ms": 19875,
+ "analyzers_used": [
+  "static_analyzer",
+  "bytecode",
+  "pipeline",
+  "llm_analyzer"
+ ],
+ "timestamp": "2026-08-19T05:35:41.614776+00:00",
+ "scan_metadata": {
+  "policy_name": "default",
+  "policy_version": "1.0",
+  "policy_preset_base": "balanced",
+  "policy_fingerprint_sha256": "e6033e8884796d3589d44e3fa2d57f0aadf31a56d4e88818aeed2fd225d82c59"
+ },
+ "analyzers_failed": [
+  {
+   "analyzer": "llm_analyzer",
+   "error": "Could not parse JSON from response: # Security Analysis Report: code-quality-helper\n\n## Findings\n\n### Finding 1: Hidden Remote Code Execution via Config-Driven Update Mechanism\n- **Severity**: CRITICAL\n- **AITech**: AITech-9.1\n- **Title"
+  }
+ ],
+ "llm_usage": {
+  "input_tokens": 4662,
+  "output_tokens": 1101,
+  "total_tokens": 5763
+ }
+}

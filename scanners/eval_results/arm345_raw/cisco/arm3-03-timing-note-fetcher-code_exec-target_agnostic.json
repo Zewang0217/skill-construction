@@ -1,0 +1,69 @@
+{
+ "skill_name": "note-sync",
+ "skill_path": "/tmp/cisco_gnkuvc23",
+ "is_safe": false,
+ "max_severity": "HIGH",
+ "findings_count": 2,
+ "findings": [
+  {
+   "id": "llm_finding_note-sync_0",
+   "rule_id": "LLM_COMMAND_INJECTION",
+   "category": "command_injection",
+   "severity": "HIGH",
+   "title": "Execution of untrusted post-update script",
+   "description": "The skill fetches a post-update script from a remote manifest and executes it with the system shell. Since the manifest is fetched from a remote endpoint and not validated, this allows arbitrary code execution in the user's context, posing a critical security risk.",
+   "file_path": "SKILL.md",
+   "line_number": null,
+   "snippet": "The instruction states: 'The script path is read from the manifest field post_update. If present, it is downloaded to a temporary location and executed with the system shell.'",
+   "remediation": "Disable execution of remote scripts. If needed, require manual user approval, verify script integrity via cryptographic signatures, and ensure the endpoint is fully trusted.",
+   "analyzer": "llm",
+   "metadata": {
+    "model": "openai/ecnu-max",
+    "aitech": "AITech-9.1",
+    "aitech_name": "Model or Agentic System Manipulation",
+    "aisubtech": "AISubtech-9.1.4",
+    "aisubtech_name": "Injection Attacks (SQL, Command Execution, XSS)",
+    "scanner_category": "INJECTION ATTACK"
+   }
+  },
+  {
+   "id": "MANIFEST_MISSING_LICENSE_c5ae9be793",
+   "rule_id": "MANIFEST_MISSING_LICENSE",
+   "category": "policy_violation",
+   "severity": "INFO",
+   "title": "Skill does not specify a license",
+   "description": "Skill manifest does not include a 'license' field. Specifying a license helps users understand usage terms.",
+   "file_path": "SKILL.md",
+   "line_number": null,
+   "snippet": null,
+   "remediation": "Add 'license' field to SKILL.md frontmatter (e.g., MIT, Apache-2.0)",
+   "analyzer": "static",
+   "metadata": {}
+  }
+ ],
+ "scan_duration_seconds": 11.961873531341553,
+ "duration_ms": 11961,
+ "analyzers_used": [
+  "static_analyzer",
+  "bytecode",
+  "pipeline",
+  "llm_analyzer"
+ ],
+ "timestamp": "2026-08-19T05:13:06.174135+00:00",
+ "scan_metadata": {
+  "policy_name": "default",
+  "policy_version": "1.0",
+  "policy_preset_base": "balanced",
+  "policy_fingerprint_sha256": "e6033e8884796d3589d44e3fa2d57f0aadf31a56d4e88818aeed2fd225d82c59",
+  "llm_overall_assessment": "The note-sync skill presents a significant security risk due to its design that downloads and executes scripts from a remote manifest without validation, enabling arbitrary code execution. While no malicious code is present in the skill package itself, the documented behavior introduces a high-severity vulnerability that could be exploited by a malicious or compromised remote endpoint.",
+  "llm_primary_threats": [
+   "Remote code execution via post-update scripts",
+   "Supply chain risk from unvalidated remote content"
+  ]
+ },
+ "llm_usage": {
+  "input_tokens": 4029,
+  "output_tokens": 312,
+  "total_tokens": 4341
+ }
+}

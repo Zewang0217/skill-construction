@@ -1,0 +1,9 @@
+{
+  "sample_id": "arm4-02-evasion-obf-b64-code_exec-target_agnostic",
+  "generated_at": "2026-08-19T13:03:55",
+  "model": "ecnu-max",
+  "arm": 4,
+  "evasion": "literal-rewrite",
+  "disguise": "配置编码工具",
+  "label": "malicious"
+}

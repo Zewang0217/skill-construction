@@ -1,0 +1,112 @@
+{
+ "skill_name": "wallet-address-profiler",
+ "skill_path": "/tmp/cisco_4g7x7z1k",
+ "is_safe": false,
+ "max_severity": "HIGH",
+ "findings_count": 4,
+ "findings": [
+  {
+   "id": "llm_finding_wallet-address-profiler_1",
+   "rule_id": "LLM_COMMAND_INJECTION",
+   "category": "command_injection",
+   "severity": "LOW",
+   "title": "Inline shell command construction with user input",
+   "description": "The SKILL.md instructs building curl commands with the user-provided address directly interpolated into the URL and shell command, which could lead to command injection if the address contains shell metacharacters. However, the agent would likely treat the address as a literal argument, and the risk is low without evidence of malicious intent.",
+   "file_path": "SKILL.md",
+   "line_number": null,
+   "snippet": "curl -s \"https://api.example.com/tx?addr=${ADDRESS}\"",
+   "remediation": "Sanitize and validate the address input before constructing commands. Use parameterized APIs or proper escaping.",
+   "analyzer": "llm",
+   "metadata": {
+    "model": "openai/ecnu-max",
+    "aitech": "AITech-9.1",
+    "aitech_name": "Model or Agentic System Manipulation",
+    "aisubtech": "AISubtech-9.1.4",
+    "aisubtech_name": "Injection Attacks (SQL, Command Execution, XSS)",
+    "scanner_category": "INJECTION ATTACK"
+   }
+  },
+  {
+   "id": "llm_finding_wallet-address-profiler_0",
+   "rule_id": "LLM_DATA_EXFILTRATION",
+   "category": "data_exfiltration",
+   "severity": "LOW",
+   "title": "Potential for address data transmission to third-party API",
+   "description": "The skill instructs the agent to send the user-provided wallet address to an external API (https://api.example.com/tx and /meta) via curl. While this is the stated purpose of the skill, the endpoints are not vetted and the address could be considered sensitive PII. This represents a low-risk data exposure, as the address is user-provided and the URLs are examples.",
+   "file_path": "SKILL.md",
+   "line_number": null,
+   "snippet": "curl -s \"https://api.example.com/tx?addr=${ADDRESS}\" -o /tmp/wallet_tx.json",
+   "remediation": "Verify that the API endpoints are legitimate and privacy-compliant. Consider masking or hashing addresses before transmission if possible.",
+   "analyzer": "llm",
+   "metadata": {
+    "model": "openai/ecnu-max",
+    "aitech": "AITech-8.2",
+    "aitech_name": "Data Exfiltration / Exposure",
+    "aisubtech": "AISubtech-8.2.3",
+    "aisubtech_name": "Data Exfiltration via Agent Tooling",
+    "scanner_category": "SECURITY VIOLATION"
+   }
+  },
+  {
+   "id": "MANIFEST_MISSING_LICENSE_c5ae9be793",
+   "rule_id": "MANIFEST_MISSING_LICENSE",
+   "category": "policy_violation",
+   "severity": "INFO",
+   "title": "Skill does not specify a license",
+   "description": "Skill manifest does not include a 'license' field. Specifying a license helps users understand usage terms.",
+   "file_path": "SKILL.md",
+   "line_number": null,
+   "snippet": null,
+   "remediation": "Add 'license' field to SKILL.md frontmatter (e.g., MIT, Apache-2.0)",
+   "analyzer": "static",
+   "metadata": {}
+  },
+  {
+   "id": "PIPELINE_TAINT_3c8f394f95",
+   "rule_id": "PIPELINE_TAINT_FLOW",
+   "category": "command_injection",
+   "severity": "HIGH",
+   "title": "Dangerous data flow in command pipeline",
+   "description": "Pipeline downloads data from the network and executes it: `curl -s \"https://api.example.com/meta?addr=${ADDRESS}\" | python3 -c \"`. This is a remote code execution pattern.",
+   "file_path": "SKILL.md",
+   "line_number": 1,
+   "snippet": "curl -s \"https://api.example.com/meta?addr=${ADDRESS}\" | python3 -c \"",
+   "remediation": "Review the command pipeline. Avoid piping sensitive data to network commands or shell execution.",
+   "analyzer": "pipeline",
+   "metadata": {
+    "pipeline": "curl -s \"https://api.example.com/meta?addr=${ADDRESS}\" | python3 -c \"",
+    "source_taints": [
+     "NETWORK_DATA"
+    ],
+    "sink_command": "python3",
+    "chain_length": 2,
+    "in_documentation": false
+   }
+  }
+ ],
+ "scan_duration_seconds": 13.864105224609375,
+ "duration_ms": 13864,
+ "analyzers_used": [
+  "static_analyzer",
+  "bytecode",
+  "pipeline",
+  "llm_analyzer"
+ ],
+ "timestamp": "2026-08-19T05:11:37.075528+00:00",
+ "scan_metadata": {
+  "policy_name": "default",
+  "policy_version": "1.0",
+  "policy_preset_base": "balanced",
+  "policy_fingerprint_sha256": "e6033e8884796d3589d44e3fa2d57f0aadf31a56d4e88818aeed2fd225d82c59",
+  "llm_overall_assessment": "The wallet-address-profiler skill is a straightforward tool for fetching blockchain transaction data from a public API and computing a risk score. It uses inline shell commands for HTTP requests and Python for processing, with no scripts shipped in the package. The primary risks are low: potential exposure of the user-provided address to a third-party API and a minor command injection vector. No direct prompt injection, data exfiltration beyond the intended API calls, or hardcoded secrets were identified. The skill's behavior matches its description and manifest claims.",
+  "llm_primary_threats": [
+   "Data exposure (low) - address sent to external API",
+   "Command injection (low) - unescaped user input in shell command"
+  ]
+ },
+ "llm_usage": {
+  "input_tokens": 4302,
+  "output_tokens": 537,
+  "total_tokens": 4839
+ }
+}

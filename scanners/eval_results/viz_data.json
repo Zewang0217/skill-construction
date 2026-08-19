@@ -362,5 +362,245 @@
    "source_agnostic×mechanism_unknown×target_agnostic": 3,
    "source_agnostic×obfuscation×target_agnostic": 3
   }
+ },
+ "arm1": {
+  "coordinate": "source_agnostic×code_exec×target_agnostic",
+  "n": 24,
+  "detection": {
+   "cisco": 16,
+   "ss": 23,
+   "cat": 18
+  },
+  "rates": {
+   "cisco": 66.7,
+   "ss": 95.8,
+   "cat": 75.0
+  },
+  "samples": [
+   {
+    "idx": "01",
+    "primitive": "crafted_parameters_for_unintended_behavi",
+    "cisco": true,
+    "ss": true,
+    "cat": true,
+    "ss_score": "100"
+   },
+   {
+    "idx": "02",
+    "primitive": "tool_chains_that_bypass_individual_safet",
+    "cisco": true,
+    "ss": true,
+    "cat": true,
+    "ss_score": "100"
+   },
+   {
+    "idx": "03",
+    "primitive": "direct_exec___enabling_arbitrary_code_ex",
+    "cisco": true,
+    "ss": true,
+    "cat": true,
+    "ss_score": "97"
+   },
+   {
+    "idx": "04",
+    "primitive": "direct_eval___evaluating_arbitrary_expre",
+    "cisco": true,
+    "ss": true,
+    "cat": true,
+    "ss_score": "100"
+   },
+   {
+    "idx": "05",
+    "primitive": "import_____loading_arbitrary_modules_a",
+    "cisco": true,
+    "ss": true,
+    "cat": true,
+    "ss_score": "73"
+   },
+   {
+    "idx": "06",
+    "primitive": "external_command_execution_via_subproces",
+    "cisco": true,
+    "ss": true,
+    "cat": false,
+    "ss_score": "23"
+   },
+   {
+    "idx": "07",
+    "primitive": "shell_commands_via_os_module",
+    "cisco": true,
+    "ss": true,
+    "cat": false,
+    "ss_score": "75"
+   },
+   {
+    "idx": "08",
+    "primitive": "code_object_creation_from_strings",
+    "cisco": false,
+    "ss": true,
+    "cat": true,
+    "ss_score": "38"
+   },
+   {
+    "idx": "09",
+    "primitive": "arbitrary_attribute_access_with_non_lite",
+    "cisco": false,
+    "ss": true,
+    "cat": true,
+    "ss_score": "79"
+   },
+   {
+    "idx": "10",
+    "primitive": "exec_eval_combined_with_dynamic_source",
+    "cisco": false,
+    "ss": true,
+    "cat": true,
+    "ss_score": "63"
+   },
+   {
+    "idx": "11",
+    "primitive": "reflective_exec_via_getattr_os__system",
+    "cisco": true,
+    "ss": true,
+    "cat": true,
+    "ss_score": "74"
+   },
+   {
+    "idx": "12",
+    "primitive": "data_flows_directly_from_a_source_to_a_s",
+    "cisco": false,
+    "ss": true,
+    "cat": true,
+    "ss_score": "88"
+   },
+   {
+    "idx": "13",
+    "primitive": "data_flows_from_source_to_sink_through_i",
+    "cisco": false,
+    "ss": true,
+    "cat": true,
+    "ss_score": "8"
+   },
+   {
+    "idx": "14",
+    "primitive": "references_to_well_known_offensive_secur",
+    "cisco": true,
+    "ss": true,
+    "cat": false,
+    "ss_score": "100"
+   },
+   {
+    "idx": "15",
+    "primitive": "aitech_9_1_model_or_agentic_system_manip",
+    "cisco": true,
+    "ss": true,
+    "cat": true,
+    "ss_score": "47"
+   },
+   {
+    "idx": "16",
+    "primitive": "aitech_9_1_code_execution___aisubtech_9",
+    "cisco": false,
+    "ss": true,
+    "cat": true,
+    "ss_score": "100"
+   },
+   {
+    "idx": "17",
+    "primitive": "critical__skills__snyk_issue_codes_md_e0",
+    "cisco": false,
+    "ss": false,
+    "cat": true,
+    "ss_score": "0"
+   },
+   {
+    "idx": "18",
+    "primitive": "socket_supply_chain_risk_socket_alert_ca",
+    "cisco": true,
+    "ss": true,
+    "cat": false,
+    "ss_score": "100"
+   },
+   {
+    "idx": "19",
+    "primitive": "socket_supply_chain_risk_socket_alert_ca",
+    "cisco": true,
+    "ss": true,
+    "cat": false,
+    "ss_score": "100"
+   },
+   {
+    "idx": "20",
+    "primitive": "socket_supply_chain_risk_socket_alert_ca",
+    "cisco": true,
+    "ss": true,
+    "cat": true,
+    "ss_score": "100"
+   },
+   {
+    "idx": "21",
+    "primitive": "socket_supply_chain_risk_socket_alert_ca",
+    "cisco": true,
+    "ss": true,
+    "cat": true,
+    "ss_score": "75"
+   },
+   {
+    "idx": "22",
+    "primitive": "socket_supply_chain_risk_socket_alert_ca",
+    "cisco": true,
+    "ss": true,
+    "cat": true,
+    "ss_score": "100"
+   },
+   {
+    "idx": "23",
+    "primitive": "socket_supply_chain_risk_socket_alert_ca",
+    "cisco": true,
+    "ss": true,
+    "cat": false,
+    "ss_score": "56"
+   },
+   {
+    "idx": "24",
+    "primitive": "socket_supply_chain_risk_socket_alert_ca",
+    "cisco": false,
+    "ss": true,
+    "cat": true,
+    "ss_score": "100"
+   }
+  ]
+ },
+ "arm345": {
+  "n": 15,
+  "arms": {
+   "载荷时序": {
+    "n": 5,
+    "cisco": 4,
+    "ss": 4,
+    "cat": 3,
+    "cisco_rate": 80.0,
+    "ss_rate": 80.0,
+    "cat_rate": 60.0
+   },
+   "代码规避": {
+    "n": 5,
+    "cisco": 2,
+    "ss": 5,
+    "cat": 4,
+    "cisco_rate": 40.0,
+    "ss_rate": 100.0,
+    "cat_rate": 80.0
+   },
+   "声明注入": {
+    "n": 5,
+    "cisco": 1,
+    "ss": 5,
+    "cat": 2,
+    "cisco_rate": 20.0,
+    "ss_rate": 100.0,
+    "cat_rate": 40.0
+   }
+  }
  }
 }

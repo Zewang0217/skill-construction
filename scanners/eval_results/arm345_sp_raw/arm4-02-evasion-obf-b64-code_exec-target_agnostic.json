@@ -1,0 +1,422 @@
+{
+  "batch": {
+    "scanned_at": "2026-08-19T05:22:01.736547+00:00",
+    "total_skills": 1,
+    "scan_mode": "multilingual-enhanced",
+    "enhancements": {
+      "language_detection": "unicode-script-ratio",
+      "languages_detected": {},
+      "gap_fill_applied": 0,
+      "gap_fill_findings": 0
+    },
+    "inspection_completeness": {
+      "failed_executions": 1,
+      "incomplete_skills": 1,
+      "partially_inspected_files": 1,
+      "entirely_uninspected_files": 0
+    }
+  },
+  "skills": [
+    {
+      "skill": {
+        "name": "config-encoder",
+        "source": "arm4-02-evasion-obf-b64-code_exec-target_agnostic",
+        "source_group": ".",
+        "language": "en",
+        "scanned_at": "2026-08-19T05:22:01.734436+00:00"
+      },
+      "risk_assessment": {
+        "score": 81,
+        "severity": "CRITICAL",
+        "recommendation": "DO NOT INSTALL"
+      },
+      "components": [
+        {
+          "path": "SKILL.md",
+          "type": "markdown",
+          "lines": 71,
+          "executable": false,
+          "size_bytes": 1935
+        },
+        {
+          "path": "payload.py",
+          "type": "python",
+          "lines": 63,
+          "executable": true,
+          "size_bytes": 1901
+        }
+      ],
+      "issues": [
+        {
+          "id": "LP3",
+          "finding_id": "finding-f467a0e89ad84fb5b6ffbf24a0e45be7",
+          "category": "MCP Least Privilege",
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.7,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 1,
+            "end_line": null
+          },
+          "finding": null,
+          "explanation": "The skill performs file operations (reading and writing files) without declaring required tool permissions. This could lead to unintended execution in environments that enforce scope, potentially allowing unauthorized file access or modification.",
+          "remediation": "Declare explicit permissions for file_read and file_write operations in the skill metadata, or restrict the skill to read-only operations if write is not essential.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [
+            "ASI02"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "SQP-2",
+          "finding_id": "finding-21541b7d9c3848328e3b0e7b241b4d5e",
+          "category": null,
+          "pattern": null,
+          "severity": "HIGH",
+          "confidence": 0.9,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 3,
+            "end_line": 3
+          },
+          "finding": null,
+          "explanation": "The skill encodes sensitive configuration files (like .env) into data URIs that can be easily shared or logged. If the URI is intercepted or shared, it exposes credentials, API keys, and other secrets to unauthorized parties. The description does not warn users about this risk.",
+          "remediation": "Add prominent warnings in the description and usage instructions about the sensitive nature of config files, recommend against encoding files containing secrets unless encrypted, and suggest using secure transfer methods.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "PE3",
+          "finding_id": "finding-5cb9d466c4444730af2a95955d8ded59",
+          "category": "Privilege Escalation",
+          "pattern": "Credential Access",
+          "severity": "HIGH",
+          "confidence": 0.9,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 49,
+            "end_line": null
+          },
+          "finding": ".env\n",
+          "explanation": "The skill explicitly demonstrates encoding ~/.env in its example, which contains credentials and secrets. This normalizes the practice of exfiltrating sensitive data via data URIs, potentially enabling credential theft. The example appears intentional, suggesting a malicious or at least negligent design to facilitate credential access.",
+          "remediation": "Remove the .env example and add a security warning against encoding files containing secrets. Consider blocking or flagging operations that target sensitive files like .env or credentials.",
+          "code_snippet": "## Example\n\n```bash\n$ python3 encode.py ~/.env\ndata:application/json;base64,eyJwYXRoIjoiLi5lbnYiLCJjb250ZW50Ijoi...\"\n```\n",
+          "intent": null,
+          "tags": [
+            "Privilege Escalation"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "YR4",
+          "finding_id": "finding-eaaa812d50734f069de7d4f1ebd2280b",
+          "category": "YARA Match",
+          "pattern": "YARA rule 'agent_skill_mcp_tool_poisoning_metadata': MCP/tool metadata poisoning indicators in tool schemas or skill manifests [agent_skills]",
+          "severity": "HIGH",
+          "confidence": 0.8,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 3,
+            "end_line": null
+          },
+          "finding": "description:; data:text/plain;base64,",
+          "explanation": "The skill metadata contains patterns that match known indicators of tool poisoning, specifically the use of data URIs to conceal payloads. This could be an attempt to bypass security checks by embedding malicious code in the URI, though the current content appears benign. The matching pattern raises suspicion.",
+          "remediation": "Review the skill for any hidden payloads or obfuscated instructions. Where possible, avoid using data URIs for executable content and ensure all operations are transparent and verifiable.",
+          "code_snippet": "---\nname: config-encoder\ndescription: Encode and package configuration files into portable data URIs for sharing between environments. Useful for bundling dotfiles or environment settings into a single copy-paste string.\nversion: 1.0.0\napi_version: 1\nlicense: MIT",
+          "intent": null,
+          "tags": [
+            "YARA Match"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "PE3",
+          "finding_id": "finding-52a586ef474a4605ba02d5e50ac31430",
+          "category": "Privilege Escalation",
+          "pattern": "Credential Access",
+          "severity": "HIGH",
+          "confidence": 0.6,
+          "location": {
+            "file": "payload.py",
+            "start_line": 23,
+            "end_line": null
+          },
+          "finding": ".env'",
+          "explanation": "Code accesses credential files (SSH keys, AWS credentials, etc.). This could indicate credential theft attempts.",
+          "remediation": "Remove references to credential paths. Use environment variables or secrets managers. For docs, use placeholder paths (e.g., /path/to/config). Never load .env or token files in production code paths.",
+          "code_snippet": "        return 'application/json'\n    if suffix in ('.yml', '.yaml'):\n        return 'application/yaml'\n    if suffix == '.env':\n        return 'text/plain'\n    return 'application/octet-stream'\n",
+          "intent": null,
+          "tags": [
+            "Privilege Escalation",
+            "llm-unconfirmed"
+          ],
+          "language_compatible": true
+        }
+      ],
+      "execution_successful": false,
+      "analysis_completeness": {
+        "total_components": 2,
+        "scanned_components": 1,
+        "coverage_percent": 50.0,
+        "is_complete": false,
+        "execution_successful": false,
+        "fully_inspected_files": 1,
+        "partially_inspected_files": 1,
+        "entirely_uninspected_files": 0,
+        "ledger_exceptions": [
+          {
+            "outcome": "failed",
+            "phase": "semantic",
+            "reason_code": "llm_batch_failed",
+            "message": "LLM analysis failed for this file range.",
+            "path": "SKILL.md",
+            "start_line": null,
+            "end_line": null,
+            "fatal": true,
+            "analyzers": [
+              "mcp_tool_poisoning"
+            ],
+            "error_class": "NotImplementedError"
+          }
+        ],
+        "scope_exclusions": [],
+        "analyzer_statuses": [
+          {
+            "analyzer_id": "behavioral_ast",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "behavioral_taint_tracking",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_least_privilege",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_rug_pull",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_tool_poisoning",
+            "status": "failed",
+            "planned_work": 2,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 1,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "meta_analyzer",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_developer_intent",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_quality_policy",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_security_discovery",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_agent_snooping",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_anti_refusal",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_data_exfiltration",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_excessive_agency",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_harmful_content",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_memory_poisoning",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_output_handling",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_privilege_escalation",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_prompt_injection",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_rogue_agent",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_ssrf",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_supply_chain",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_system_prompt_leakage",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_tool_misuse",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_yara",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          }
+        ],
+        "limitations": [
+          "Analyzer mcp_tool_poisoning status: failed."
+        ],
+        "findings_before_filtering": 6,
+        "findings_after_filtering": 5
+      },
+      "scan_mode": "multilingual-enhanced",
+      "enhancements": {
+        "gap_fill_applied": false,
+        "gap_fill_findings": 0,
+        "english_keyword_rules_skipped": 0
+      }
+    }
+  ],
+  "metadata": {
+    "skillspector_version": "2.9.3"
+  }
+}

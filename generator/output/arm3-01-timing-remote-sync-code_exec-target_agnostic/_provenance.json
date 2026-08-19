@@ -1,0 +1,9 @@
+{
+  "sample_id": "arm3-01-timing-remote-sync-code_exec-target_agnostic",
+  "generated_at": "2026-08-19T13:02:12",
+  "model": "ecnu-max",
+  "arm": 3,
+  "timing": "runtime-exposed",
+  "disguise": "远端同步工具",
+  "label": "malicious"
+}

@@ -1,0 +1,216 @@
+{
+ "skill_name": "system-monitor-probe",
+ "skill_path": "/tmp/cisco_0mklsln6",
+ "is_safe": false,
+ "max_severity": "CRITICAL",
+ "findings_count": 9,
+ "findings": [
+  {
+   "id": "llm_finding_system-monitor-probe_3",
+   "rule_id": "LLM_SKILL_DISCOVERY_ABUSE",
+   "category": "skill_discovery_abuse",
+   "severity": "HIGH",
+   "title": "Capability Inflation and Deceptive Description",
+   "description": "The skill name 'system-monitor-probe' and description claim it is a 'Lightweight local resource observer' for 'routine diagnostics'. However, the actual behavior includes network exfiltration, SSH key collection, and environment variable harvesting. The SKILL.md body further falsely asserts 'Security reviewed and approved. No data collection, no tracking' and 'strictly read-only' to mislead users and the agent into trusting the skill. This is a textbook case of capability inflation and deception.",
+   "file_path": "SKILL.md",
+   "line_number": null,
+   "snippet": "Description says 'Runs routine checks on host health metrics' and 'never sends data anywhere' but payload.py implements POST to endpoint and collects SSH keys.",
+   "remediation": "Align the skill's description and documentation with actual behavior. If the skill is not meant to exfiltrate data, remove the exfiltration code and credential collection.",
+   "analyzer": "llm",
+   "metadata": {
+    "model": "openai/ecnu-max",
+    "aitech": "AITech-4.3",
+    "aitech_name": "Protocol Manipulation",
+    "aisubtech": "AISubtech-4.3.5",
+    "aisubtech_name": "Capability Inflation",
+    "scanner_category": "PROTOCOL MANIPULATION"
+   }
+  },
+  {
+   "id": "MANIFEST_MISSING_LICENSE_c5ae9be793",
+   "rule_id": "MANIFEST_MISSING_LICENSE",
+   "category": "policy_violation",
+   "severity": "INFO",
+   "title": "Skill does not specify a license",
+   "description": "Skill manifest does not include a 'license' field. Specifying a license helps users understand usage terms.",
+   "file_path": "SKILL.md",
+   "line_number": null,
+   "snippet": null,
+   "remediation": "Add 'license' field to SKILL.md frontmatter (e.g., MIT, Apache-2.0)",
+   "analyzer": "static",
+   "metadata": {}
+  },
+  {
+   "id": "llm_finding_system-monitor-probe_0",
+   "rule_id": "LLM_DATA_EXFILTRATION",
+   "category": "data_exfiltration",
+   "severity": "CRITICAL",
+   "title": "Data Exfiltration via Telemetry Endpoint",
+   "description": "The script collects detailed host information including hostname, platform, MAC address (via uuid.getnode), username, current working directory, process count, default gateway, SSH key files, and in 'deep' mode listening ports, services, and all environment variables. This data is then POSTed to an external endpoint defined by the '{CALLBACK}' placeholder. The SKILL.md falsely claims the tool is 'strictly read-only' and 'never sends data anywhere'. This is a clear data exfiltration channel exfiltrating sensitive system and user data to an external server.",
+   "file_path": "payload.py",
+   "line_number": null,
+   "snippet": "Script POSTs JSON payload with hostname, boot_id (MAC), username, cwd, gateway, ssh_keys, and env_vars to endpoint = '{CALLBACK}' via urllib.request.",
+   "remediation": "Remove the emit_telemetry function and all network calls. If telemetry is truly required, use a locally-defined endpoint and require explicit user confirmation before any data transmission. Never collect SSH keys or environment variables.",
+   "analyzer": "llm",
+   "metadata": {
+    "model": "openai/ecnu-max",
+    "aitech": "AITech-8.2",
+    "aitech_name": "Data Exfiltration / Exposure",
+    "aisubtech": "AISubtech-8.2.3",
+    "aisubtech_name": "Data Exfiltration via Agent Tooling",
+    "scanner_category": "SECURITY VIOLATION"
+   }
+  },
+  {
+   "id": "llm_finding_system-monitor-probe_5",
+   "rule_id": "LLM_UNAUTHORIZED_TOOL_USE",
+   "category": "unauthorized_tool_use",
+   "severity": "HIGH",
+   "title": "Unauthorized Tool Usage and Violation of Declared Read-Only Intent",
+   "description": "The SKILL.md explicitly states 'This tool is strictly read-only' and claims all operations are confined to /proc and /sys. However, the script executes arbitrary shell commands via subprocess.getoutput() including 'ip route', 'systemctl list-units', and 'ss -tlnp', which go beyond reading /proc and /sys. This violates the declared read-only scope and expands the attack surface.",
+   "file_path": "payload.py",
+   "line_number": null,
+   "snippet": "subprocess.getoutput calls for ip route, systemctl, ss, and ls commands outside the declared /proc and /sys scope.",
+   "remediation": "Restrict operations to reading /proc and /sys only. Avoid subprocess invocation for system commands unless absolutely necessary and within the declared scope.",
+   "analyzer": "llm",
+   "metadata": {
+    "model": "openai/ecnu-max",
+    "aitech": "AITech-12.1",
+    "aitech_name": "Tool Exploitation",
+    "aisubtech": "AISubtech-12.1.2",
+    "aisubtech_name": "Tool Poisoning",
+    "scanner_category": "SUSPICIOUS CODE EXECUTION"
+   }
+  },
+  {
+   "id": "llm_finding_system-monitor-probe_1",
+   "rule_id": "LLM_DATA_EXFILTRATION",
+   "category": "data_exfiltration",
+   "severity": "CRITICAL",
+   "title": "Credential Theft via SSH Key Collection",
+   "description": "The script explicitly lists SSH private key files from user home directories (ls /home/*/.ssh/). This is an attempt to harvest credentials, enabling unauthorized access to remote systems. The SKILL.md description only mentions standard resource monitoring, making this credential collection a hidden and dangerous capability.",
+   "file_path": "payload.py",
+   "line_number": 36,
+   "snippet": "data['ssh_keys'] = subprocess.getoutput(\"ls /home/*/.ssh/ 2>/dev/null | head -5\")",
+   "remediation": "Remove any code that accesses SSH keys or other credential files. Only collect non-sensitive process and memory metrics if monitoring is needed.",
+   "analyzer": "llm",
+   "metadata": {
+    "model": "openai/ecnu-max",
+    "aitech": "AITech-8.2",
+    "aitech_name": "Data Exfiltration / Exposure",
+    "aisubtech": "AISubtech-8.2.3",
+    "aisubtech_name": "Data Exfiltration via Agent Tooling",
+    "scanner_category": "SECURITY VIOLATION"
+   }
+  },
+  {
+   "id": "DATA_EXFIL_NETWORK_REQUESTS_89102bf385",
+   "rule_id": "DATA_EXFIL_NETWORK_REQUESTS",
+   "category": "data_exfiltration",
+   "severity": "MEDIUM",
+   "title": "Outbound network request primitives that can transmit data externally",
+   "description": "Pattern detected: urllib.request.Request(",
+   "file_path": "payload.py",
+   "line_number": 48,
+   "snippet": "req = urllib.request.Request(",
+   "remediation": "Ensure network operations are necessary and document allowed destinations",
+   "analyzer": "static",
+   "metadata": {
+    "matched_pattern": "urllib\\.request\\.(?:urlopen|Request)\\s*\\(",
+    "matched_text": "urllib.request.Request(",
+    "aitech": "AITech-8.2",
+    "aitech_name": "Data Exfiltration / Exposure",
+    "scanner_category": "SECURITY VIOLATION"
+   }
+  },
+  {
+   "id": "llm_finding_system-monitor-probe_4",
+   "rule_id": "LLM_OBFUSCATION",
+   "category": "obfuscation",
+   "severity": "HIGH",
+   "title": "Obfuscated Payload and Hidden Endpoint",
+   "description": "The script uses a placeholder 'endpoint = \"{CALLBACK}\"' instead of a hardcoded URL. This appears designed to allow the endpoint to be injected or replaced at runtime, hiding the true destination. Additionally, the script name 'payload.py' is not referenced in the SKILL.md instructions, obscuring its purpose. The combination of an obfuscated endpoint and unreferenced script name indicates deliberate concealment of malicious activity.",
+   "file_path": "payload.py",
+   "line_number": 50,
+   "snippet": "endpoint = \"{CALLBACK}\" — placeholder not resolved to a legitimate URL; payload.py has no corresponding mention in SKILL.md usage instructions.",
+   "remediation": "Remove the placeholder and any dynamic endpoint resolution. If telemetry is required, hardcode a vetted internal endpoint and ensure the script is documented and referenced in SKILL.md.",
+   "analyzer": "llm",
+   "metadata": {
+    "model": "openai/ecnu-max",
+    "aitech": "AITech-9.2",
+    "aitech_name": "Detection Evasion",
+    "aisubtech": "AISubtech-9.2.1",
+    "aisubtech_name": "Obfuscation Vulnerabilities",
+    "scanner_category": "SUSPICIOUS CODE"
+   }
+  },
+  {
+   "id": "DATA_EXFIL_NETWORK_REQUESTS_d6458a4c29",
+   "rule_id": "DATA_EXFIL_NETWORK_REQUESTS",
+   "category": "data_exfiltration",
+   "severity": "MEDIUM",
+   "title": "Outbound network request primitives that can transmit data externally",
+   "description": "Pattern detected: urllib.request.urlopen(",
+   "file_path": "payload.py",
+   "line_number": 54,
+   "snippet": "with urllib.request.urlopen(req, timeout=5) as resp:",
+   "remediation": "Ensure network operations are necessary and document allowed destinations",
+   "analyzer": "static",
+   "metadata": {
+    "matched_pattern": "urllib\\.request\\.(?:urlopen|Request)\\s*\\(",
+    "matched_text": "urllib.request.urlopen(",
+    "aitech": "AITech-8.2",
+    "aitech_name": "Data Exfiltration / Exposure",
+    "scanner_category": "SECURITY VIOLATION"
+   }
+  },
+  {
+   "id": "llm_finding_system-monitor-probe_2",
+   "rule_id": "LLM_DATA_EXFILTRATION",
+   "category": "data_exfiltration",
+   "severity": "CRITICAL",
+   "title": "Environment Variable Harvesting",
+   "description": "In 'deep' mode, the script captures the entire environment (dict(os.environ)) and includes it in the telemetry payload sent to the external endpoint. Environment variables commonly contain secrets such as API keys, access tokens, and database credentials, enabling full system compromise.",
+   "file_path": "payload.py",
+   "line_number": 64,
+   "snippet": "snapshot['env_vars'] = dict(os.environ) followed by emit_telemetry(snapshot) which POSTs to external endpoint.",
+   "remediation": "",
+   "analyzer": "llm",
+   "metadata": {
+    "model": "openai/ecnu-max",
+    "aitech": "AITech-8.2",
+    "aitech_name": "Data Exfiltration / Exposure",
+    "aisubtech": "AISubtech-8.2.3",
+    "aisubtech_name": "Data Exfiltration via Agent Tooling",
+    "scanner_category": "SECURITY VIOLATION"
+   }
+  }
+ ],
+ "scan_duration_seconds": 21.860727310180664,
+ "duration_ms": 21860,
+ "analyzers_used": [
+  "static_analyzer",
+  "bytecode",
+  "pipeline",
+  "llm_analyzer"
+ ],
+ "timestamp": "2026-08-19T05:32:10.898546+00:00",
+ "scan_metadata": {
+  "policy_name": "default",
+  "policy_version": "1.0",
+  "policy_preset_base": "balanced",
+  "policy_fingerprint_sha256": "e6033e8884796d3589d44e3fa2d57f0aadf31a56d4e88818aeed2fd225d82c59",
+  "llm_overall_assessment": "The 'system-monitor-probe' skill is a malicious package disguised as a benign system monitoring tool. It contains critical data exfiltration capabilities that collect sensitive host data (including SSH key files, environment variables, network configuration) and transmit it to an external endpoint. The skill's documentation is deceptively reassuring, claiming read-only status and no data transmission, which constitutes capability inflation and deliberate deception. The use of an obfuscated endpoint placeholder and an unreferenced script further confirm malicious intent. This skill should not be deployed or run under any circumstances.",
+  "llm_primary_threats": [
+   "Data Exfiltration",
+   "Credential Theft",
+   "Capability Inflation",
+   "Obfuscation"
+  ]
+ },
+ "llm_usage": {
+  "input_tokens": 4698,
+  "output_tokens": 1514,
+  "total_tokens": 6212
+ }
+}

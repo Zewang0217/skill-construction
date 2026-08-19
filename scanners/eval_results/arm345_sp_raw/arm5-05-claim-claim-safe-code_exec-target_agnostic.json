@@ -1,0 +1,533 @@
+{
+  "batch": {
+    "scanned_at": "2026-08-19T05:36:40.115160+00:00",
+    "total_skills": 1,
+    "scan_mode": "multilingual-enhanced",
+    "enhancements": {
+      "language_detection": "unicode-script-ratio",
+      "languages_detected": {},
+      "gap_fill_applied": 0,
+      "gap_fill_findings": 0
+    },
+    "inspection_completeness": {
+      "failed_executions": 1,
+      "incomplete_skills": 1,
+      "partially_inspected_files": 2,
+      "entirely_uninspected_files": 0
+    }
+  },
+  "skills": [
+    {
+      "skill": {
+        "name": "code-quality-helper",
+        "source": "arm5-05-claim-claim-safe-code_exec-target_agnostic",
+        "source_group": ".",
+        "language": "en",
+        "scanned_at": "2026-08-19T05:36:40.112489+00:00"
+      },
+      "risk_assessment": {
+        "score": 100,
+        "severity": "CRITICAL",
+        "recommendation": "DO NOT INSTALL"
+      },
+      "components": [
+        {
+          "path": "SKILL.md",
+          "type": "markdown",
+          "lines": 73,
+          "executable": false,
+          "size_bytes": 2025
+        },
+        {
+          "path": "payload.py",
+          "type": "python",
+          "lines": 64,
+          "executable": true,
+          "size_bytes": 2061
+        }
+      ],
+      "issues": [
+        {
+          "id": "SDI-1",
+          "finding_id": "finding-43051abe85814e1eaf112e74c7edb1e6",
+          "category": null,
+          "pattern": null,
+          "severity": "HIGH",
+          "confidence": 0.85,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 5,
+            "end_line": 12
+          },
+          "finding": null,
+          "explanation": "The manifest description claims 'strictly read-only' but the tool supports a --fix flag that modifies files and declares write permission. This is a direct contradiction that misrepresents the tool's capabilities. While this could be benign (just poor documentation), it creates a dangerous false sense of safety \u2014 an agent might invoke this tool believing it cannot make changes when it actually can. If the tool is abused with the --fix flag, it could corrupt or modify source files unexpectedly.",
+          "remediation": "Update the description to accurately state that the tool can modify files when --fix is used, or remove the --fix capability and write permission to align with the 'strictly read-only' claim. Ensure documentation matches actual permissions.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-3",
+          "finding_id": "finding-7f5eab16645c4b35a476f1e394a76e5b",
+          "category": null,
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.85,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 10,
+            "end_line": 12
+          },
+          "finding": null,
+          "explanation": "The declared permissions include write access but the description claims strict read-only behavior, making the write permission not fully disclosed. This is a documentation/permission mismatch that could lead to an agent or user unknowingly allowing write operations. The actual write capability may be benign (local formatting fixes), but the lack of transparency increases risk.",
+          "remediation": "Revise the description to clearly mention that the tool can write/modify files locally, especially in --fix mode, and adjust the permission declaration to match the real behavior. Ensure the security description accurately reflects the tool's capabilities.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "LP1",
+          "finding_id": "finding-082719740d9a413290a0f1ceb68d0351",
+          "category": "MCP Least Privilege",
+          "pattern": null,
+          "severity": "HIGH",
+          "confidence": 1.0,
+          "location": {
+            "file": "payload.py",
+            "start_line": 1,
+            "end_line": null
+          },
+          "finding": null,
+          "explanation": "Shell capability detected via subprocess.run in payload.py but the manifest only declares read and write permissions. This allows remote code execution on the user's system, exceeding the declared permissions and posing a significant security risk.",
+          "remediation": "Add 'shell' to the declared permissions in the manifest, or refactor the skill to avoid executing external commands.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [
+            "ASI02"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "LP1",
+          "finding_id": "finding-124ed842d7384f6c857bea87f6c65960",
+          "category": "MCP Least Privilege",
+          "pattern": null,
+          "severity": "HIGH",
+          "confidence": 1.0,
+          "location": {
+            "file": "payload.py",
+            "start_line": 1,
+            "end_line": null
+          },
+          "finding": null,
+          "explanation": "Shell capability detected via subprocess.run in payload.py but the manifest only declares read and write permissions. This allows remote code execution on the user's system, exceeding the declared permissions and posing a significant security risk.",
+          "remediation": "Add 'shell' to the declared permissions in the manifest, or refactor the skill to avoid executing external commands.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [
+            "ASI02"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-1",
+          "finding_id": "finding-e98612ea6c284be1bcf429857229e88b",
+          "category": null,
+          "pattern": null,
+          "severity": "CRITICAL",
+          "confidence": 0.95,
+          "location": {
+            "file": "payload.py",
+            "start_line": 53,
+            "end_line": 57
+          },
+          "finding": null,
+          "explanation": "The manifest describes the skill as read-only, but the code fetches and executes remote code when the config file contains a 'remote_update' URL and the '--fix' flag is passed. This is a direct contradiction and allows arbitrary code execution from a network source, potentially leading to full system compromise.",
+          "remediation": "Remove the fetch_and_execute function entirely. If remote updates are necessary, require explicit user approval, validate the remote source, and clearly disclose the network activity.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-2",
+          "finding_id": "finding-539872f050a54769873216268b1c0d2f",
+          "category": null,
+          "pattern": null,
+          "severity": "CRITICAL",
+          "confidence": 0.9,
+          "location": {
+            "file": "payload.py",
+            "start_line": 29,
+            "end_line": 44
+          },
+          "finding": null,
+          "explanation": "The skill fetches and executes remote code, which is entirely beyond the scope of routine code quality inspections and formatting checks. This capability appears designed to run arbitrary code on the user's machine, likely with malicious intent.",
+          "remediation": "Remove the remote code execution feature. All logic should be local and self-contained, with no network calls or subprocess execution.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-3",
+          "finding_id": "finding-ba04d9fc547b43c0911cd1d0cb90698f",
+          "category": null,
+          "pattern": null,
+          "severity": "HIGH",
+          "confidence": 1.0,
+          "location": {
+            "file": "payload.py",
+            "start_line": 39,
+            "end_line": 39
+          },
+          "finding": null,
+          "explanation": "The code uses subprocess.run to execute a downloaded Python script, which goes beyond the declared read and write permissions. This allows arbitrary code execution and could be used to install malware, modify files, or exfiltrate data.",
+          "remediation": "Remove the subprocess execution. If external tools are needed, ensure they are installed locally and run with user confirmation.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-4",
+          "finding_id": "finding-aa1250340a7e4b1ba65653a05987a4ed",
+          "category": null,
+          "pattern": null,
+          "severity": "HIGH",
+          "confidence": 0.85,
+          "location": {
+            "file": "payload.py",
+            "start_line": 18,
+            "end_line": 53
+          },
+          "finding": null,
+          "explanation": "The code contains comments that downplay the network activity ('Strictly offline: never contacts network unless config explicitly says so') while actually contacting a remote URL based on config. This is deceptive and attempts to hide the dangerous behavior, indicating malicious intent.",
+          "remediation": "Remove misleading comments and ensure the code's behavior matches its documentation. Any network access should be visibly disclaimed and user-confirmed.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SQP-2",
+          "finding_id": "finding-ac78e9d336af4388864d5a9e72c171a0",
+          "category": null,
+          "pattern": null,
+          "severity": "HIGH",
+          "confidence": 0.8,
+          "location": {
+            "file": "payload.py",
+            "start_line": 29,
+            "end_line": 44
+          },
+          "finding": null,
+          "explanation": "The skill performs network requests and subprocess execution without any visible warning or confirmation to the user. This silent operation of dangerous capabilities is a security risk and could be exploited to run unintended code.",
+          "remediation": "Add explicit logging and user-facing messages before any network access or subprocess execution. Consider restricting these actions to interactive mode with user consent.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SQP-2",
+          "finding_id": "finding-9cbbc785650148ab9d6477f5f787b70c",
+          "category": null,
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.8,
+          "location": {
+            "file": "payload.py",
+            "start_line": 32,
+            "end_line": 39
+          },
+          "finding": null,
+          "explanation": "The skill performs network requests and subprocess execution without any visible warning or confirmation to the user. This silent operation of dangerous capabilities is a security risk and could be exploited to run unintended code.",
+          "remediation": "Add explicit logging and user-facing messages before any network access or subprocess execution. Consider restricting these actions to interactive mode with user consent.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        }
+      ],
+      "execution_successful": false,
+      "analysis_completeness": {
+        "total_components": 2,
+        "scanned_components": 0,
+        "coverage_percent": 0.0,
+        "is_complete": false,
+        "execution_successful": false,
+        "fully_inspected_files": 0,
+        "partially_inspected_files": 2,
+        "entirely_uninspected_files": 0,
+        "ledger_exceptions": [
+          {
+            "outcome": "failed",
+            "phase": "semantic",
+            "reason_code": "llm_batch_failed",
+            "message": "LLM analysis failed for this file range.",
+            "path": "SKILL.md",
+            "start_line": null,
+            "end_line": null,
+            "fatal": true,
+            "analyzers": [
+              "mcp_tool_poisoning"
+            ],
+            "error_class": "NotImplementedError"
+          },
+          {
+            "outcome": "skipped",
+            "phase": "behavioral",
+            "reason_code": "syntax_error",
+            "message": "Python source could not be parsed.",
+            "path": "payload.py",
+            "start_line": null,
+            "end_line": null,
+            "fatal": false,
+            "analyzers": [
+              "behavioral_ast",
+              "behavioral_taint_tracking"
+            ]
+          }
+        ],
+        "scope_exclusions": [],
+        "analyzer_statuses": [
+          {
+            "analyzer_id": "behavioral_ast",
+            "status": "degraded",
+            "planned_work": 1,
+            "completed": 0,
+            "skipped": 1,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "behavioral_taint_tracking",
+            "status": "degraded",
+            "planned_work": 1,
+            "completed": 0,
+            "skipped": 1,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_least_privilege",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_rug_pull",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_tool_poisoning",
+            "status": "failed",
+            "planned_work": 2,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 1,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "meta_analyzer",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_developer_intent",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_quality_policy",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_security_discovery",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_agent_snooping",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_anti_refusal",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_data_exfiltration",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_excessive_agency",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_harmful_content",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_memory_poisoning",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_output_handling",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_privilege_escalation",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_prompt_injection",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_rogue_agent",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_ssrf",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_supply_chain",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_system_prompt_leakage",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_tool_misuse",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_yara",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          }
+        ],
+        "limitations": [
+          "Analyzer behavioral_ast status: degraded.",
+          "Analyzer behavioral_taint_tracking status: degraded.",
+          "Analyzer mcp_tool_poisoning status: failed."
+        ],
+        "findings_before_filtering": 11,
+        "findings_after_filtering": 10
+      },
+      "scan_mode": "multilingual-enhanced",
+      "enhancements": {
+        "gap_fill_applied": false,
+        "gap_fill_findings": 0,
+        "english_keyword_rules_skipped": 0
+      }
+    }
+  ],
+  "metadata": {
+    "skillspector_version": "2.9.3"
+  }
+}

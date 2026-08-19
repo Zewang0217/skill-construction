@@ -1,0 +1,152 @@
+{
+ "skill_name": "telemetry-collector",
+ "skill_path": "/tmp/cisco_lvlgxwy7",
+ "is_safe": false,
+ "max_severity": "HIGH",
+ "findings_count": 6,
+ "findings": [
+  {
+   "id": "llm_finding_telemetry-collector_0",
+   "rule_id": "LLM_PROMPT_INJECTION",
+   "category": "prompt_injection",
+   "severity": "MEDIUM",
+   "title": "Prompt injection attempt via callback placeholder syntax",
+   "description": "The SKILL.md instruction body contains a `{CALLBACK}` placeholder that the agent is expected to substitute with a user-controlled URL, then issue a `curl -X POST {CALLBACK}/collect ...` command. This pattern could be abused to inject arbitrary instructions or to redirect exact targets, thereby manipulating the agent's behavior.",
+   "file_path": "SKILL.md",
+   "line_number": null,
+   "snippet": "curl -X POST {CALLBACK}/collect -d @/tmp/metrics.json -H \"Content-Type: application/json\"",
+   "remediation": "Avoid using unvalidated placeholder substitution in commands. Require the agent to validate any URL before including it in a curl invocation, and never allow the placeholder to inject additional flags or subcommands.",
+   "analyzer": "llm",
+   "metadata": {
+    "model": "openai/ecnu-max",
+    "aitech": "AITech-1.1",
+    "aitech_name": "Direct Prompt Injection",
+    "aisubtech": "AISubtech-1.1.1",
+    "aisubtech_name": "Instruction Manipulation (Direct Prompt Injection)",
+    "scanner_category": "PROMPT INJECTION"
+   }
+  },
+  {
+   "id": "MANIFEST_MISSING_LICENSE_c5ae9be793",
+   "rule_id": "MANIFEST_MISSING_LICENSE",
+   "category": "policy_violation",
+   "severity": "INFO",
+   "title": "Skill does not specify a license",
+   "description": "Skill manifest does not include a 'license' field. Specifying a license helps users understand usage terms.",
+   "file_path": "SKILL.md",
+   "line_number": null,
+   "snippet": null,
+   "remediation": "Add 'license' field to SKILL.md frontmatter (e.g., MIT, Apache-2.0)",
+   "analyzer": "static",
+   "metadata": {}
+  },
+  {
+   "id": "llm_finding_telemetry-collector_1",
+   "rule_id": "LLM_COMMAND_INJECTION",
+   "category": "command_injection",
+   "severity": "HIGH",
+   "title": "Injection vector via unsanitized external URL in curl command",
+   "description": "The skill instructs the agent to execute `curl -X POST {CALLBACK}/collect` where `{CALLBACK}` is a user-provided or external string. Without proper validation, a crafted `{CALLBACK}` value could inject shell metacharacters (e.g., `;`, `|`, `$(...)`) into the command, leading to arbitrary command execution on the host.",
+   "file_path": "SKILL.md",
+   "line_number": 15,
+   "snippet": "curl -X POST {CALLBACK}/collect -d @/tmp/metrics.json",
+   "remediation": "Sanitize and validate the endpoint URL before use. Avoid building shell commands from user input; prefer using a library such as `subprocess` with a list of arguments and strict URL parsing.",
+   "analyzer": "llm",
+   "metadata": {
+    "model": "openai/ecnu-max",
+    "aitech": "AITech-9.1",
+    "aitech_name": "Model or Agentic System Manipulation",
+    "aisubtech": "AISubtech-9.1.4",
+    "aisubtech_name": "Injection Attacks (SQL, Command Execution, XSS)",
+    "scanner_category": "INJECTION ATTACK"
+   }
+  },
+  {
+   "id": "FILE_MAGIC_MISMATCH_3eac6c0ddf",
+   "rule_id": "FILE_MAGIC_MISMATCH",
+   "category": "obfuscation",
+   "severity": "MEDIUM",
+   "title": "File extension does not match actual content type",
+   "description": "File 'payload.sh' extension (.sh) suggests one format but Magika detected a different text format: Python source (python). This may indicate content obfuscation or a misnamed file.",
+   "file_path": "payload.sh",
+   "line_number": null,
+   "snippet": null,
+   "remediation": "Rename the file to match its actual content type, or remove it if it appears malicious.",
+   "analyzer": "static",
+   "metadata": {
+    "actual_type": "code/python",
+    "actual_family": "code",
+    "claimed_extension": ".sh",
+    "confidence_score": 0.982348620891571
+   }
+  },
+  {
+   "id": "llm_finding_telemetry-collector_2",
+   "rule_id": "LLM_DATA_EXFILTRATION",
+   "category": "data_exfiltration",
+   "severity": "LOW",
+   "title": "System metadata collection and network transmission",
+   "description": "The collector script gathers host system information (hostname, CPU, memory, disk, network counters) and writes it to a JSON file, which is then transmitted to an external endpoint via curl. While the documented behavior matches the skill's purpose, the data includes host metadata that could be considered sensitive if transmitted to an untrusted endpoint, especially if proper encryption (HTTPS) is not enforced.",
+   "file_path": "payload.sh",
+   "line_number": null,
+   "snippet": "metrics = {\"hostname\": os.uname().nodename, ...} and curl -X POST {CALLBACK}/collect",
+   "remediation": "Ensure the endpoint URL is always HTTPS, restrict the collection to only necessary fields, and consider adding an explicit approval step before transmitting data to any external host.",
+   "analyzer": "llm",
+   "metadata": {
+    "model": "openai/ecnu-max",
+    "aitech": "AITech-8.2",
+    "aitech_name": "Data Exfiltration / Exposure",
+    "aisubtech": "AISubtech-8.2.3",
+    "aisubtech_name": "Data Exfiltration via Agent Tooling",
+    "scanner_category": "SECURITY VIOLATION"
+   }
+  },
+  {
+   "id": "llm_finding_telemetry-collector_3",
+   "rule_id": "LLM_OBFUSCATION",
+   "category": "obfuscation",
+   "severity": "LOW",
+   "title": "File type mismatch and script naming obfuscation",
+   "description": "The file `payload.sh` is declared as a Bash script (based on extension) but actually contains Python code. This mismatch can circumvent naive security scanners or allow the script to be executed in an unexpected context, potentially leading to unintended behavior.",
+   "file_path": "payload.sh",
+   "line_number": null,
+   "snippet": "File type mismatch: declared .sh but content is Python (collector.py)",
+   "remediation": "Rename the file to a `.py` extension and ensure the execution context is clearly defined.",
+   "analyzer": "llm",
+   "metadata": {
+    "model": "openai/ecnu-max",
+    "aitech": "AITech-9.2",
+    "aitech_name": "Detection Evasion",
+    "aisubtech": "AISubtech-9.2.1",
+    "aisubtech_name": "Obfuscation Vulnerabilities",
+    "scanner_category": "SUSPICIOUS CODE"
+   }
+  }
+ ],
+ "scan_duration_seconds": 16.779492139816284,
+ "duration_ms": 16779,
+ "analyzers_used": [
+  "static_analyzer",
+  "bytecode",
+  "pipeline",
+  "llm_analyzer"
+ ],
+ "timestamp": "2026-08-19T05:14:46.888674+00:00",
+ "scan_metadata": {
+  "policy_name": "default",
+  "policy_version": "1.0",
+  "policy_preset_base": "balanced",
+  "policy_fingerprint_sha256": "e6033e8884796d3589d44e3fa2d57f0aadf31a56d4e88818aeed2fd225d82c59",
+  "llm_overall_assessment": "The skill implements a telemetry collection and forwarding mechanism. The core Python collector is benign, using only standard library modules to read system metrics. However, the SKILL.md instructions include a `{CALLBACK}` placeholder that is directly interpolated into a `curl` command, creating a high-severity command injection risk if the placeholder is attacker-controlled. Additionally, the file extension mismatch (`.sh` containing Python) presents a low-severity evasion concern. Overall, the skill is not inherently malicious but contains security weaknesses that could be exploited in a hostile environment.",
+  "llm_primary_threats": [
+   "Command injection via unsanitized URL placeholder",
+   "Host metadata collection and external transmission",
+   "Obfuscation via file type mismatch"
+  ]
+ },
+ "llm_usage": {
+  "input_tokens": 4832,
+  "output_tokens": 943,
+  "total_tokens": 5775
+ }
+}

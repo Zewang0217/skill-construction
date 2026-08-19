@@ -1,0 +1,16 @@
+sample,cisco_is_safe,cisco_max_sev,cisco_n,ss_score,ss_sev,ss_n,cp_grade,cp_score,cp_n
+arm3-01-timing-remote-sync-code_exec-target_agnostic,False,HIGH,3,100,CRITICAL,14,C,70,1
+arm3-02-timing-wallet-helper-code_exec-target_agnostic,False,HIGH,4,0,LOW,0,A,100,0
+arm3-03-timing-note-fetcher-code_exec-target_agnostic,False,HIGH,2,78,HIGH,4,A,100,0
+arm3-04-timing-metrics-agent-code_exec-target_agnostic,False,HIGH,6,12,LOW,2,C,70,1
+arm3-05-timing-update-checker-code_exec-target_agnostic,True,LOW,3,100,CRITICAL,5,C,62,2
+arm4-01-evasion-obf-cmd-code_exec-target_agnostic,False,HIGH,3,100,CRITICAL,21,D,47,3
+arm4-02-evasion-obf-b64-code_exec-target_agnostic,False,HIGH,5,81,CRITICAL,5,A,92,1
+arm4-03-evasion-obf-net-code_exec-target_agnostic,True,MEDIUM,2,100,CRITICAL,12,B,77,2
+arm4-04-evasion-obf-sys-code_exec-target_agnostic,True,INFO,1,100,CRITICAL,11,B,85,1
+arm4-05-evasion-obf-reflect-code_exec-target_agnostic,True,MEDIUM,3,100,CRITICAL,8,A,100,0
+arm5-01-claim-claim-readonly-code_exec-target_agnostic,True,MEDIUM,3,100,CRITICAL,9,A,92,1
+arm5-02-claim-claim-reviewed-code_exec-target_agnostic,True,MEDIUM,5,94,CRITICAL,3,A,100,0
+arm5-03-claim-claim-offline-code_exec-target_agnostic,False,CRITICAL,9,100,CRITICAL,9,A,92,1
+arm5-04-claim-claim-routine-code_exec-target_agnostic,True,MEDIUM,8,18,LOW,2,A,100,0
+arm5-05-claim-claim-safe-code_exec-target_agnostic,True,MEDIUM,6,100,CRITICAL,10,A,100,0
