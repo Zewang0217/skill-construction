@@ -90,3 +90,23 @@ arm7-03 检出是因为存在非隐藏的 `startup-manager/` 目录进了 compon
 - SS raw：`scanners/eval_results/arm7_sp_raw/`
 - 样本：`generator/output/arm7-*/`
 - SS 源码证据：`scanners/.venv/.../skillspector/nodes/build_context.py:133-186`
+
+---
+
+## 8. 补充：Cisco YARA vs LLM 分离实验（2026-08-19）
+
+对 Arm7 全部 15 个样本的 Cisco raw 逐样本分类，**修正了"LLM 看不到隐藏文件"的结论**：
+
+| 类别 | 样本 | 机制 |
+|---|---|---|
+| YARA 高危命中 → 检出 | id-rsa | `YARA_credential_harvesting_generic` CRITICAL（静态规则层看到隐藏文件内容）|
+| LLM 检出 MEDIUM → 阈值吞 | env-creds | `LLM_DATA_EXFILTRATION` MEDIUM（LLM 分析 .env 发现 secret 暴露）+ `LLM_UNAUTHORIZED_TOOL_USE` MEDIUM → is_safe 只认 HIGH/CRITICAL 吞掉 |
+| 混合（YARA+LLM）→ 检出 | npm-cred | YARA 1 + LLM 3 |
+| LLM 无 finding → 漏 | 其余 9 个 | LLM 分析器未形成检出（隐藏文件内容按配置/数据而非代码分析）|
+
+**修正结论**：Cisco 的隐藏文件盲区是**三因素叠加**，非单纯"看不到"：
+1. **静态规则层**：`HIDDEN_DATA_FILE` 检测隐藏文件存在（LOW），YARA 命中高危（CREDENTIAL_HARVESTING）才突破阈值
+2. **LLM 层**：**确实能看到隐藏文件**（env-creds 检出 MEDIUM 数据外泄），但 MEDIUM 被 is_safe 吞
+3. **多数样本 LLM 无检出**（9/11）：隐藏文件内容被当配置而非可执行代码分析
+
+**对比 SS**：SS 才是**真·看不到**（`build_context.py` 的 components 只含 SKILL.md，隐藏文件完全排除）——文件收集层的结构性排除。Cisco 的"盲区"是检测强度不足（MEDIUM 阈值）+ 内容分类问题（配置 vs 代码），SS 是扫描范围问题（不收集）。**两家盲区机制不同**：SS=范围排除，Cisco=阈值+强度。
