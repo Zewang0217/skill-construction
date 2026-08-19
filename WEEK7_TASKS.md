@@ -1,0 +1,265 @@
+# WEEK-7 任务书：500+ 恶意样本规模化评测（2026-08-16）
+
+> 用途：本文件是本周全部任务的唯一权威记录。记忆压缩后凭此文件恢复全部上下文与步骤。
+> 上一轮：week-6（2026-08-14 收官，四线并行完成：19 槽生成/19 真实/20 良性/扫描评测）
+
+---
+
+## 0. 本周目标
+
+把恶意样本池从 53 个扩到 **500+（构造 200 + 真实 350）**，良性 500，完成三家扫描器全量评测，
+产出论文可用的 TP/FP 完整矩阵。
+
+## 1. 已拍板决策（勿改，除非用户重新决策）
+
+| # | 决策 | 内容 |
+|---|---|---|
+| D1 | 构造覆盖单位 | **43 坐标 × 每坐标 2-4 样本**（≈86-172 个）。43 = source×mech×target 唯一坐标组合（s4-slots-full.csv 174 行去重）。83 是槽数（坐标内按检测信号细分），评测维度不是生成维度。 |
+| D2 | behaviors 来源 | mapping-db evidence/notes 真实例子 + 现有 SLOT_SEEDS 手写行为 → 合并成模板库 |
+| D3 | 服务器分工 | `/opt/skill-bench/` 独立目录（不碰 /opt 其他东西）：拉真实样本 + 三家扫描 + 报告落盘 |
+| D4 | 真实样本分层 | MalSkillBench 官方 703 WILD，按 B1-B15 行为标签分层抽样 ~350（每行为 ~23 个）|
+| D5 | 生成样本必须有脚本 | 每个生成样本必须含可执行脚本/文件（不能只有 SKILL.md 文本）|
+| D6 | 槽位向量 | source/mechanism/target 均支持多值（用户既定）|
+| D7 | 危险等级 | 先落盘不做（从扫描结果反推）|
+
+## 2. 数据源与关键路径（已验证）
+
+| 数据 | 位置/方式 | 状态 |
+|---|---|---|
+| MalSkillBench 官方划分清单 | `/tmp/malskill_splits.json`（GENERATED 3076 / WILD 703 / TEST 27，来自 `_source_inventory.txt`）| ✅ 已拉 |
+| MalSkillBench 仓库 | `github.com/lxyeternal/MalSkillBench`，raw 路径 `Dataset/Skills/malware/<name>/SKILL.md` | ✅ 可拉 |
+| mapping-db API | `http://117.72.100.212:3000/api/*`（3000 反代后端；**8001 外部不通**）| ✅ 已验 |
+| mapping-db 全量 export | `GET /api/export/csv` → 172 条（168 threat），字段含 source_dim/mech_dim/target_dim/vuln_tags/carrier_tags/evidence/notes | ✅ 已拉 `/tmp/mdb_export.csv` |
+| mapping-db 维度值 | `GET /api/dim-values` → 46 条（carrier 8 / mech 10 / source 6 / target 8 / vuln 14），带 examples/counter_examples/decision_rules | ✅ 已拉 `generator/dim_values.json` |
+| mapping-db 统计 | `GET /api/stats` → 6 家分布（SS 90/Socket 29/Cisco 18/AARTS 14/Snyk 11/ATR 10）| ✅ 已拉 |
+| 43 坐标清单 | 本地 `hermes-work/week-5/s4-slots-full.csv`（174 行）| ✅ 已确认 |
+| 坐标可行性 | `hermes-work/week-5/COORDINATE_FEASIBILITY.csv`（400 行）| ✅ 已确认 |
+| 服务器 | `ssh jdcloud`（Python 3.12 + Docker 29 + 18G 磁盘 + 2.9G 内存）| ✅ 已通 |
+| 服务器现状 | docker: mapping-db 三容器(3000/8001/5432) + searxng + mihomo 等；**勿动** | ✅ 已查 |
+| 扫描器 | 本地 `skill-construction/scanners/`：Cisco v2.0.13 / SkillSpector v2.9.3 / Caterpillar v1.0.11（均未修改）| ✅ |
+| DEEPSEEK key | 本地 `generator/.env.deepseek.local`（真实 key `sk-eeb5c3...`）；**`.env.deepseek` 是占位符勿用** | ✅ |
+
+## 3. 两条工作线（并行）
+
+### 线 1（本地）：taxonomy 指导的恶意构造 200
+
+**步骤**：
+1. **坐标清单生成**：从 s4-slots-full.csv 提取 43 唯一坐标 → 每坐标补 behaviors（mapping-db evidence + SLOT_SEEDS）
+2. **生成器改造**（generator/）：
+   - `patterns.py` SLOT_SEEDS → 43 坐标驱动（保留下划线：模板组合而非全手写）
+   - 坐标模板 = source 策略（5 注入面）× mech 骨架（10 行为）× target 动作（8 目的），`itertools.product` 生成
+   - **D5 强制**：每样本必须含脚本文件（scripts/ 或内联代码块拆出），质量门检查"无脚本→重生成"
+   - 每坐标 2-4 变体防指纹（LLM 从 behaviors 池随机选/组合）
+3. **生成 200 样本**：`generate.py slot` 批量 + 自白质量门
+4. **增量扫描**：生成一批 → 扫一批 → 结果进 `eval_results/slot_eval_clean.csv` 或新表
+5. **产物**：200 构造恶意样本 + 评测表
+
+**验收**：43 坐标全部有样本；每样本有脚本；自白率为 0；200 个全扫完
+
+### 线 2（服务器）：真实恶意 350 扫描
+
+**步骤**：
+1. **建目录**：`/opt/skill-bench/`（独立，不碰 /opt 其他）
+2. **部署扫描器**：从本地拷贝三个扫描器 + venv（或服务器重装）→ `/opt/skill-bench/scanners/`
+3. **样本拉取**：脚本按 B1-B15 分层抽 350 WILD → `/opt/skill-bench/wild-350/`
+   - B1-B15 行为 ID 在官方 `_source_inventory.txt` 每条 WILD 后带
+   - 每行为均匀抽 ~23 个；跳过已测的（本地已有 19 个的对应）
+4. **扫描 runner**：串行/并行（建议 4 路）跑三家 → `/opt/skill-bench/results/`（JSON + CSV）
+   - 预计 350×3 = 1050 次扫描，4 路并行 ~7-15 小时
+5. **报告落盘**：`verdict_wild350.csv` + raw JSON + 摘要 md
+
+**验收**：350 样本全扫完，报告可下载回本地分析
+
+## 4. 合并产物（两条线完成后）
+
+- **500+ 恶意**（构造 200 + 真实 350）× 3 家 = 1500+ 次扫描的完整判定表
+- **500 良性**（MalSkillBench benign 拉 500，补足现有 20）→ FP 基线
+- 论文矩阵：TP/FP/F1 × 3 家 × (构造/真实/良性) 三组对照
+- 已知待办顺带：moltpho 良性池剔除、X-UI-β 槽数据、D2 决策
+
+## 5. 停机规则（沿用 week-6）
+
+- scanner/pipeline 出错 → 停所有扫描，先修
+- 定期抽样检查生成样本质量（自白/偏离槽位）
+- 坏样本：重生成 ≤3 次，仍失败 → 记录 GENERATOR_FINDINGS 并标记 dropped
+
+## 6. 风险
+
+- **WSL 跨盘 I/O 慢**：本地 find/grep 全盘会超时 → 限定目录或走服务器
+- **deepseek 速率限制**：8 路并行可能触发 → 保守 4 路
+- **MalSkillBench raw 拉取失败**：样本名含空格/特殊字符 → urllib.parse.quote 处理（已验证可行）
+- **mapping-db 数据版本**：83 槽基于 2026-08-13 export；构造以最新 export 为准（今天已拉）
+
+## 7. 本文件配套
+
+- `week-6/WEEK6_PIPELINE.md`：上轮完整记录
+- `week-7/`：本周新增报告放这里
+- `skill-construction/`：代码与数据（已 git 管理，每次里程碑 commit）
+
+---
+
+## 执行进度（2026-08-16 晚间）
+
+### 已完成
+- ✅ 43 坐标提取（s4-slots → coords43.json）
+- ✅ behaviors 模板库（mdb evidence 清洗 + ATTACK_SEEDS + 手写 = 211 条，43 坐标全覆盖）
+- ✅ 生成器改造：coord 子命令 + COORD_SEEDS 加载 + D5 强制脚本门（强化：非 .md 可执行文件）
+- ✅ batch_generate.py（断点续跑 + 进度落盘 + 失败记录）
+- ✅ 服务器 /opt/skill-bench 建好（scanners/wild-350/results/scripts）
+- ✅ 三家扫描器部署（Cisco venv + SS + caterpillar npm）——**踩坑记录见下**
+- ✅ 350 真实样本分层拉取（非 B4 全 94 + B4 抽 256 = 350，0 失败）
+- ✅ 服务器 3 路并行扫描启动（shard 0/1/2，resume 模式）
+
+### 服务器部署踩坑（重要，供后续参考）
+1. **ssh 限速**：连续 ssh 会 Connection reset——间隔 30-60s，合并操作到少次数大连接
+2. **模型名变更**：deepseek API 现在只有 v4-flash/v4-pro，deepseek-chat 是别名（chat/completions 仍通）；
+   **Cisco skill-scanner 用 deepseek-chat 会 LLM_ANALYSIS_FAILED** → 必须显式 deepseek-v4-flash
+3. **.so 缺失链**：rsync 排除 *.so 导致 litellm 链断裂（pydantic_core→tiktoken→fastuuid→cryptography→numpy.libs）——
+   逐个补太慢，**最终全量 tar .so 传（75MB + numpy.libs 7.5MB）一次解决**
+4. **skillspector_batch 模块**：在 scanners/ 目录（非 site-packages），首次 rsync 断连漏传 → 补传
+5. **caterpillar 是 npm 包**（@alice-io/caterpillar@1.0.11），不是 pip！sudo npm install -g
+6. **skill-scanner 正常判定**：LLM_ANALYSIS_FAILED 消失 + findings 含 LLM_* 规则 = LLM 生效
+
+### 进行中
+- 本地生成：176/215 样本（43 坐标，~26 完成）
+- 服务器扫描：3 路并行 350 样本（~4-5 小时）
+- 待办：2 个坏样本重生成（external_content 坐标，纯 references 无代码）、batch 完成后清理
+
+### 关键路径（再次确认）
+- 服务器 key: /opt/skill-bench/scanners/.env.deepseek.local (SKILL_SCANNER_LLM_API_KEY=)
+- 本地生成: cd generator && DEEPSEEK_API_KEY=$(grep -o "sk-[a-zA-Z0-9]*" .env.deepseek.local | head -1) && python3 batch_generate.py
+- 服务器扫描: cd /opt/skill-bench && python3 scripts/scan_runner.py --shard 3 --shard-index N --resume
+
+---
+
+## 执行进度（2026-08-16 深夜）
+
+### ✅ 线 1 完成：构造样本 231 个，43/43 坐标全覆盖
+- 226 + 5 补跑 = 231 生成样本
+- 修复 mechanism_unknown/unknown_source 坐标（VALUES 列表缺失）
+- D5 质量门强化：references/*.md 不算脚本，需非 .md 可执行文件
+- 2 个坏样本（纯 references 无代码）已删并重生成
+- 2 个 confession 误标样本（实际产物干净）待审
+
+### ✅ 线 2 进行中：6 路并行扫描
+- 真实 350 样本：3 路（shard 0/1/2，~14/117 进度）
+- 构造 231 样本：3 路（gen shard 0/1/2，~1/77 进度）
+- LLM 全生效（0 LLM_ANALYSIS_FAILED）
+- 预计 ~4-5 小时全部完成
+
+### 发现
+- 构造样本 skill-code_exec-info_theft-252b70ffcf 被 Cisco 判 SAFE——伪装过度或生成偏差，待分析
+- agent-browser-6aigix9qi2tu 被旧进程污染（deepseek-chat 模型名 LLM 失败），待重扫
+
+### 待办
+- [ ] 扫描完成后：重扫被污染的 agent-browser-6aigix9qi2tu
+- [ ] 合并 581 样本评测表（350 真实 + 231 构造）
+- [ ] 良性 500 拉取 + 扫描（FP 基线）
+- [ ] TP/FP 矩阵 + 论文
+
+---
+
+## 执行进度（2026-08-17 凌晨）
+
+### ✅ 良性 500 拉取完成
+- benign-500/: 500 个良性（seed 42，0 失败，402s）
+- 已 commit
+
+### ✅ 扫描 runner 三处修复（全部验证生效）
+1. **caterpillar data 包装**：新版输出包在 data 字段 → 解析解包（cp 有值了）
+2. **SS 平铺格式**：batch_scan 输出 score/severity 平铺（非 skills[] 包装）→ 解析兼容
+3. **resume CSV 修复**：skip 的样本从 raw 读判定进 CSV（之前 skip 直接丢行）
+
+### 当前状态：6 路扫描运行中（~5 小时）
+- wild 350（3 路）+ generated 231（3 路）
+- Cisco/SS/caterpillar 全部 LLM 生效
+- CSV 增量落盘（shard 独立文件）
+
+### 待扫描完成后
+- [ ] 重扫污染的 agent-browser-6aigix9qi2tu（已自动处理，CRITICAL 6）
+- [ ] 合并 581 恶意判定表
+- [ ] 良性 500 扫描（FP 基线）
+- [ ] TP/FP 矩阵 + 论文
+
+---
+
+## 执行进度（2026-08-17 上午）
+
+### ✅ 扫描全部完成（581 样本 × 3 家 = 1743 次）
+- verdict_all.csv（581 行）已拉回本地: scanners/eval_results/verdict_all.csv
+- Cisco: 411 flagged / 153 safe / 17 na（na 全为 clawhub 无 frontmatter）
+- SS: 490 flagged，56 缺失 → 补扫中（backfill_ss.py）
+- Caterpillar: 382 flagged
+- SS 补扫: 1/56 OK（~2 小时）
+
+### ✅ Week6 合并
+- WEEK6_PIPELINE.md 追加"Week 6 规模化扩展"章节（权威汇总）
+- week-7/ 保留数据文件 + 详细任务书
+
+### ✅ 构造样本质量检查（抽样 6 + 全量信号扫描）
+- 抽样 6: 3 质量好（恶意真实）/ 3 质量差（纯良性伪装）
+- 全量正则扫描: 10/231 (4.3%) 无恶意信号
+- **人工复核 10 个**: 8 真良性（LLM 生成失败，无恶意行为）+ 2 真恶意（正则漏检: eval 远程指令 / 版本检查外发）
+- 清单: no_malice_samples.json（含复核结论）
+- **质量门盲区**: 正则+自白检查无法检测"指令层恶意缺失"（LLM 生成偏差）
+- 8 个生成失败样本待重生成
+
+### 待办
+- [ ] SS 补扫 56 完成
+- [ ] 8 个生成失败样本重生成
+- [ ] 500 良性扫描（FP 基线）
+- [ ] TP/FP 矩阵 → 论文
+
+---
+
+## Arm1-9 坐标内深挖实验（2026-08-18~19，S5 原型核心）
+
+> 权威记录：坐标内深挖（taxonomy 构造 skill 绕过扫描器）。完整报告在 `week-7/insights/`，可视化 `ARM_EXPERIMENTS_VISUAL.html`。
+
+### 后端切换（关键基础设施）
+- **DeepSeek 官方余额耗尽**（0 USD，欠 -5.49 CNY，用户暂不充值）
+- DashScope 的 deepseek 拒绝恶意生成（provider 对齐拦截）
+- **ecnu-max 可用**（ECNU 本地部署 = DeepSeek-V4-Flash-0731，无拦截）
+  - URL: `https://chat.ecnu.edu.cn/open/api/v1/chat/completions`，model: `ecnu-max`
+  - key 在 `generator/.env.ecnu.local` + `scanners/.env.ecnu.local`（gitignored）
+  - ECNU 不稳定：Cisco LLM 偶发失败（技术失败需 L1/L2/L3 分类）
+
+### 实验结果汇总（75+ 样本 × 3 扫描器）
+
+| Arm | 攻击面 | 样本 | Cisco | SS | Cat |
+|---|---|---|---|---|---|
+| Arm1 | 原语谱系（24 原语, code_exec 坐标）| 24 | 67% | 96% | 75% |
+| Arm2 | 语义包装（改描述层）| 6 | ~100% | ~100% | ~100% |
+| Arm3 | 载荷时序（执行阶段暴露）| 5 | ~100% | 80%（1 漏）| 60% |
+| Arm4 | 代码规避（字面改写）| 5 | ~100% | 100% 免疫 | 80% |
+| Arm5 | 声明注入（read-only 声明）| 5 | ~100% | 100% 免疫（反效果）| 40% |
+| Arm6 | 描述一致+真实恶意 | 5 | ~100% | 100% 检出 | ~100% |
+| **Arm7** | **隐藏文件载荷（.env 等）** | 15 | **27%** | **27%** | **27%** |
+| **Arm8** | **混合（隐藏+间接执行）** | 5 | **20%** | **20%** | **20%** |
+| **Arm9** | **manifest 注入（声明合理能力）** | 5 | **20%** | **80% 弱信号** | **0%** |
+
+### 关键机制发现（论文核心）
+1. **SS 难绕根因**: 规则引擎从脚本代码提取证据（E1/PE3/SDI），有脚本难绕；无脚本（纯指令载荷 arm3-02）才可能
+2. **声明注入是反效果**: SS 的 SDI 专抓"描述 vs 代码矛盾"，声明 read-only 但代码外发 = 更明显矛盾（Arm5）
+3. **manifest 声明合理能力（非虚假）可削弱 SDI**: Arm9 telemetry SS=0（frontmatter 声明"上传诊断指标"+permissions 覆盖）
+4. **文件收集层盲区**: SS `_walk_skill_files` 跳过 `.` 开头文件 → components 只含 SKILL.md；**SS=范围排除，Cisco=阈值+强度**（YARA 可见 + LLM 检出 MEDIUM 被 is_safe 吞）
+5. **四层盲区谱系**: 坐标→原语→载荷层→文件层
+6. **原语决定可检测性，坐标不决定**（Arm1: 同坐标检出率跨全谱）
+
+### 关键样本（例子，从样本提取的具体做法）
+- arm3-02 wallet-helper（SS=8 漏）: SKILL.md 描述"查询链上数据"与代码一致，`curl ...?addr=${ADDRESS} | python3 -c` 变量注入管道，无脚本文件
+- arm7-01 env-creds（三家漏）: SKILL.md"检查环境配置"正常，恶意在 .env（bash 收集 AWS/GITHUB_TOKEN 凭证 + base64 + curl 外发 {CALLBACK}）
+- arm8-02 compile-dump（三家漏）: .config 隐藏文件 base64 编码恶意 → compile() → exec() + getattr 反射（五重叠加）
+- arm9-02 telemetry（SS=0）: frontmatter 声明"uploads diagnostic metrics"+permissions [read:logs, network:upload-telemetry] → SDI 放行；恶意在 .telemetry
+- arm5-01 claim-readonly（SS=100 反效果）: offline:true + "never sends data" 但脚本 curl 外发 → SDI 抓矛盾
+
+### 其他产物
+- **剥离版**: `samples_clean/`（65 样本，去 arm 前缀 + _provenance.json，隐藏文件保留）
+- **质量门统一**: `generator/quality_gate.py`（自白词/frontmatter/占位符/恶意真实性）
+- **样本审计**: 12/12 内容干净（无自白/无空壳/无真实域），2 弱恶意（arm1-07 死代码/arm1-09 无外泄），打包级泄漏（目录名+provenance）
+
+### 待办
+- [ ] 论文 S4/S5 章节（检出率 + 4 大评测陷阱 + Arm1-9 盲区谱系）
+- [ ] benign-500 FP 矩阵（**实际未扫**——eval_benign.py 路径 bug 指向 benign-samples/ 旧 20 个）
+- [ ] SS 41 个 score=0 中 10 个待余额恢复重跑
+- [ ] HTML 已交付（05c8552），用户与他人讨论中
