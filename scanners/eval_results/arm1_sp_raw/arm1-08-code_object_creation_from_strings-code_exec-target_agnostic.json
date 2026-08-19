@@ -1,6 +1,6 @@
 {
   "batch": {
-    "scanned_at": "2026-08-18T15:51:45.706025+00:00",
+    "scanned_at": "2026-08-19T05:57:32.013067+00:00",
     "total_skills": 1,
     "scan_mode": "multilingual-enhanced",
     "enhancements": {
@@ -23,12 +23,12 @@
         "source": "arm1-08-code_object_creation_from_strings-code_exec-target_agnostic",
         "source_group": ".",
         "language": "en",
-        "scanned_at": "2026-08-18T15:51:45.704885+00:00"
+        "scanned_at": "2026-08-19T05:57:32.011782+00:00"
       },
       "risk_assessment": {
-        "score": 38,
-        "severity": "MEDIUM",
-        "recommendation": "CAUTION"
+        "score": 17,
+        "severity": "LOW",
+        "recommendation": "SAFE"
       },
       "components": [
         {
@@ -48,20 +48,20 @@
       ],
       "issues": [
         {
-          "id": "SDI-1",
-          "finding_id": "finding-79d44db3055548f0a8e94850e5b8e441",
+          "id": "SDI-2",
+          "finding_id": "finding-58bc9f83361c41f4a12a0521c6a30dbb",
           "category": null,
           "pattern": null,
           "severity": "HIGH",
-          "confidence": 1.0,
+          "confidence": 0.7,
           "location": {
             "file": "organize",
             "start_line": 128,
             "end_line": 144
           },
           "finding": null,
-          "explanation": "The evaluate_dynamic function directly executes Python code from user-supplied rules using eval(). An attacker can craft a rule like '{eval:__import__(\"os\").system(\"rm -rf /\")}' to execute arbitrary system commands with the privileges of the user running the tool. The sandbox attempt with restricted builtins is insufficient because Python's object model allows escaping through introspection (e.g., via __class__, __subclasses__, etc.). This goes beyond legitimate file organization functionality and could lead to full system compromise, data destruction, or exfiltration.",
-          "remediation": "Remove the eval() functionality entirely. Replace with a safe, restricted pattern-matching approach (e.g., only use glob patterns or explicit mapping rules). If dynamic expressions are absolutely required, use a proper sandboxed evaluator like RestrictedPython or ast-based evaluation with strict allowlists, and never pass fullpath or file context to the evaluation environment. Add explicit warnings and permission checks before any eval usage.",
+          "explanation": "The subprocess module is imported but never used in the code. While this does not directly execute commands, it indicates poor code hygiene. More concerning is that the presence of this import signals that the codebase may have been copied from a template that included subprocess usage, potentially suggesting other latent issues. It also makes the tool's attack surface larger if future code changes were to use it. The import itself is not directly exploitable without additional vulnerable code.",
+          "remediation": "Remove the unused subprocess import from the code. This reduces attack surface and improves code quality. Only import modules that are actually used.",
           "code_snippet": null,
           "intent": null,
           "tags": [],
@@ -69,39 +69,39 @@
         },
         {
           "id": "SDI-2",
-          "finding_id": "finding-e2bb254bfdd844ff98e9568323d9a56e",
+          "finding_id": "finding-ea0b40a3a5ad4ebd823728e15486952d",
           "category": null,
           "pattern": null,
-          "severity": "LOW",
-          "confidence": 0.8,
+          "severity": "MEDIUM",
+          "confidence": 0.7,
           "location": {
             "file": "organize",
             "start_line": 17,
             "end_line": 17
           },
           "finding": null,
-          "explanation": "The import of subprocess is unnecessary for the declared file organization functionality. Even though subprocess is not directly called in the current code, its presence suggests potential for future misuse, and combined with the eval() vulnerability, it could be used in a chained attack. The intent appears to be providing a hidden capability for executing system commands, which is a common pattern in malicious deceptively-named utilities.",
-          "remediation": "Remove the unused subprocess import. Only import modules that are actually used (os, sys, shutil, hashlib, re, glob, tempfile, io, contextlib, argparse, datetime, fnmatch). This reduces the attack surface and removes unnecessary capability.",
+          "explanation": "The subprocess module is imported but never used in the code. While this does not directly execute commands, it indicates poor code hygiene. More concerning is that the presence of this import signals that the codebase may have been copied from a template that included subprocess usage, potentially suggesting other latent issues. It also makes the tool's attack surface larger if future code changes were to use it. The import itself is not directly exploitable without additional vulnerable code.",
+          "remediation": "Remove the unused subprocess import from the code. This reduces attack surface and improves code quality. Only import modules that are actually used.",
           "code_snippet": null,
           "intent": null,
           "tags": [],
           "language_compatible": true
         },
         {
-          "id": "SQP-2",
-          "finding_id": "finding-ab7d5b2c6e2e480383d83ea1ff0e5d86",
+          "id": "SDI-2",
+          "finding_id": "finding-e22f431b3af74aac85c754cbe904ae2c",
           "category": null,
           "pattern": null,
-          "severity": "MEDIUM",
-          "confidence": 0.9,
+          "severity": "LOW",
+          "confidence": 0.7,
           "location": {
             "file": "organize",
-            "start_line": 128,
-            "end_line": 144
+            "start_line": 27,
+            "end_line": 27
           },
           "finding": null,
-          "explanation": "This finding combines the eval() risk with insufficient user warnings. The tool exposes arbitrary code execution without any prominent warning to the user about the dangers of using the {eval:...} syntax. The restricted-builtins sandbox is weak and can be bypassed via Python's object introspection chains (e.g., accessing subclasses that have os module references). The tool's description as a 'lightweight file organization utility' does not suggest this advanced code execution capability, making it more dangerous as users may unknowingly provide untrusted rules.",
-          "remediation": "Remove eval() entirely or wrap it in a much more restrictive sandbox with an explicit user opt-in that requires confirmation of code execution risks. Add clear documentation and warnings in the help text. Additionally, sanitize the dest path and new_name from eval results to prevent path traversal attacks (e.g., dest like '../outside'). Consider requiring a separate flag like --allow-eval and enforce strict validation on all paths.",
+          "explanation": "The subprocess module is imported but never used in the code. While this does not directly execute commands, it indicates poor code hygiene. More concerning is that the presence of this import signals that the codebase may have been copied from a template that included subprocess usage, potentially suggesting other latent issues. It also makes the tool's attack surface larger if future code changes were to use it. The import itself is not directly exploitable without additional vulnerable code.",
+          "remediation": "Remove the unused subprocess import from the code. This reduces attack surface and improves code quality. Only import modules that are actually used.",
           "code_snippet": null,
           "intent": null,
           "tags": [],
@@ -345,7 +345,7 @@
           }
         ],
         "limitations": [],
-        "findings_before_filtering": 3,
+        "findings_before_filtering": 4,
         "findings_after_filtering": 3
       },
       "scan_mode": "multilingual-enhanced",

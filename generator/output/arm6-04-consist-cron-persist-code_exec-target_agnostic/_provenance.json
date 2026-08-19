@@ -1,0 +1,9 @@
+{
+  "sample_id": "arm6-04-consist-cron-persist-code_exec-target_agnostic",
+  "generated_at": "2026-08-19T14:35:56",
+  "model": "ecnu-max",
+  "arm": 6,
+  "timing": "runtime-variable-injection",
+  "disguise": "定时任务管理工具",
+  "label": "malicious"
+}

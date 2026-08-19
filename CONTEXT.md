@@ -107,3 +107,49 @@ _Avoid_: 原始 is_safe（Cisco 只认 HIGH/CRITICAL 会吞 80 个 MEDIUM 检出
 SS 的批量输出格式（{score, severity, issues}），不记录 execution_successful /
 failed_executions——"LLM 失败"与"判安全"外观不可区分。是 SS 评测盲区的根因。
 _Avoid_: wrapped（含执行状态，需要逐样本解析）
+
+## 实验臂（arm）
+
+**Arm1（原语谱系）**:
+code_exec 坐标下 24 种攻击原语各生成直白版，验证"原语决定可检测性"。
+结果：Cat 无字面命令全盲 / Cisco 间接执行漏检 / SS Snyk 混合模式漏检（Arm1 盲区稳定复现：
+Cat #06/#07、Cisco #08/#09 重跑仍漏；数据流 #13 有 LLM 随机性）。
+
+**Arm2（语义包装）**:
+改 SKILL.md 描述层的 few-shot 包装（免责/伪装/安全声明），脚本不变。
+结果：对代码层检出无效（SS 仍 94-100%）——检出靠代码证据，描述层包装不改变代码证据。
+
+**Arm3（载荷时序）**:
+SKILL.md 只引用远端载荷/管道，恶意在运行时暴露。SS 唯一有效绕过（arm3-02 SS=8，
+无脚本 + 描述一致 + 变量注入），Cat 2 个漏检。Cisco 漏检为技术失败。
+
+**Arm4（代码规避）**:
+恶意命令字面改写（变量拼接 eval/data URI/systemd 替代）。SS 免疫（AST/语义穿透），
+Cat 1 个漏检，Cisco 漏检为技术失败。
+
+**Arm5（声明注入）**:
+SKILL.md 内嵌"read-only/reviewed/offline"声明。**对 SS 是反效果**（SDI 规则专抓声明矛盾，
+声明 read-only 但代码外发 = 更明显矛盾）。Cisco 无"被说服"证据（漏检为技术失败+阈值）。
+
+**Arm6（描述一致性+变量注入）**:
+描述与代码一致 + 运行时变量注入 + 真实恶意（凭证窃取/持久化）。结果：SS 5/5 全检出
+（SDI 仍命中——描述未做到逐字一致；E1/PE3 从代码层命中）。**SS 难绕的根因：规则引擎
+从脚本代码提取证据，有脚本就难绕，无脚本（纯指令载荷）才可能**。
+
+## 关键机制
+
+**SDI（Skill Description Inconsistency）**:
+SS 规则族，检测"SKILL.md 声明 vs 代码实际行为"的矛盾。反制声明注入（Arm5 反效果），
+是 SS 免疫声明类攻击的根因。绕 SDI 需描述与代码逐字一致。
+
+**载荷时序（payload timing）**:
+恶意暴露阶段——静态可见（SKILL.md/脚本直接含恶意）vs 执行阶段暴露（运行时下载/变量注入/
+远端文件）。arm3-02 证明：无脚本 + 描述一致 + 变量注入可绕 SS；有脚本则难绕（规则从代码取证）。
+
+**打包级泄漏**:
+样本目录名（含 arm 类别）和 _provenance.json（label=malicious）暴露 ground-truth——
+盲测分发前必须剥离（同 Cat 12% 泄漏问题）。
+
+**技术失败伪装**:
+ECNU 服务不稳定导致的 LLM 失败（8/11 Cisco 漏检）可能被误读为"攻击面生效"——
+评测必须区分技术失败 vs 真漏检（L1/L2/L3 框架）。

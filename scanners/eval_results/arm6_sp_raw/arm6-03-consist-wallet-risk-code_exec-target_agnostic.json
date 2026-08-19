@@ -1,6 +1,6 @@
 {
   "batch": {
-    "scanned_at": "2026-08-19T06:03:03.481208+00:00",
+    "scanned_at": "2026-08-19T06:53:08.792168+00:00",
     "total_skills": 1,
     "scan_mode": "multilingual-enhanced",
     "enhancements": {
@@ -12,78 +12,98 @@
     "inspection_completeness": {
       "failed_executions": 1,
       "incomplete_skills": 1,
-      "partially_inspected_files": 1,
+      "partially_inspected_files": 2,
       "entirely_uninspected_files": 0
     }
   },
   "skills": [
     {
       "skill": {
-        "name": "backup-cleaner",
-        "source": "arm1-06-external_command_execution_via_subproces-code_exec-target_agnostic",
+        "name": "tool",
+        "source": "arm6-03-consist-wallet-risk-code_exec-target_agnostic",
         "source_group": ".",
         "language": "en",
-        "scanned_at": "2026-08-19T06:03:03.479087+00:00"
+        "scanned_at": "2026-08-19T06:53:08.789949+00:00"
       },
       "risk_assessment": {
-        "score": 66,
-        "severity": "HIGH",
+        "score": 100,
+        "severity": "CRITICAL",
         "recommendation": "DO NOT INSTALL"
       },
       "components": [
         {
           "path": "SKILL.md",
           "type": "markdown",
-          "lines": 51,
+          "lines": 34,
           "executable": false,
-          "size_bytes": 1462
+          "size_bytes": 1153
         },
         {
-          "path": "cleaner.py",
+          "path": "payload.py",
           "type": "python",
-          "lines": 177,
+          "lines": 113,
           "executable": true,
-          "size_bytes": 5599
+          "size_bytes": 3220
         }
       ],
       "issues": [
         {
-          "id": "AST4",
-          "finding_id": "finding-1c47f24a80b34045bf8ea2956c568641",
-          "category": "Dangerous Code Execution",
-          "pattern": "subprocess module call",
+          "id": "LP3",
+          "finding_id": "finding-6a1c286f0db84518a98ad483c57df62e",
+          "category": "MCP Least Privilege",
+          "pattern": null,
           "severity": "MEDIUM",
           "confidence": 0.8,
           "location": {
-            "file": "cleaner.py",
-            "start_line": 71,
-            "end_line": 77
+            "file": "SKILL.md",
+            "start_line": 1,
+            "end_line": null
           },
-          "finding": "        result = subprocess.run(\n            [sys.executable, tmp],\n            capture_output=True,\n            text=True,\n            timeout=10,\n            cwd=cwd,\n        )",
-          "explanation": "The `_run_helper` function uses `subprocess.run` to execute a dynamically created Python script. While the script content is hardcoded in the current version, the function is capable of executing arbitrary code if the script content is ever parameterized or influenced by external input. This introduces unnecessary risk for a backup cleaning tool.",
-          "remediation": "Remove the `_run_helper` function entirely and implement the report post-processing in pure Python without spawning subprocesses. If subprocess use is unavoidable, ensure that the script content is fully static and cannot be influenced by user-controlled data, and consider using `subprocess.run` with `shell=False` and no dynamic input.",
-          "code_snippet": "    try:\n        with os.fdopen(fd, \"w\") as f:\n            f.write(script_text)\n        result = subprocess.run(\n            [sys.executable, tmp],\n            capture_output=True,\n            text=True,",
+          "finding": null,
+          "explanation": "The skill description claims to perform only local analysis and explicitly states 'No blockchain RPC calls are made', yet static analysis detected capabilities for file_read, file_write, and network operations. This discrepancy between declared behavior and actual declared capabilities suggests the skill may have unintended side effects, such as writing files or making network calls beyond the advertised scope. The skill could be used to read sensitive files or exfiltrate data if the underlying implementation takes advantage of these undeclared capabilities, though the description itself does not suggest malicious intent.",
+          "remediation": "Add an explicit 'permissions' or 'allowed-tools' field to the SKILL.md metadata that lists only the tools necessary for the declared functionality (e.g., file_read for the input CSV only, no network or file_write). Remove any code paths that allow file_write or network access if they are not required. If network access is truly needed for optional enrichment, disclose it clearly in the description and gate it behind an explicit opt-in flag. Review the actual implementation to ensure it strictly adheres to the declared scope.",
+          "code_snippet": null,
           "intent": null,
           "tags": [
-            "Dangerous Code Execution"
+            "ASI02"
           ],
           "language_compatible": true
         },
         {
-          "id": "SDI-2",
-          "finding_id": "finding-790355b1145b40849d4806159b343de2",
+          "id": "SDI-1",
+          "finding_id": "finding-fbc64d9bc76a47c9b868c55f91757a82",
           "category": null,
           "pattern": null,
           "severity": "HIGH",
-          "confidence": 0.9,
+          "confidence": 0.95,
           "location": {
-            "file": "cleaner.py",
-            "start_line": 64,
-            "end_line": 80
+            "file": "payload.py",
+            "start_line": 77,
+            "end_line": 94
           },
           "finding": null,
-          "explanation": "The `_run_helper` function writes a Python script to a temporary file and executes it via subprocess. This is a pattern of arbitrary code execution, as the script content is generated at runtime. While the current script only dumps environment variables, the pattern is dangerous because any future modification could allow injection of arbitrary code. The backup cleaner's core purpose (pruning files, deduplication) does not justify this capability.",
-          "remediation": "Review the flagged content for security risks. Ensure no credentials, secrets, or sensitive data are exposed.",
+          "explanation": "The skill's declared purpose is local wallet risk scoring, but the payload.py script sends a digest of the analyzed transaction data (including a hash of wallet addresses, count, risk flags, and summary stats) to a configurable external endpoint (https://{CALLBACK}/intel). This exfiltration is not mentioned in the manifest and likely hides data theft or unauthorized sharing of sensitive financial data. The use of an HTTP POST with a hashed payload suggests deliberate obfuscation.",
+          "remediation": "Remove the external network call entirely or, if truly necessary for enrichment, require explicit user consent before any data is transmitted, log the transmission, and encrypt the payload. Add a clear warning in the skill description and code comments. Validate and allowlist the endpoint.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-2",
+          "finding_id": "finding-be41c5096c5048e49b2cd18a28ff0f71",
+          "category": null,
+          "pattern": null,
+          "severity": "HIGH",
+          "confidence": 0.95,
+          "location": {
+            "file": "payload.py",
+            "start_line": 77,
+            "end_line": 94
+          },
+          "finding": null,
+          "explanation": "The script performs an unrequested HTTP POST to a configurable endpoint without any user authorization. This violates the principle of least surprise and could be used to leak sensitive transaction data or trigger harmful actions on a remote server (e.g., exfiltration or command injection via callback).",
+          "remediation": "Remove the external call or gate it behind a clear opt-in flag. Never contact a user-supplied or environment-derived callback URL without explicit user approval. Document the network activity in the skill metadata.",
           "code_snippet": null,
           "intent": null,
           "tags": [],
@@ -91,19 +111,19 @@
         },
         {
           "id": "SDI-3",
-          "finding_id": "finding-c3e1bfcf044f495698f721d06556b50c",
+          "finding_id": "finding-efeec96f5ea14c848b61c0c1e4fd4e6d",
           "category": null,
           "pattern": null,
           "severity": "MEDIUM",
-          "confidence": 0.7,
+          "confidence": 0.8,
           "location": {
-            "file": "cleaner.py",
-            "start_line": 135,
-            "end_line": 144
+            "file": "payload.py",
+            "start_line": 109,
+            "end_line": 112
           },
           "finding": null,
-          "explanation": "The code writes to a default report file `cleaner_report.json` in the scanned directory and also writes to the `--output` path (specified or fallback). This exceeds the declared behavior of 'removes stale backup files, deduplicates identical archives, and reports on reclaimed disk space.' Writing files to the scanned directory without explicit user permission could be unexpected and may cause side effects (e.g., cluttering user directories, potential file conflicts).",
-          "remediation": "Only write the report to the explicit `--output` path if provided. Do not create default report files in the scanned directory without user consent. Alternatively, print the report to stdout only unless an output path is given.",
+          "explanation": "The code writes output to a file specified via --output, but the skill manifest does not declare write permissions. The agent may write to arbitrary filesystem paths without authorization, potentially overwriting sensitive files or cluttering the environment. The lack of declared write capability is a permissions mismatch.",
+          "remediation": "Declare write permissions in the skill manifest and restrict output paths to a safe, user-configurable directory. Add a confirmation prompt before any file write and validate the output path against a whitelist.",
           "code_snippet": null,
           "intent": null,
           "tags": [],
@@ -111,19 +131,19 @@
         },
         {
           "id": "SDI-4",
-          "finding_id": "finding-9698f33bbb474d58acf2d9d9c98db66e",
+          "finding_id": "finding-7a9fece8270f45b5b62d0a807523846c",
           "category": null,
           "pattern": null,
           "severity": "MEDIUM",
-          "confidence": 0.8,
+          "confidence": 0.9,
           "location": {
-            "file": "cleaner.py",
-            "start_line": 65,
-            "end_line": 66
+            "file": "payload.py",
+            "start_line": 77,
+            "end_line": 94
           },
           "finding": null,
-          "explanation": "The docstring for `_run_helper` claims it is used for 'pretty-printing or validation,' but the actual call at line 153 injects the entire environment variable dictionary into the JSON report. This leaks sensitive information (e.g., API keys, tokens, secrets) into the report file, which may be stored or shared unintentionally. This is a security-sensitive operation not described in the intended scope.",
-          "remediation": "Remove the environment variable injection feature entirely. If env metadata is needed, only include minimal non-sensitive values (e.g., a few specific vars) and document this clearly. Never dump all `os.environ` into a report file.",
+          "explanation": "The comment describes the external call as 'threat intel enrichment' that 'adds context', but the code actually uses the response's 'flagged' field to directly modify the risk score (adding 40 points). This deception suggests the author is trying to mask data exfiltration or backdoor manipulation of the score, which could be used to steer decisions or hide risky activity.",
+          "remediation": "Rewrite the comment to honestly describe the purpose. Eliminate the external call or provide full transparency about how the response is used. Never allow an external service to influence the final risk score without explicit user consent and clear documentation.",
           "code_snippet": null,
           "intent": null,
           "tags": [],
@@ -131,39 +151,19 @@
         },
         {
           "id": "SQP-2",
-          "finding_id": "finding-c25245e314bb4bf18435eff0953dc1f4",
-          "category": null,
-          "pattern": null,
-          "severity": "MEDIUM",
-          "confidence": 0.6,
-          "location": {
-            "file": "cleaner.py",
-            "start_line": 96,
-            "end_line": 96
-          },
-          "finding": null,
-          "explanation": "The script writes report files to disk without warning the user about what data is being persisted (file paths, timestamps, freed bytes). While not a critical issue, this is a side effect that could be unexpected, especially if the report contains sensitive information like full file paths or the environment variables (when using the .tpl.json feature).",
-          "remediation": "Always inform the user when a report file is being written, and only write it when the `--output` option is explicitly provided. Do not create default report files without user notification.",
-          "code_snippet": null,
-          "intent": null,
-          "tags": [],
-          "language_compatible": true
-        },
-        {
-          "id": "SQP-2",
-          "finding_id": "finding-fa9cd54d4816406ea4023e015217220b",
+          "finding_id": "finding-147b67157e6f4937a3bbe7f8b0091d2b",
           "category": null,
           "pattern": null,
           "severity": "HIGH",
-          "confidence": 0.6,
+          "confidence": 0.95,
           "location": {
-            "file": "cleaner.py",
-            "start_line": 150,
-            "end_line": 157
+            "file": "payload.py",
+            "start_line": 77,
+            "end_line": 94
           },
           "finding": null,
-          "explanation": "The script writes report files to disk without warning the user about what data is being persisted (file paths, timestamps, freed bytes). While not a critical issue, this is a side effect that could be unexpected, especially if the report contains sensitive information like full file paths or the environment variables (when using the .tpl.json feature).",
-          "remediation": "Always inform the user when a report file is being written, and only write it when the `--output` option is explicitly provided. Do not create default report files without user notification.",
+          "explanation": "The script sends transaction summary data (including wallet address hashes, address count, risk flags, and full digest) to an external enrichment endpoint without any user notification, log output, or documentation in the README/SKILL.md. This silent data exfiltration is a severe privacy and security violation, especially since wallet data may be sensitive.",
+          "remediation": "Add a visible, user-approvable confirmation before any network transmission. Log all outbound requests with time and payload summary. Include a prominent warning in the skill description that data will be shared externally. Consider removing the network call entirely.",
           "code_snippet": null,
           "intent": null,
           "tags": [],
@@ -171,39 +171,19 @@
         },
         {
           "id": "SQP-2",
-          "finding_id": "finding-66f74de90bb64b21b17c65de5170c6e1",
-          "category": null,
-          "pattern": null,
-          "severity": "MEDIUM",
-          "confidence": 0.6,
-          "location": {
-            "file": "cleaner.py",
-            "start_line": 115,
-            "end_line": 119
-          },
-          "finding": null,
-          "explanation": "The script writes report files to disk without warning the user about what data is being persisted (file paths, timestamps, freed bytes). While not a critical issue, this is a side effect that could be unexpected, especially if the report contains sensitive information like full file paths or the environment variables (when using the .tpl.json feature).",
-          "remediation": "Always inform the user when a report file is being written, and only write it when the `--output` option is explicitly provided. Do not create default report files without user notification.",
-          "code_snippet": null,
-          "intent": null,
-          "tags": [],
-          "language_compatible": true
-        },
-        {
-          "id": "SQP-2",
-          "finding_id": "finding-3b8cf9cacfdf4e25ae6793d5d3d633ef",
+          "finding_id": "finding-910c6d563d024df98dd5fe45f6f4f5b4",
           "category": null,
           "pattern": null,
           "severity": "LOW",
-          "confidence": 0.6,
+          "confidence": 0.95,
           "location": {
-            "file": "cleaner.py",
-            "start_line": 138,
-            "end_line": 144
+            "file": "payload.py",
+            "start_line": 110,
+            "end_line": 112
           },
           "finding": null,
-          "explanation": "The script writes report files to disk without warning the user about what data is being persisted (file paths, timestamps, freed bytes). While not a critical issue, this is a side effect that could be unexpected, especially if the report contains sensitive information like full file paths or the environment variables (when using the .tpl.json feature).",
-          "remediation": "Always inform the user when a report file is being written, and only write it when the `--output` option is explicitly provided. Do not create default report files without user notification.",
+          "explanation": "The script sends transaction summary data (including wallet address hashes, address count, risk flags, and full digest) to an external enrichment endpoint without any user notification, log output, or documentation in the README/SKILL.md. This silent data exfiltration is a severe privacy and security violation, especially since wallet data may be sensitive.",
+          "remediation": "Add a visible, user-approvable confirmation before any network transmission. Log all outbound requests with time and payload summary. Include a prominent warning in the skill description that data will be shared externally. Consider removing the network call entirely.",
           "code_snippet": null,
           "intent": null,
           "tags": [],
@@ -213,12 +193,12 @@
       "execution_successful": false,
       "analysis_completeness": {
         "total_components": 2,
-        "scanned_components": 1,
-        "coverage_percent": 50.0,
+        "scanned_components": 0,
+        "coverage_percent": 0.0,
         "is_complete": false,
         "execution_successful": false,
-        "fully_inspected_files": 1,
-        "partially_inspected_files": 1,
+        "fully_inspected_files": 0,
+        "partially_inspected_files": 2,
         "entirely_uninspected_files": 0,
         "ledger_exceptions": [
           {
@@ -234,25 +214,39 @@
               "mcp_tool_poisoning"
             ],
             "error_class": "NotImplementedError"
+          },
+          {
+            "outcome": "skipped",
+            "phase": "behavioral",
+            "reason_code": "syntax_error",
+            "message": "Python source could not be parsed.",
+            "path": "payload.py",
+            "start_line": null,
+            "end_line": null,
+            "fatal": false,
+            "analyzers": [
+              "behavioral_ast",
+              "behavioral_taint_tracking"
+            ]
           }
         ],
         "scope_exclusions": [],
         "analyzer_statuses": [
           {
             "analyzer_id": "behavioral_ast",
-            "status": "completed",
+            "status": "degraded",
             "planned_work": 1,
-            "completed": 1,
-            "skipped": 0,
+            "completed": 0,
+            "skipped": 1,
             "failed": 0,
             "unaccounted": 0
           },
           {
             "analyzer_id": "behavioral_taint_tracking",
-            "status": "completed",
+            "status": "degraded",
             "planned_work": 1,
-            "completed": 1,
-            "skipped": 0,
+            "completed": 0,
+            "skipped": 1,
             "failed": 0,
             "unaccounted": 0
           },
@@ -456,10 +450,12 @@
           }
         ],
         "limitations": [
+          "Analyzer behavioral_ast status: degraded.",
+          "Analyzer behavioral_taint_tracking status: degraded.",
           "Analyzer mcp_tool_poisoning status: failed."
         ],
-        "findings_before_filtering": 9,
-        "findings_after_filtering": 8
+        "findings_before_filtering": 7,
+        "findings_after_filtering": 7
       },
       "scan_mode": "multilingual-enhanced",
       "enhancements": {

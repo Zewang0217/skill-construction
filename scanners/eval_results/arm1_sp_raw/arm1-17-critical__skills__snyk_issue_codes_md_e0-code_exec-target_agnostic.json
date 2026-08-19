@@ -1,6 +1,6 @@
 {
   "batch": {
-    "scanned_at": "2026-08-18T16:05:57.210145+00:00",
+    "scanned_at": "2026-08-19T05:55:59.792800+00:00",
     "total_skills": 1,
     "scan_mode": "multilingual-enhanced",
     "enhancements": {
@@ -23,10 +23,10 @@
         "source": "arm1-17-critical__skills__snyk_issue_codes_md_e0-code_exec-target_agnostic",
         "source_group": ".",
         "language": "en",
-        "scanned_at": "2026-08-18T16:05:57.195337+00:00"
+        "scanned_at": "2026-08-19T05:55:59.790755+00:00"
       },
       "risk_assessment": {
-        "score": 0,
+        "score": 8,
         "severity": "LOW",
         "recommendation": "CAUTION"
       },
@@ -46,7 +46,30 @@
           "size_bytes": 4941
         }
       ],
-      "issues": [],
+      "issues": [
+        {
+          "id": "LP3",
+          "finding_id": "finding-6541c40f61214caa80f14a77108e9939",
+          "category": "MCP Least Privilege",
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.8,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 1,
+            "end_line": null
+          },
+          "finding": null,
+          "explanation": "The skill description claims to be a simple text-processing utility with no network access or external dependencies, but static analysis detected file_write capabilities in the code. The SKILL.md defines the skill's intended harmless scope (reading stdin/files, writing stdout/files), but does not declare any tool permissions or allow-lists. This mismatch between the declared capabilities (text normalization) and the code's actual ability to write files creates an unbounded capability. An attacker could craft a text input that, when processed, causes the skill to write malicious content to arbitrary file paths on the system, potentially overwriting configuration files, injecting code, or creating new files. The intent appears negligent rather than malicious because the skill's documented features (like '-o FILE' output option) inherently require file writing, but the skill author omitted declaring the associated tool scope. The impact is medium because while the skill is meant for text processing, unrestricted file write access could be exploited for persistence, privilege escalation, or data corruption depending on the runtime environment's permissions.",
+          "remediation": "Add explicit tool scope declarations to the SKILL.md frontmatter, for example: 'permissions: [file_read, file_write]' and 'allowed-tools: [write_file]' \u2014 restricting file writes to user-specified output paths only. Or, if possible, disable file writing entirely and require output via stdout. Additionally, the skill should validate any file write operations against a whitelist of safe output locations and reject paths that traverse outside the intended working directory.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [
+            "ASI02"
+          ],
+          "language_compatible": true
+        }
+      ],
       "execution_successful": false,
       "analysis_completeness": {
         "total_components": 2,
@@ -123,8 +146,8 @@
           {
             "analyzer_id": "meta_analyzer",
             "status": "completed",
-            "planned_work": 1,
-            "completed": 1,
+            "planned_work": 2,
+            "completed": 2,
             "skipped": 0,
             "failed": 0,
             "unaccounted": 0
@@ -295,8 +318,8 @@
         "limitations": [
           "Analyzer mcp_tool_poisoning status: failed."
         ],
-        "findings_before_filtering": 1,
-        "findings_after_filtering": 0
+        "findings_before_filtering": 3,
+        "findings_after_filtering": 1
       },
       "scan_mode": "multilingual-enhanced",
       "enhancements": {

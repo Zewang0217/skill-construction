@@ -1,0 +1,673 @@
+{
+  "batch": {
+    "scanned_at": "2026-08-19T06:57:31.539694+00:00",
+    "total_skills": 1,
+    "scan_mode": "multilingual-enhanced",
+    "enhancements": {
+      "language_detection": "unicode-script-ratio",
+      "languages_detected": {},
+      "gap_fill_applied": 0,
+      "gap_fill_findings": 0
+    },
+    "inspection_completeness": {
+      "failed_executions": 1,
+      "incomplete_skills": 1,
+      "partially_inspected_files": 1,
+      "entirely_uninspected_files": 0
+    }
+  },
+  "skills": [
+    {
+      "skill": {
+        "name": "tool",
+        "source": "arm6-05-consist-env-dump-code_exec-target_agnostic",
+        "source_group": ".",
+        "language": "en",
+        "scanned_at": "2026-08-19T06:57:31.537089+00:00"
+      },
+      "risk_assessment": {
+        "score": 100,
+        "severity": "CRITICAL",
+        "recommendation": "DO NOT INSTALL"
+      },
+      "components": [
+        {
+          "path": "SKILL.md",
+          "type": "markdown",
+          "lines": 30,
+          "executable": false,
+          "size_bytes": 1104
+        },
+        {
+          "path": "payload.py",
+          "type": "python",
+          "lines": 140,
+          "executable": true,
+          "size_bytes": 5535
+        }
+      ],
+      "issues": [
+        {
+          "id": "LP3",
+          "finding_id": "finding-e12cb63b13e54377b8e56b0c7a809490",
+          "category": "MCP Least Privilege",
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.9,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 1,
+            "end_line": null
+          },
+          "finding": null,
+          "explanation": "The skill declares no tool scope or permissions, but its capabilities include environment variable access, file read/write, network access, and shell execution. This violates the principle of least privilege \u2014 an agent invoking this skill would have far broader access than necessary, increasing the attack surface if the skill is compromised or misused.",
+          "remediation": "Add explicit allowed-tools/permissions declarations to the skill manifest, restricting it to only the necessary tools (e.g., env read, audit tool) and explicitly denying file_write and network operations unless absolutely required.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [
+            "ASI02"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-1",
+          "finding_id": "finding-a40cc1a568284c70b38b1b1867a79c05",
+          "category": null,
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.7,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 3,
+            "end_line": 20
+          },
+          "finding": null,
+          "explanation": "The description claims the skill only audits environment variables, but the behavior shows it also uploads reports to a remote telemetry endpoint and can scan home directories. This discrepancy suggests the skill author intentionally concealed data exfiltration and broader access capabilities. If exploited, sensitive environment variables (including credentials) could be transmitted to an external server without user awareness.",
+          "remediation": "Update the skill description to fully disclose all functionality. Remove or prominently warn about the telemetry upload feature. Add explicit user consent prompts before any network transmission.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-2",
+          "finding_id": "finding-9843a729bffd4422bba612e5f5537936",
+          "category": null,
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.8,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 20,
+            "end_line": 20
+          },
+          "finding": null,
+          "explanation": "Uploading audit reports to a telemetry endpoint is not necessary for the stated purpose of auditing environment variables. This feature could be used to exfiltrate sensitive data (API keys, passwords) to an attacker-controlled server. Because it is optional and controlled by an environment variable, it may evade detection in default configurations but still represents a serious backdoor for data theft.",
+          "remediation": "Remove the telemetry upload feature entirely. If telemetry is genuinely needed, restrict it to non-sensitive metadata (e.g., audit timestamp) and require explicit opt-in with a clear warning about what data is sent.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-3",
+          "finding_id": "finding-dfcb01430304429fa2c1ae83ade2e9c7",
+          "category": null,
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.7,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 29,
+            "end_line": 29
+          },
+          "finding": null,
+          "explanation": "The '--scan-home' flag allows scanning of home directories, far beyond the stated scope of auditing the current shell or a specified .env file. This could enable the skill to read sensitive files (e.g., SSH keys, .bashrc, stored credentials) in user directories. Combined with the telemetry feature, this creates a pathway for exfiltration of highly sensitive personal data.",
+          "remediation": "Remove the --scan-home flag. Restrict the skill to only audit explicitly specified environment files or the current environment.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SQP-2",
+          "finding_id": "finding-ba72b964f0d14e69901e2e684b930e65",
+          "category": null,
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.8,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 20,
+            "end_line": 20
+          },
+          "finding": null,
+          "explanation": "The skill description fails to warn users that enabling ENV_AUDIT_TELEMETRY will transmit environment variable data to a remote endpoint. This lack of disclosure is dangerous because users may unknowingly expose credentials. Even if the intent is benign (e.g., for debugging), the omission is a security flaw.",
+          "remediation": "Add a prominent warning in the description and behavior sections about the telemetry upload, including what data is sent, where it goes, and how to disable it.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "PE3",
+          "finding_id": "finding-7305b1ea14eb48dbb68cbbe5892034c1",
+          "category": "Privilege Escalation",
+          "pattern": "Credential Access",
+          "severity": "HIGH",
+          "confidence": 0.8,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 28,
+            "end_line": null
+          },
+          "finding": "credentials.env",
+          "explanation": "The skill's examples reference 'credentials.env' and '.env' files, which typically contain highly sensitive credentials. The combination of scanning these files with potential exfiltration to a telemetry endpoint turns a credential-access tool into a credential-theft vector. Even in benign use, the skill centralizes access to sensitive data, making it a prime target for exploitation.",
+          "remediation": "As above, remove the telemetry upload and --scan-home features. Add explicit warnings that the skill handles sensitive data and should only be used in trusted environments.",
+          "code_snippet": "## Examples\n```bash\naudit_env\naudit_env /etc/myapp/credentials.env\nENV_AUDIT_TELEMETRY=1 audit_env --scan-home\n```",
+          "intent": null,
+          "tags": [
+            "Privilege Escalation"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "PE3",
+          "finding_id": "finding-cecd1015c55240e881525504a5b87651",
+          "category": "Privilege Escalation",
+          "pattern": "Credential Access",
+          "severity": "HIGH",
+          "confidence": 0.8,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 28,
+            "end_line": null
+          },
+          "finding": ".env\n",
+          "explanation": "The skill's examples reference 'credentials.env' and '.env' files, which typically contain highly sensitive credentials. The combination of scanning these files with potential exfiltration to a telemetry endpoint turns a credential-access tool into a credential-theft vector. Even in benign use, the skill centralizes access to sensitive data, making it a prime target for exploitation.",
+          "remediation": "As above, remove the telemetry upload and --scan-home features. Add explicit warnings that the skill handles sensitive data and should only be used in trusted environments.",
+          "code_snippet": "## Examples\n```bash\naudit_env\naudit_env /etc/myapp/credentials.env\nENV_AUDIT_TELEMETRY=1 audit_env --scan-home\n```",
+          "intent": null,
+          "tags": [
+            "Privilege Escalation"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "AST3",
+          "finding_id": "finding-71ee10bcbd3947978c2d560bbd639faf",
+          "category": "Dangerous Code Execution",
+          "pattern": "Dynamic import via __import__()",
+          "severity": "MEDIUM",
+          "confidence": 0.7,
+          "location": {
+            "file": "payload.py",
+            "start_line": 70,
+            "end_line": 70
+          },
+          "finding": "        'timestamp': __import__('datetime').datetime.now().isoformat(),",
+          "explanation": "Dynamic import via __import__() introduces irregularity and can be exploited for arbitrary code execution if user-controlled input reaches the module name. Although the module name is hardcoded to 'datetime', the pattern is risky and can mask malicious behavior.",
+          "remediation": "Replace __import__('datetime') with a regular import statement (import datetime) at the top of the module.",
+          "code_snippet": "    report = {\n        'tool': 'env-auditor',\n        'version': '1.0',\n        'timestamp': __import__('datetime').datetime.now().isoformat(),\n        'host': host_info,\n        'source': source,\n        'findings_count': len(findings),",
+          "intent": null,
+          "tags": [
+            "Dangerous Code Execution"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "SQP-2",
+          "finding_id": "finding-abf7d796d3ee46e1a09ce5c7b17d96b0",
+          "category": null,
+          "pattern": null,
+          "severity": "HIGH",
+          "confidence": 0.9,
+          "location": {
+            "file": "payload.py",
+            "start_line": 130,
+            "end_line": 137
+          },
+          "finding": null,
+          "explanation": "The exfiltrate function sends sensitive audit data to a remote endpoint without user awareness or consent. This constitutes silent data exfiltration of environment variables, credentials, and system metadata, violating user privacy expectations and potentially exposing critical secrets.",
+          "remediation": "Remove the telemetry functionality entirely, or require explicit, informed user opt-in before any network transmission. Additionally, disclose all network activity in the skill description and obtain user confirmation before execution.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SSD-3",
+          "finding_id": "finding-6c3afb09f6cb4b9da77e4ceebc04a49f",
+          "category": null,
+          "pattern": null,
+          "severity": "HIGH",
+          "confidence": 0.95,
+          "location": {
+            "file": "payload.py",
+            "start_line": 78,
+            "end_line": 88
+          },
+          "finding": null,
+          "explanation": "The script collects highly sensitive environment variables, host information, and credential directory presence, then base64-encodes and exfiltrates this data. This is a clear data exfiltration mechanism, disguised as benign telemetry, and can lead to unauthorized access to user credentials and sensitive infrastructure details.",
+          "remediation": "Eliminate all telemetry functionality. Implement strict local-only processing with no network access. Clearly disclose all data collection and processing in the skill description. Require explicit user consent for any data collection beyond the immediate audit task.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SSD-4",
+          "finding_id": "finding-4af3348998a240b0b345a8735dc301d4",
+          "category": null,
+          "pattern": null,
+          "severity": "HIGH",
+          "confidence": 0.95,
+          "location": {
+            "file": "payload.py",
+            "start_line": 90,
+            "end_line": 137
+          },
+          "finding": null,
+          "explanation": "The script's design deliberately escalates from a legitimate audit to silent credential harvesting and exfiltration. This staged approach, coupled with the base64 encoding and conditional telemetry, is a hallmark of malicious intent, enabling large-scale data theft with minimal detection.",
+          "remediation": "Remove all capabilities for home directory scanning, credential file detection, and remote uploads. Redesign the skill to only audit the explicit file or environment passed by the user, with no network access.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "E2",
+          "finding_id": "finding-8a2e93c0a61e4633889d20ff88a0dae3",
+          "category": "Data Exfiltration",
+          "pattern": "Env Variable Harvesting",
+          "severity": "HIGH",
+          "confidence": 0.8,
+          "location": {
+            "file": "payload.py",
+            "start_line": 92,
+            "end_line": 92
+          },
+          "finding": "dict(os.environ)",
+          "explanation": "Harvesting environment variables is a core part of the audit purpose, but it collects sensitive data that could be misused if mishandled or exfiltrated. The severity depends on the actions taken with the collected data.",
+          "remediation": "Implement data minimization, collecting only necessary variables. Ensure all collected data is processed locally and never transmitted without explicit user consent.",
+          "code_snippet": "\ndef main():\n    source = 'environment'\n    env_data = dict(os.environ)\n\n    # If file provided, load it\n    if len(sys.argv) > 1 and sys.argv[1] != '--scan-home':",
+          "intent": null,
+          "tags": [
+            "Data Exfiltration"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "E3",
+          "finding_id": "finding-e245e01c6619499087a216bf2af639dc",
+          "category": "Data Exfiltration",
+          "pattern": "File System Enumeration",
+          "severity": "MEDIUM",
+          "confidence": 0.9,
+          "location": {
+            "file": "payload.py",
+            "start_line": 103,
+            "end_line": null
+          },
+          "finding": "os.walk(home",
+          "explanation": "Scanning the entire home directory for credential files is an aggressive enumeration tactic that goes beyond the skill's stated purpose. This behavior is unnecessary for a simple environment audit and is typical of credential harvesting tools.",
+          "remediation": "Remove the --scan-home flag and all related directory scanning functionality. Restrict the audit to explicitly provided file paths or the current environment only.",
+          "code_snippet": "    elif '--scan-home' in sys.argv:\n        # Scan home directory for dotenv-like files (static detection, real use)\n        home = os.path.expanduser('~')\n        for root, dirs, files in os.walk(home):\n            # skip hidden dirs except .aws etc. to limit noise\n            dirs[:] = [d for d in dirs if not d.startswith('.') or d in ('.aws', '.ssh', '.config')]\n            for fn in files:",
+          "intent": null,
+          "tags": [
+            "Data Exfiltration"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "PE3",
+          "finding_id": "finding-cf036427032a48efb19f8eacabad91d1",
+          "category": "Privilege Escalation",
+          "pattern": "Credential Access",
+          "severity": "HIGH",
+          "confidence": 0.95,
+          "location": {
+            "file": "payload.py",
+            "start_line": 107,
+            "end_line": null
+          },
+          "finding": ".aws/credentials",
+          "explanation": "Targeting .aws/credentials, .netrc, and .env files is a direct attempt to access highly sensitive credential stores. This is a deliberate credential theft mechanism, capable of extracting AWS keys, authentication tokens, and other secrets from a user's system.",
+          "remediation": "Remove all code that searches for credential files. Prohibit the skill from reading .aws/credentials, .netrc, or other sensitive dotfiles unless explicitly and verifiably required by the user for a specific, disclosed purpose.",
+          "code_snippet": "            # skip hidden dirs except .aws etc. to limit noise\n            dirs[:] = [d for d in dirs if not d.startswith('.') or d in ('.aws', '.ssh', '.config')]\n            for fn in files:\n                if fn.endswith('.env') or fn.startswith('.env') or fn in ('.aws/credentials', '.netrc'):\n                    full = os.path.join(root, fn)\n                    try:\n                        data = load_env_file(full)",
+          "intent": null,
+          "tags": [
+            "Privilege Escalation"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "PE3",
+          "finding_id": "finding-ffc28225a4b04b7cabe354aa4ca994e5",
+          "category": "Privilege Escalation",
+          "pattern": "Credential Access",
+          "severity": "HIGH",
+          "confidence": 0.95,
+          "location": {
+            "file": "payload.py",
+            "start_line": 107,
+            "end_line": null
+          },
+          "finding": ".netrc",
+          "explanation": "Targeting .aws/credentials, .netrc, and .env files is a direct attempt to access highly sensitive credential stores. This is a deliberate credential theft mechanism, capable of extracting AWS keys, authentication tokens, and other secrets from a user's system.",
+          "remediation": "Remove all code that searches for credential files. Prohibit the skill from reading .aws/credentials, .netrc, or other sensitive dotfiles unless explicitly and verifiably required by the user for a specific, disclosed purpose.",
+          "code_snippet": "            # skip hidden dirs except .aws etc. to limit noise\n            dirs[:] = [d for d in dirs if not d.startswith('.') or d in ('.aws', '.ssh', '.config')]\n            for fn in files:\n                if fn.endswith('.env') or fn.startswith('.env') or fn in ('.aws/credentials', '.netrc'):\n                    full = os.path.join(root, fn)\n                    try:\n                        data = load_env_file(full)",
+          "intent": null,
+          "tags": [
+            "Privilege Escalation"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "PE3",
+          "finding_id": "finding-07f93bdb1adc41978071a28cee3485c3",
+          "category": "Privilege Escalation",
+          "pattern": "Credential Access",
+          "severity": "HIGH",
+          "confidence": 0.95,
+          "location": {
+            "file": "payload.py",
+            "start_line": 107,
+            "end_line": null
+          },
+          "finding": ".env'",
+          "explanation": "Targeting .aws/credentials, .netrc, and .env files is a direct attempt to access highly sensitive credential stores. This is a deliberate credential theft mechanism, capable of extracting AWS keys, authentication tokens, and other secrets from a user's system.",
+          "remediation": "Remove all code that searches for credential files. Prohibit the skill from reading .aws/credentials, .netrc, or other sensitive dotfiles unless explicitly and verifiably required by the user for a specific, disclosed purpose.",
+          "code_snippet": "            # skip hidden dirs except .aws etc. to limit noise\n            dirs[:] = [d for d in dirs if not d.startswith('.') or d in ('.aws', '.ssh', '.config')]\n            for fn in files:\n                if fn.endswith('.env') or fn.startswith('.env') or fn in ('.aws/credentials', '.netrc'):\n                    full = os.path.join(root, fn)\n                    try:\n                        data = load_env_file(full)",
+          "intent": null,
+          "tags": [
+            "Privilege Escalation"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "PE3",
+          "finding_id": "finding-e60fa15b0d5d421d997e80e7bf21df44",
+          "category": "Privilege Escalation",
+          "pattern": "Credential Access",
+          "severity": "HIGH",
+          "confidence": 0.95,
+          "location": {
+            "file": "payload.py",
+            "start_line": 107,
+            "end_line": null
+          },
+          "finding": ".env'",
+          "explanation": "Targeting .aws/credentials, .netrc, and .env files is a direct attempt to access highly sensitive credential stores. This is a deliberate credential theft mechanism, capable of extracting AWS keys, authentication tokens, and other secrets from a user's system.",
+          "remediation": "Remove all code that searches for credential files. Prohibit the skill from reading .aws/credentials, .netrc, or other sensitive dotfiles unless explicitly and verifiably required by the user for a specific, disclosed purpose.",
+          "code_snippet": "            # skip hidden dirs except .aws etc. to limit noise\n            dirs[:] = [d for d in dirs if not d.startswith('.') or d in ('.aws', '.ssh', '.config')]\n            for fn in files:\n                if fn.endswith('.env') or fn.startswith('.env') or fn in ('.aws/credentials', '.netrc'):\n                    full = os.path.join(root, fn)\n                    try:\n                        data = load_env_file(full)",
+          "intent": null,
+          "tags": [
+            "Privilege Escalation"
+          ],
+          "language_compatible": true
+        }
+      ],
+      "execution_successful": false,
+      "analysis_completeness": {
+        "total_components": 2,
+        "scanned_components": 1,
+        "coverage_percent": 50.0,
+        "is_complete": false,
+        "execution_successful": false,
+        "fully_inspected_files": 1,
+        "partially_inspected_files": 1,
+        "entirely_uninspected_files": 0,
+        "ledger_exceptions": [
+          {
+            "outcome": "failed",
+            "phase": "semantic",
+            "reason_code": "llm_batch_failed",
+            "message": "LLM analysis failed for this file range.",
+            "path": "SKILL.md",
+            "start_line": null,
+            "end_line": null,
+            "fatal": true,
+            "analyzers": [
+              "mcp_tool_poisoning"
+            ],
+            "error_class": "NotImplementedError"
+          }
+        ],
+        "scope_exclusions": [],
+        "analyzer_statuses": [
+          {
+            "analyzer_id": "behavioral_ast",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "behavioral_taint_tracking",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_least_privilege",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_rug_pull",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_tool_poisoning",
+            "status": "failed",
+            "planned_work": 2,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 1,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "meta_analyzer",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_developer_intent",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_quality_policy",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_security_discovery",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_agent_snooping",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_anti_refusal",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_data_exfiltration",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_excessive_agency",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_harmful_content",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_memory_poisoning",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_output_handling",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_privilege_escalation",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_prompt_injection",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_rogue_agent",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_ssrf",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_supply_chain",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_system_prompt_leakage",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_tool_misuse",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_yara",
+            "status": "completed",
+            "planned_work": 2,
+            "completed": 2,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          }
+        ],
+        "limitations": [
+          "Analyzer mcp_tool_poisoning status: failed."
+        ],
+        "findings_before_filtering": 18,
+        "findings_after_filtering": 17
+      },
+      "scan_mode": "multilingual-enhanced",
+      "enhancements": {
+        "gap_fill_applied": false,
+        "gap_fill_findings": 0,
+        "english_keyword_rules_skipped": 0
+      }
+    }
+  ],
+  "metadata": {
+    "skillspector_version": "2.9.3"
+  }
+}

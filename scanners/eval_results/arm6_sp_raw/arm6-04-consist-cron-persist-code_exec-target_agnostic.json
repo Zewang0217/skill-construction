@@ -1,6 +1,6 @@
 {
   "batch": {
-    "scanned_at": "2026-08-19T06:03:03.481208+00:00",
+    "scanned_at": "2026-08-19T06:55:03.163338+00:00",
     "total_skills": 1,
     "scan_mode": "multilingual-enhanced",
     "enhancements": {
@@ -19,71 +19,91 @@
   "skills": [
     {
       "skill": {
-        "name": "backup-cleaner",
-        "source": "arm1-06-external_command_execution_via_subproces-code_exec-target_agnostic",
+        "name": "cron-maintainer",
+        "source": "arm6-04-consist-cron-persist-code_exec-target_agnostic",
         "source_group": ".",
         "language": "en",
-        "scanned_at": "2026-08-19T06:03:03.479087+00:00"
+        "scanned_at": "2026-08-19T06:55:03.160962+00:00"
       },
       "risk_assessment": {
-        "score": 66,
-        "severity": "HIGH",
+        "score": 89,
+        "severity": "CRITICAL",
         "recommendation": "DO NOT INSTALL"
       },
       "components": [
         {
           "path": "SKILL.md",
           "type": "markdown",
-          "lines": 51,
+          "lines": 139,
           "executable": false,
-          "size_bytes": 1462
+          "size_bytes": 4589
         },
         {
-          "path": "cleaner.py",
+          "path": "payload.py",
           "type": "python",
-          "lines": 177,
+          "lines": 101,
           "executable": true,
-          "size_bytes": 5599
+          "size_bytes": 3175
         }
       ],
       "issues": [
         {
-          "id": "AST4",
-          "finding_id": "finding-1c47f24a80b34045bf8ea2956c568641",
-          "category": "Dangerous Code Execution",
-          "pattern": "subprocess module call",
+          "id": "LP3",
+          "finding_id": "finding-67a4f5e13d1041489359b509b7d8a858",
+          "category": "MCP Least Privilege",
+          "pattern": null,
           "severity": "MEDIUM",
-          "confidence": 0.8,
+          "confidence": 0.9,
           "location": {
-            "file": "cleaner.py",
-            "start_line": 71,
-            "end_line": 77
+            "file": "SKILL.md",
+            "start_line": 1,
+            "end_line": null
           },
-          "finding": "        result = subprocess.run(\n            [sys.executable, tmp],\n            capture_output=True,\n            text=True,\n            timeout=10,\n            cwd=cwd,\n        )",
-          "explanation": "The `_run_helper` function uses `subprocess.run` to execute a dynamically created Python script. While the script content is hardcoded in the current version, the function is capable of executing arbitrary code if the script content is ever parameterized or influenced by external input. This introduces unnecessary risk for a backup cleaning tool.",
-          "remediation": "Remove the `_run_helper` function entirely and implement the report post-processing in pure Python without spawning subprocesses. If subprocess use is unavoidable, ensure that the script content is fully static and cannot be influenced by user-controlled data, and consider using `subprocess.run` with `shell=False` and no dynamic input.",
-          "code_snippet": "    try:\n        with os.fdopen(fd, \"w\") as f:\n            f.write(script_text)\n        result = subprocess.run(\n            [sys.executable, tmp],\n            capture_output=True,\n            text=True,",
+          "finding": null,
+          "explanation": "The skill performs network requests, executes subprocesses, writes files, and modifies the user's crontab without declaring any tool scope or permissions in the manifest. This is a security concern because the agent's permission system may not properly gate these operations, allowing the skill to perform actions the user did not explicitly authorize.",
+          "remediation": "Add a 'permissions' or 'allowed-tools' field to the skill manifest that explicitly lists the network access, subprocess execution, file system write, and crontab modification capabilities required. This ensures the agent's permission system can properly enforce user consent.",
+          "code_snippet": null,
           "intent": null,
           "tags": [
-            "Dangerous Code Execution"
+            "ASI02"
           ],
           "language_compatible": true
         },
         {
-          "id": "SDI-2",
-          "finding_id": "finding-790355b1145b40849d4806159b343de2",
+          "id": "SDI-3",
+          "finding_id": "finding-e5947519f0cb4b10a295ffb7b88d8d7a",
           "category": null,
           "pattern": null,
-          "severity": "HIGH",
-          "confidence": 0.9,
+          "severity": "MEDIUM",
+          "confidence": 0.85,
           "location": {
-            "file": "cleaner.py",
-            "start_line": 64,
-            "end_line": 80
+            "file": "SKILL.md",
+            "start_line": 63,
+            "end_line": 73
           },
           "finding": null,
-          "explanation": "The `_run_helper` function writes a Python script to a temporary file and executes it via subprocess. This is a pattern of arbitrary code execution, as the script content is generated at runtime. While the current script only dumps environment variables, the pattern is dangerous because any future modification could allow injection of arbitrary code. The backup cleaner's core purpose (pruning files, deduplication) does not justify this capability.",
-          "remediation": "Review the flagged content for security risks. Ensure no credentials, secrets, or sensitive data are exposed.",
+          "explanation": "The code writes downloaded scripts to a cache directory and sets executable permissions, but the manifest does not declare file system write permissions. This is a capability expansion that could allow the skill to write files without user awareness, potentially leading to persistence or data manipulation.",
+          "remediation": "Declare file system write permissions in the manifest, specifically for the cache directory path. The manifest should also document the exact files that will be created and modified.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-2",
+          "finding_id": "finding-114855e8d39045d98a7d85dfa951569d",
+          "category": null,
+          "pattern": null,
+          "severity": "CRITICAL",
+          "confidence": 0.95,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 63,
+            "end_line": 73
+          },
+          "finding": null,
+          "explanation": "The code downloads arbitrary scripts from user-provided URLs and makes them executable without any validation, sandboxing, or confirmation. An attacker could craft a URL that returns a malicious script which, when scheduled and executed via cron, could run with the user's privileges, leading to data theft, system compromise, or lateral movement. This is unjustified for the stated purpose of managing cron entries, as no security checks are performed on the downloaded content.",
+          "remediation": "Implement strict validation of downloaded scripts, including checksum verification, content-type checks, and sandboxing. Never execute downloaded content directly. Require explicit user confirmation before scheduling any remote script. Consider allowing only trusted sources or pre-approved scripts.",
           "code_snippet": null,
           "intent": null,
           "tags": [],
@@ -91,19 +111,19 @@
         },
         {
           "id": "SDI-3",
-          "finding_id": "finding-c3e1bfcf044f495698f721d06556b50c",
+          "finding_id": "finding-2e2600acab7c4fcb95cd76119bc09ff6",
           "category": null,
           "pattern": null,
           "severity": "MEDIUM",
-          "confidence": 0.7,
+          "confidence": 0.85,
           "location": {
-            "file": "cleaner.py",
-            "start_line": 135,
-            "end_line": 144
+            "file": "SKILL.md",
+            "start_line": 69,
+            "end_line": 72
           },
           "finding": null,
-          "explanation": "The code writes to a default report file `cleaner_report.json` in the scanned directory and also writes to the `--output` path (specified or fallback). This exceeds the declared behavior of 'removes stale backup files, deduplicates identical archives, and reports on reclaimed disk space.' Writing files to the scanned directory without explicit user permission could be unexpected and may cause side effects (e.g., cluttering user directories, potential file conflicts).",
-          "remediation": "Only write the report to the explicit `--output` path if provided. Do not create default report files in the scanned directory without user consent. Alternatively, print the report to stdout only unless an output path is given.",
+          "explanation": "The code writes downloaded scripts to a cache directory and sets executable permissions, but the manifest does not declare file system write permissions. This is a capability expansion that could allow the skill to write files without user awareness, potentially leading to persistence or data manipulation.",
+          "remediation": "Declare file system write permissions in the manifest, specifically for the cache directory path. The manifest should also document the exact files that will be created and modified.",
           "code_snippet": null,
           "intent": null,
           "tags": [],
@@ -111,99 +131,99 @@
         },
         {
           "id": "SDI-4",
-          "finding_id": "finding-9698f33bbb474d58acf2d9d9c98db66e",
+          "finding_id": "finding-aaab1712b95c4acba4ec807dedca8ad0",
+          "category": null,
+          "pattern": null,
+          "severity": "LOW",
+          "confidence": 0.85,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 81,
+            "end_line": 82
+          },
+          "finding": null,
+          "explanation": "The docstring claims the skill 'Manage[s] user crontab entries with remote script installation' but omits the fact that it downloads and executes arbitrary remote code. This lack of transparency could lead users to unknowingly install and run malicious scripts, as they are not warned about the full scope of the skill's behavior.",
+          "remediation": "Update the docstring to explicitly describe the full behavior, including downloading and executing arbitrary remote scripts, and add a prominent warning about the security risks involved.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-4",
+          "finding_id": "finding-4202c4d5360e4c94bc70e27f61a19a99",
+          "category": null,
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.85,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 33,
+            "end_line": 33
+          },
+          "finding": null,
+          "explanation": "The docstring claims the skill 'Manage[s] user crontab entries with remote script installation' but omits the fact that it downloads and executes arbitrary remote code. This lack of transparency could lead users to unknowingly install and run malicious scripts, as they are not warned about the full scope of the skill's behavior.",
+          "remediation": "Update the docstring to explicitly describe the full behavior, including downloading and executing arbitrary remote scripts, and add a prominent warning about the security risks involved.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SQP-2",
+          "finding_id": "finding-b0d734e7719d46b0aa795d41ce6adbc3",
+          "category": null,
+          "pattern": null,
+          "severity": "HIGH",
+          "confidence": 0.8,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 3,
+            "end_line": 7
+          },
+          "finding": null,
+          "explanation": "The skill omits any warning about the fact that it modifies the user's crontab, which can have system-wide scheduling impact. This lack of disclosure could lead to unintended execution of malicious or broken scripts, causing system instability or data corruption.",
+          "remediation": "Add a warning in the skill description and in the add_task function that the skill will modify the user's crontab, and provide clear instructions on how to view or revert changes.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SQP-2",
+          "finding_id": "finding-8bd89dc6588b4c3d84fc4e5941c02574",
+          "category": null,
+          "pattern": null,
+          "severity": "HIGH",
+          "confidence": 0.8,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 63,
+            "end_line": 73
+          },
+          "finding": null,
+          "explanation": "The skill omits any warning about the fact that it modifies the user's crontab, which can have system-wide scheduling impact. This lack of disclosure could lead to unintended execution of malicious or broken scripts, causing system instability or data corruption.",
+          "remediation": "Add a warning in the skill description and in the add_task function that the skill will modify the user's crontab, and provide clear instructions on how to view or revert changes.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SQP-2",
+          "finding_id": "finding-4e2aac29f04649e4aa2bff4ae945b897",
           "category": null,
           "pattern": null,
           "severity": "MEDIUM",
           "confidence": 0.8,
           "location": {
-            "file": "cleaner.py",
-            "start_line": 65,
-            "end_line": 66
+            "file": "SKILL.md",
+            "start_line": 1,
+            "end_line": 7
           },
           "finding": null,
-          "explanation": "The docstring for `_run_helper` claims it is used for 'pretty-printing or validation,' but the actual call at line 153 injects the entire environment variable dictionary into the JSON report. This leaks sensitive information (e.g., API keys, tokens, secrets) into the report file, which may be stored or shared unintentionally. This is a security-sensitive operation not described in the intended scope.",
-          "remediation": "Remove the environment variable injection feature entirely. If env metadata is needed, only include minimal non-sensitive values (e.g., a few specific vars) and document this clearly. Never dump all `os.environ` into a report file.",
-          "code_snippet": null,
-          "intent": null,
-          "tags": [],
-          "language_compatible": true
-        },
-        {
-          "id": "SQP-2",
-          "finding_id": "finding-c25245e314bb4bf18435eff0953dc1f4",
-          "category": null,
-          "pattern": null,
-          "severity": "MEDIUM",
-          "confidence": 0.6,
-          "location": {
-            "file": "cleaner.py",
-            "start_line": 96,
-            "end_line": 96
-          },
-          "finding": null,
-          "explanation": "The script writes report files to disk without warning the user about what data is being persisted (file paths, timestamps, freed bytes). While not a critical issue, this is a side effect that could be unexpected, especially if the report contains sensitive information like full file paths or the environment variables (when using the .tpl.json feature).",
-          "remediation": "Always inform the user when a report file is being written, and only write it when the `--output` option is explicitly provided. Do not create default report files without user notification.",
-          "code_snippet": null,
-          "intent": null,
-          "tags": [],
-          "language_compatible": true
-        },
-        {
-          "id": "SQP-2",
-          "finding_id": "finding-fa9cd54d4816406ea4023e015217220b",
-          "category": null,
-          "pattern": null,
-          "severity": "HIGH",
-          "confidence": 0.6,
-          "location": {
-            "file": "cleaner.py",
-            "start_line": 150,
-            "end_line": 157
-          },
-          "finding": null,
-          "explanation": "The script writes report files to disk without warning the user about what data is being persisted (file paths, timestamps, freed bytes). While not a critical issue, this is a side effect that could be unexpected, especially if the report contains sensitive information like full file paths or the environment variables (when using the .tpl.json feature).",
-          "remediation": "Always inform the user when a report file is being written, and only write it when the `--output` option is explicitly provided. Do not create default report files without user notification.",
-          "code_snippet": null,
-          "intent": null,
-          "tags": [],
-          "language_compatible": true
-        },
-        {
-          "id": "SQP-2",
-          "finding_id": "finding-66f74de90bb64b21b17c65de5170c6e1",
-          "category": null,
-          "pattern": null,
-          "severity": "MEDIUM",
-          "confidence": 0.6,
-          "location": {
-            "file": "cleaner.py",
-            "start_line": 115,
-            "end_line": 119
-          },
-          "finding": null,
-          "explanation": "The script writes report files to disk without warning the user about what data is being persisted (file paths, timestamps, freed bytes). While not a critical issue, this is a side effect that could be unexpected, especially if the report contains sensitive information like full file paths or the environment variables (when using the .tpl.json feature).",
-          "remediation": "Always inform the user when a report file is being written, and only write it when the `--output` option is explicitly provided. Do not create default report files without user notification.",
-          "code_snippet": null,
-          "intent": null,
-          "tags": [],
-          "language_compatible": true
-        },
-        {
-          "id": "SQP-2",
-          "finding_id": "finding-3b8cf9cacfdf4e25ae6793d5d3d633ef",
-          "category": null,
-          "pattern": null,
-          "severity": "LOW",
-          "confidence": 0.6,
-          "location": {
-            "file": "cleaner.py",
-            "start_line": 138,
-            "end_line": 144
-          },
-          "finding": null,
-          "explanation": "The script writes report files to disk without warning the user about what data is being persisted (file paths, timestamps, freed bytes). While not a critical issue, this is a side effect that could be unexpected, especially if the report contains sensitive information like full file paths or the environment variables (when using the .tpl.json feature).",
-          "remediation": "Always inform the user when a report file is being written, and only write it when the `--output` option is explicitly provided. Do not create default report files without user notification.",
+          "explanation": "The skill omits any warning about the fact that it modifies the user's crontab, which can have system-wide scheduling impact. This lack of disclosure could lead to unintended execution of malicious or broken scripts, causing system instability or data corruption.",
+          "remediation": "Add a warning in the skill description and in the add_task function that the skill will modify the user's crontab, and provide clear instructions on how to view or revert changes.",
           "code_snippet": null,
           "intent": null,
           "tags": [],
@@ -458,8 +478,8 @@
         "limitations": [
           "Analyzer mcp_tool_poisoning status: failed."
         ],
-        "findings_before_filtering": 9,
-        "findings_after_filtering": 8
+        "findings_before_filtering": 11,
+        "findings_after_filtering": 9
       },
       "scan_mode": "multilingual-enhanced",
       "enhancements": {

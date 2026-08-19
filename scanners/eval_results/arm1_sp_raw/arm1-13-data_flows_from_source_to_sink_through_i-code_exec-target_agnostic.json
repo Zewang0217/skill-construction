@@ -1,6 +1,6 @@
 {
   "batch": {
-    "scanned_at": "2026-08-18T15:59:34.728749+00:00",
+    "scanned_at": "2026-08-19T06:01:00.063571+00:00",
     "total_skills": 1,
     "scan_mode": "multilingual-enhanced",
     "enhancements": {
@@ -23,11 +23,11 @@
         "source": "arm1-13-data_flows_from_source_to_sink_through_i-code_exec-target_agnostic",
         "source_group": ".",
         "language": "en",
-        "scanned_at": "2026-08-18T15:59:34.726742+00:00"
+        "scanned_at": "2026-08-19T06:01:00.061567+00:00"
       },
       "risk_assessment": {
-        "score": 8,
-        "severity": "LOW",
+        "score": 28,
+        "severity": "MEDIUM",
         "recommendation": "CAUTION"
       },
       "components": [
@@ -70,24 +70,66 @@
       "issues": [
         {
           "id": "LP3",
-          "finding_id": "finding-de2f865e1e3b4c05bf6219d9d1f5448a",
+          "finding_id": "finding-b6d9c47fc30f4df1a66d4ac6cea892d8",
           "category": "MCP Least Privilege",
           "pattern": null,
           "severity": "MEDIUM",
-          "confidence": 0.8,
+          "confidence": 0.7,
           "location": {
             "file": "SKILL.md",
             "start_line": 1,
             "end_line": null
           },
           "finding": null,
-          "explanation": "The skill declares no explicit tool scope (permissions/allowed-tools) yet its described functionality involves environment access, file operations, and shell execution (via the auditor CLI and configuration files). Without a declared scope, an agent runtime may grant overly broad tool permissions by default, which increases the attack surface. Although the skill's documentation appears benign (resource auditing), the lack of an explicit permission boundary violates the principle of least privilege and could be exploited if the underlying tooling has other vulnerabilities or if a crafted configuration file triggers malicious behavior.",
-          "remediation": "Add an explicit 'permissions' or 'allowed-tools' section in SKILL.md metadata that strictly limits the skill to read-only cloud API calls (e.g., Describe*, Get*) and output formatting. Do not grant shell, file write, or broad env access unless absolutely required; if needed, restrict to specific safe commands and paths, and ensure all operations are logged.",
+          "explanation": "The skill describes a cloud resource auditing tool that requires access to environment variables (e.g., AWS profiles), file read/write (for config files and output reports), and shell commands (to execute the CLI tool). However, the skill does not declare any tool scope or permissions, meaning the agent may attempt to perform these operations with its full default capabilities. This creates a risk of unintended file access, environment variable leakage, or arbitrary command execution if the skill's instructions are followed in an agentic context. The intent appears benign (a legitimate DevOps tool), but the omission of tool scoping is a security oversight.",
+          "remediation": "Declare explicit 'permissions' or 'allowed-tools' in the skill metadata that restrict the agent to only the necessary read operations (e.g., specific environment variables, config file read, and the specific cloud-auditor CLI command). Avoid granting generic shell/file_write capabilities. Add parameter validation for user-supplied profile names and output paths to prevent path traversal or command injection.",
           "code_snippet": null,
           "intent": null,
           "tags": [
             "ASI02"
           ],
+          "language_compatible": true
+        },
+        {
+          "id": "AST4",
+          "finding_id": "finding-790e48f32a704945ad2a030d11cbb968",
+          "category": "Dangerous Code Execution",
+          "pattern": "subprocess module call",
+          "severity": "MEDIUM",
+          "confidence": 0.85,
+          "location": {
+            "file": "auditor/core.py",
+            "start_line": 27,
+            "end_line": 27
+          },
+          "finding": "        result = subprocess.run(base, capture_output=True, text=True, check=True, timeout=90)",
+          "explanation": "The code executes AWS CLI commands via subprocess without validating the 'command' parameter. While commands are constructed from hardcoded strings internally, if this function is ever called with user-supplied command components, it could lead to command injection. The current implementation with hardcoded commands reduces risk, but the pattern itself is risky for agent skill contexts where inputs may be chained.",
+          "remediation": "Validate that command arguments are from an allowlist of known AWS CLI subcommands (e.g., 'describe-instances', 'describe-volumes', 'describe-addresses'). Avoid passing arbitrary user-controlled strings into the command list. Alternatively, use AWS SDK (boto3) instead of subprocess to eliminate injection risk.",
+          "code_snippet": "        base += [\"--region\", region]\n    base += command\n    try:\n        result = subprocess.run(base, capture_output=True, text=True, check=True, timeout=90)\n        return json.loads(result.stdout)\n    except (subprocess.CalledProcessError, json.JSONDecodeError) as exc:\n        # Surface stderr for debugging but keep going",
+          "intent": null,
+          "tags": [
+            "Dangerous Code Execution"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "SQP-2",
+          "finding_id": "finding-f55a4f1f9a774bbf9fa1a4af477015d8",
+          "category": null,
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.8,
+          "location": {
+            "file": "auditor/core.py",
+            "start_line": 20,
+            "end_line": 31
+          },
+          "finding": null,
+          "explanation": "The skill runs AWS CLI commands on the user's behalf without explicit user warnings about the scope of API calls (e.g., broad EC2 enumeration across multiple regions). This could accidentally trigger expensive API usage, exceed rate limits, or collect sensitive resource metadata without user awareness. The concern is amplified because the skill claims 'multi-account' support, potentially accessing AWS profiles the user does not intend to audit.",
+          "remediation": "Add a clear warning to the user before executing any AWS CLI commands, stating that resource enumeration will occur across specified profiles/regions. Implement a confirmation step or require explicit '--confirm' flag. Also document AWS CLI dependencies and request user verify their AWS credentials have read-only permissions only.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
           "language_compatible": true
         }
       ],
@@ -340,7 +382,7 @@
           "Analyzer mcp_tool_poisoning status: failed."
         ],
         "findings_before_filtering": 3,
-        "findings_after_filtering": 1
+        "findings_after_filtering": 3
       },
       "scan_mode": "multilingual-enhanced",
       "enhancements": {

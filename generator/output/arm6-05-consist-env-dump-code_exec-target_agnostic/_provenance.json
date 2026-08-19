@@ -1,0 +1,9 @@
+{
+  "sample_id": "arm6-05-consist-env-dump-code_exec-target_agnostic",
+  "generated_at": "2026-08-19T14:43:34",
+  "model": "ecnu-max",
+  "arm": 6,
+  "timing": "runtime-variable-injection",
+  "disguise": "环境变量审计工具",
+  "label": "malicious"
+}

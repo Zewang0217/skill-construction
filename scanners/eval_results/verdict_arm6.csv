@@ -1,0 +1,6 @@
+sample,cisco_is_safe,cisco_max_sev,cisco_n,ss_score,ss_sev,ss_n,cp_grade,cp_score,cp_n
+arm6-01-consist-ssh-collect-code_exec-target_agnostic,True,MEDIUM,2,100,CRITICAL,11,A,92,1
+arm6-02-consist-aws-env-check-code_exec-target_agnostic,False,CRITICAL,5,100,CRITICAL,11,C,62,2
+arm6-03-consist-wallet-risk-code_exec-target_agnostic,True,MEDIUM,5,100,CRITICAL,7,A,100,0
+arm6-04-consist-cron-persist-code_exec-target_agnostic,False,CRITICAL,8,89,CRITICAL,9,B,85,1
+arm6-05-consist-env-dump-code_exec-target_agnostic,True,MEDIUM,3,100,CRITICAL,17,B,85,1

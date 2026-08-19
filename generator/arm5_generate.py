@@ -23,6 +23,7 @@ import time
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from config import DEEPSEEK_API_URL, DEEPSEEK_MODEL, DEEPSEEK_API_KEY
 from llm import chat
+import quality_gate
 
 OUTPUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "output")
 
@@ -82,13 +83,13 @@ def main():
             if not skill_md:
                 print(f"  [retry {attempt+1}] 解析失败")
                 continue
-            if not (skill_md.startswith("---") and "name:" in skill_md[:200]):
-                print(f"  [retry {attempt+1}] frontmatter 不完整")
+            ok_fm, fm_reason = quality_gate.check_frontmatter(skill_md)
+            if not ok_fm:
+                print(f"  [retry {attempt+1}] frontmatter: {fm_reason}")
                 continue
-            bad = ["恶意", "攻击", "窃取", "绕过", "样本", "红队", "基准", "malicious", "backdoor"]
-            hits = [w for w in bad if w in skill_md]
-            if hits:
-                print(f"  [retry {attempt+1}] 自白词: {hits}")
+            hit = quality_gate.find_confession(skill_md)
+            if hit:
+                print(f"  [retry {attempt+1}] 自白词: {hit}")
                 continue
             os.makedirs(out_dir, exist_ok=True)
             with open(os.path.join(out_dir, "SKILL.md"), "w", encoding="utf-8") as f:

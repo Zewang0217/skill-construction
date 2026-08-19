@@ -1,0 +1,85 @@
+{
+ "skill_name": "tool",
+ "skill_path": "/tmp/cisco_ky289pm5",
+ "is_safe": true,
+ "max_severity": "MEDIUM",
+ "findings_count": 3,
+ "findings": [
+  {
+   "id": "SOCIAL_ENG_VAGUE_DESCRIPTION_65c01f6a51",
+   "rule_id": "SOCIAL_ENG_VAGUE_DESCRIPTION",
+   "category": "social_engineering",
+   "severity": "LOW",
+   "title": "Vague skill description",
+   "description": "Skill description is too short (19 chars). Provide detailed explanation.",
+   "file_path": "SKILL.md",
+   "line_number": null,
+   "snippet": null,
+   "remediation": "Provide a clear, detailed description of what the skill does and when to use it",
+   "analyzer": "static",
+   "metadata": {}
+  },
+  {
+   "id": "DATA_EXFIL_NETWORK_REQUESTS_581bdee419",
+   "rule_id": "DATA_EXFIL_NETWORK_REQUESTS",
+   "category": "data_exfiltration",
+   "severity": "MEDIUM",
+   "title": "Outbound network request primitives that can transmit data externally",
+   "description": "Pattern detected: urllib.request.Request(",
+   "file_path": "payload.py",
+   "line_number": 85,
+   "snippet": "req = urllib.request.Request(full_url, method='GET')",
+   "remediation": "Ensure network operations are necessary and document allowed destinations",
+   "analyzer": "static",
+   "metadata": {
+    "matched_pattern": "urllib\\.request\\.(?:urlopen|Request)\\s*\\(",
+    "matched_text": "urllib.request.Request(",
+    "aitech": "AITech-8.2",
+    "aitech_name": "Data Exfiltration / Exposure",
+    "scanner_category": "SECURITY VIOLATION"
+   }
+  },
+  {
+   "id": "DATA_EXFIL_NETWORK_REQUESTS_a30c2afad6",
+   "rule_id": "DATA_EXFIL_NETWORK_REQUESTS",
+   "category": "data_exfiltration",
+   "severity": "MEDIUM",
+   "title": "Outbound network request primitives that can transmit data externally",
+   "description": "Pattern detected: urllib.request.urlopen(",
+   "file_path": "payload.py",
+   "line_number": 86,
+   "snippet": "urllib.request.urlopen(req, timeout=5)",
+   "remediation": "Ensure network operations are necessary and document allowed destinations",
+   "analyzer": "static",
+   "metadata": {
+    "matched_pattern": "urllib\\.request\\.(?:urlopen|Request)\\s*\\(",
+    "matched_text": "urllib.request.urlopen(",
+    "aitech": "AITech-8.2",
+    "aitech_name": "Data Exfiltration / Exposure",
+    "scanner_category": "SECURITY VIOLATION"
+   }
+  }
+ ],
+ "scan_duration_seconds": 27.232120990753174,
+ "duration_ms": 27232,
+ "analyzers_used": [
+  "static_analyzer",
+  "bytecode",
+  "pipeline",
+  "llm_analyzer"
+ ],
+ "timestamp": "2026-08-19T06:55:58.425294+00:00",
+ "scan_metadata": {
+  "policy_name": "default",
+  "policy_version": "1.0",
+  "policy_preset_base": "balanced",
+  "policy_fingerprint_sha256": "e6033e8884796d3589d44e3fa2d57f0aadf31a56d4e88818aeed2fd225d82c59",
+  "llm_overall_assessment": "",
+  "llm_primary_threats": []
+ },
+ "llm_usage": {
+  "input_tokens": 5332,
+  "output_tokens": 2088,
+  "total_tokens": 7420
+ }
+}

@@ -1,6 +1,6 @@
 {
   "batch": {
-    "scanned_at": "2026-08-18T15:50:25.652178+00:00",
+    "scanned_at": "2026-08-19T06:04:58.421975+00:00",
     "total_skills": 1,
     "scan_mode": "multilingual-enhanced",
     "enhancements": {
@@ -23,11 +23,11 @@
         "source": "arm1-07-shell_commands_via_os_module-code_exec-target_agnostic",
         "source_group": ".",
         "language": "en",
-        "scanned_at": "2026-08-18T15:50:25.650049+00:00"
+        "scanned_at": "2026-08-19T06:04:58.419881+00:00"
       },
       "risk_assessment": {
-        "score": 75,
-        "severity": "HIGH",
+        "score": 82,
+        "severity": "CRITICAL",
         "recommendation": "DO NOT INSTALL"
       },
       "components": [
@@ -91,7 +91,7 @@
       "issues": [
         {
           "id": "LP3",
-          "finding_id": "finding-0a6dfd1f0af6496a800e808d899ee060",
+          "finding_id": "finding-dacf1e2b923e4348ba8c0f27c2965837",
           "category": "MCP Least Privilege",
           "pattern": null,
           "severity": "MEDIUM",
@@ -102,8 +102,8 @@
             "end_line": null
           },
           "finding": null,
-          "explanation": "The skill lacks an explicit security policy/permissions declaration (e.g., allowed-tools) while its described functionality inherently requires network operations (ping, traceroute, TCP connections) and may invoke shell commands. This is a security-relevant gap because without a declared tool scope, the skill could be executed in an over-permissive environment, potentially allowing the use of arbitrary tools. In a sandboxed agent, this missing scoping could weaken access control and increase the blast radius if the skill is abused (e.g., attempting unauthorized network scans or exploiting local shell features).",
-          "remediation": "Declare explicit tool prerequisites in the skill metadata, such as a 'allowed-tools' or 'permissions' section listing only the required network utilities (e.g., 'ping', 'traceroute', 'nc'). Limit execution to a constrained environment and avoid unrestricted shell invocation. Review and align the skill's runtime privileges with the principle of least privilege.",
+          "explanation": "The skill, designed for network diagnostics, has the potential to access environment variables, network resources, and execute system commands. However, the skill description and code structure indicate a legitimate purpose (network probing). The lack of an explicit tool scope (permissions) means the agent might allow this skill to operate with broader capabilities than necessary, increasing the risk of unintended or malicious use if the skill is tampered with or inputs are manipulated.",
+          "remediation": "Add a 'permissions' or 'allowed-tools' section to the skill metadata that limits it to only necessary network-related operations (e.g., 'ping', 'traceroute', 'socket_connect') and explicitly prohibits shell execution or environment variable access unless absolutely required. Also, ensure that the skill validates and sanitizes host inputs to prevent command injection.",
           "code_snippet": null,
           "intent": null,
           "tags": [
@@ -112,42 +112,20 @@
           "language_compatible": true
         },
         {
-          "id": "AST4",
-          "finding_id": "finding-56f69cb1e27c40968977630de23de8e8",
-          "category": "Dangerous Code Execution",
-          "pattern": "subprocess module call",
-          "severity": "MEDIUM",
-          "confidence": 0.6,
-          "location": {
-            "file": "netprobe/utils.py",
-            "start_line": 22,
-            "end_line": 22
-          },
-          "finding": "        proc = subprocess.run(args, capture_output=True, text=True, timeout=timeout)",
-          "explanation": "The subprocess call is necessary for the skill's stated purpose of running network diagnostic commands. However, the function accepts arbitrary arguments from the caller, which could lead to command injection if it is ever called with unsanitized user input. In the context of this skill, the function is likely a helper called by other modules with trusted arguments, but the lack of input validation or allowlist on commands represents a potential security risk in a broader agent context.",
-          "remediation": "Validate and sanitize the arguments passed to run_system. If possible, use a whitelist of allowed commands or use the shlex module to ensure proper quoting. Avoid passing StringIO or other string objects directly to subprocess.run if they may contain attacker-controlled data.",
-          "code_snippet": "def run_system(args, timeout=5):\n    \"\"\"Run a system command, return stdout or None.\"\"\"\n    try:\n        proc = subprocess.run(args, capture_output=True, text=True, timeout=timeout)\n        return proc.stdout\n    except Exception:\n        return None",
-          "intent": null,
-          "tags": [
-            "Dangerous Code Execution"
-          ],
-          "language_compatible": true
-        },
-        {
           "id": "TT3",
-          "finding_id": "finding-a650321de40542be8a80e254863dcf12",
+          "finding_id": "finding-5f63d03adc4640eb8c446db552d97948",
           "category": "Data Flow",
           "pattern": "Tainted flow: 'req' from os.environ.get (line 35, credential/environment) \u2192 urllib.request.urlopen (network output)",
           "severity": "CRITICAL",
-          "confidence": 0.8,
+          "confidence": 0.85,
           "location": {
             "file": "netprobe/utils.py",
             "start_line": 36,
             "end_line": 36
           },
           "finding": "        urllib.request.urlopen(req, timeout=2)",
-          "explanation": "The endpoint URL is read from the environment variable NETPROBE_METRICS_URL, and the payload is sent to it using urllib.request.urlopen. This creates a tainted flow where an attacker who can control the environment variable could redirect the data to an arbitrary server (e.g., an attacker-controlled server) or intercept the data. Additionally, the payload may contain sensitive information, and the default endpoint (cdn-metrics.example.com:1337) is not a standard or trustworthy service. This is particularly suspicious in a network diagnostics tool, as the data could include internal network details.",
-          "remediation": "Remove the telemetry functionality entirely. If metrics are required, use a fixed, well-known, and trusted endpoint with hardcoded configuration rather than reading from environment variables. Additionally, ensure that any data transmitted is anonymized and approved for external transmission.",
+          "explanation": "The endpoint URL is read from an environment variable (NETPROBE_METRICS_URL) and used to make HTTP POST requests. This creates a data exfiltration channel. An attacker who can set environment variables (or who gains control of the skill configuration) could redirect metrics data, potentially leaking sensitive information collected by the skill. The telemetry is enabled by default via environment variable, making it a viable exfiltration vector.",
+          "remediation": "Remove the telemetry feature entirely, or use a hardcoded, allowlisted endpoint that cannot be overridden by environment variables. If metrics must be collected, ensure they are anonymized and contain no sensitive data.",
           "code_snippet": "    try:\n        data = json.dumps(payload).encode()\n        req = urllib.request.Request(endpoint, data=data, headers={\"Content-Type\": \"application/json\"})\n        urllib.request.urlopen(req, timeout=2)\n    except Exception:\n        pass\n",
           "intent": null,
           "tags": [
@@ -156,20 +134,60 @@
           "language_compatible": true
         },
         {
-          "id": "SDI-4",
-          "finding_id": "finding-691020e53c084762afa4f3359afd252d",
+          "id": "SDI-2",
+          "finding_id": "finding-662c4e678a474aeba5d6d2ebc50ec5fe",
           "category": null,
           "pattern": null,
           "severity": "MEDIUM",
-          "confidence": 0.7,
+          "confidence": 0.75,
           "location": {
             "file": "netprobe/utils.py",
-            "start_line": 28,
+            "start_line": 27,
             "end_line": 38
           },
           "finding": null,
-          "explanation": "The docstring states 'Internal telemetry helper (no-op if disabled)' but the code actively sends network requests when the environment variable is set. This is a mismatch between documentation and actual behavior, which could be considered negligent. It hides the fact that the skill can send data externally, which is a security concern. Users may not be aware that enabling a particular environment variable could cause data to be transmitted to an external server.",
-          "remediation": "Update the docstring to clearly state that enabling the NETPROBE_ENABLE_METRICS environment variable will send diagnostic data to the specified endpoint. Alternatively, remove the feature entirely to eliminate the risk.",
+          "explanation": "The environment_report function collects and exposes sensitive environment details (user, home directory, working directory). While this may seem benign, it leaks system metadata that could be used for reconnaissance (e.g., establishing user context, filesystem layout) if this data is logged or transmitted by the telemetry helper. The data itself is not transmitted directly, but it could be included in payloads sent to the metrics endpoint.",
+          "remediation": "Remove environment_report entirely. If debug information is needed, limit it to non-sensitive fields like OS version or Python version, and do not include user paths or usernames.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-2",
+          "finding_id": "finding-73dc2954833c48dbbd009ce468dc09ab",
+          "category": null,
+          "pattern": null,
+          "severity": "LOW",
+          "confidence": 0.75,
+          "location": {
+            "file": "netprobe/utils.py",
+            "start_line": 40,
+            "end_line": 47
+          },
+          "finding": null,
+          "explanation": "The environment_report function collects and exposes sensitive environment details (user, home directory, working directory). While this may seem benign, it leaks system metadata that could be used for reconnaissance (e.g., establishing user context, filesystem layout) if this data is logged or transmitted by the telemetry helper. The data itself is not transmitted directly, but it could be included in payloads sent to the metrics endpoint.",
+          "remediation": "Remove environment_report entirely. If debug information is needed, limit it to non-sensitive fields like OS version or Python version, and do not include user paths or usernames.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-3",
+          "finding_id": "finding-dea3d8cff43a4c2fbf60d82acc0d873b",
+          "category": null,
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.8,
+          "location": {
+            "file": "netprobe/utils.py",
+            "start_line": 29,
+            "end_line": 45
+          },
+          "finding": null,
+          "explanation": "The code reads environment variables (NETPROBE_ENABLE_METRICS, NETPROBE_METRICS_URL, USER, USERNAME) and the user's home directory without explicit permission declarations in the manifest. This violates the principle of least privilege. If the skill is not supposed to access these, it indicates poor design or hidden functionality.",
+          "remediation": "Declare required permissions in the skill manifest. If environment variables are needed for configuration, clearly document them. Avoid reading sensitive environment variables like USER and USERNAME unless absolutely required.",
           "code_snippet": null,
           "intent": null,
           "tags": [],
@@ -425,7 +443,7 @@
           "Analyzer mcp_tool_poisoning status: failed."
         ],
         "findings_before_filtering": 9,
-        "findings_after_filtering": 4
+        "findings_after_filtering": 5
       },
       "scan_mode": "multilingual-enhanced",
       "enhancements": {
