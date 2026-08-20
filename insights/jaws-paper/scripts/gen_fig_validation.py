@@ -19,7 +19,7 @@ S = json.load(open(os.path.join(HERE, "stats_581.json")))
 A = S["arms"]
 OUT = os.path.join(HERE, "..", "latex", "fig_validation.pdf")
 
-apply()
+apply(scale=1.2)
 C_SS, C_CI, C_CA, GR = C_SS, C_CISCO, C_CAT, "#5A6A75"
 
 def w(k, n):
@@ -32,16 +32,16 @@ def w(k, n):
     return max(0.0, c-h), min(1.0, c+h)
 
 rows = [  # label, k, n, color, marker, semantics
-    ("Arm7 hidden file\n→ SS evades",        A["Arm7"]["ss_evade"],   A["Arm7"]["n"],         C_SS, "o", "fail"),
-    ("Arm11A no literal\n→ Cisco evades", A["Arm11A"]["n"] - A["Arm11A"]["cisco_detect"], A["Arm11A"]["n"], C_CI, "o", "fail"),
-    ("Arm10B tool semantics\n→ Cat evades",  A["Arm10B"]["n"] - A["Arm10B"]["cat_detect"], A["Arm10B"]["n"], C_CA, "o", "fail"),
-    ("Arm13 stacked weak\n→ SS partial bypass", A["Arm13"]["ss_evade"], A["Arm13"]["n"], C_SS, "o", "fail"),
-    ("Arm11B wild pipeline\n→ SS score 0", A["Arm11B"]["ss_zero"], A["Arm11B"]["n"], C_SS, "o", "fail"),
-    ("Arm13 combination\n→ all three miss",  A["Arm13"]["triple_miss"], A["Arm13"]["n"],       GR,  "s", "fail"),
-    ("Arm12 negative control\nvariant family → SS detects", A["Arm12"]["ss_detect"], A["Arm12"]["n"], "black", "o", "detect"),
+    ("Arm7 hidden file",        A["Arm7"]["ss_evade"],   A["Arm7"]["n"],         C_SS, "o", "fail"),
+    ("Arm11A finding-var", A["Arm11A"]["n"] - A["Arm11A"]["cisco_detect"], A["Arm11A"]["n"], C_CI, "o", "fail"),
+    ("Arm10B tool semantics",  A["Arm10B"]["n"] - A["Arm10B"]["cat_detect"], A["Arm10B"]["n"], C_CA, "o", "fail"),
+    ("Arm13 stacked weak", A["Arm13"]["ss_evade"], A["Arm13"]["n"], C_SS, "o", "fail"),
+    ("Arm11B wild pipeline", A["Arm11B"]["ss_zero"], A["Arm11B"]["n"], C_SS, "o", "fail"),
+    ("Arm13 combination",  A["Arm13"]["triple_miss"], A["Arm13"]["n"],       GR,  "s", "fail"),
+    ("Arm12 neg. control", A["Arm12"]["ss_detect"], A["Arm12"]["n"], "black", "o", "detect"),
 ]
 
-fig, ax = plt.subplots(figsize=(3.1, 2.7))
+fig, ax = plt.subplots(figsize=(3.35, 2.6))
 ys = np.arange(len(rows))[::-1]
 for y, (lab, k, n, col, mk, sem) in zip(ys, rows):
     p = k / n
@@ -49,14 +49,14 @@ for y, (lab, k, n, col, mk, sem) in zip(ys, rows):
     ax.plot([lo*100, hi*100], [y, y], color=col, lw=1.1, alpha=0.85)
     face = "white" if sem == "detect" else col
     ax.plot(p*100, y, mk, color=col, mfc=face, mec=col, ms=5, mew=1.2, zorder=3)
-    ax.text(hi*100 + 2.5, y, f"{k}/{n}", va="center", fontsize=6.6, color="#444")
+    ax.text(hi*100 + 1.5, y, f"{k}/{n}", va="center", fontsize=8.9, color="#444")
 ax.set_yticks(ys)
-ax.set_yticklabels([r[0] for r in rows], fontsize=6.2)
+ax.set_yticklabels([r[0] for r in rows], fontsize=10.8)
 ax.set_xlim(0, 116)
 ax.set_xticks([0, 25, 50, 75, 100])
 ax.set_xlabel("rate (%), Wilson 95% CI")
 ax.axvline(50, color="#ccc", lw=0.6, ls=":")
 ax.set_title("Confirmatory constructions: predicted failures\nwith sample sizes and uncertainty",
-             loc="left", fontsize=8)
+             loc="left", fontsize=10.8)
 fig.savefig(OUT, bbox_inches="tight")
 print("wrote", OUT)
