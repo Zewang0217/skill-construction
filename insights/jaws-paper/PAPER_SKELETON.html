@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>JAWS 论文骨架 — 脉络·贡献·为什么非我们不可</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<style>
+:root{--bg:#0d1117;--panel:#161b22;--border:#30363d;--text:#e6edf3;--dim:#8b949e;--accent:#58a6ff;--green:#3fb950;--gold:#d29922;--red:#f85149;--purple:#bc8cff}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,'Segoe UI',sans-serif;padding:24px;max-width:1400px;margin:0 auto}
+h1{font-size:20px;margin-bottom:4px}
+h2{font-size:16px;margin:32px 0 12px;color:var(--accent);border-left:3px solid var(--accent);padding-left:10px}
+.sub{color:var(--dim);font-size:12px;margin-bottom:24px}
+.panel{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:20px;margin:16px 0;overflow-x:auto}
+.mermaid{display:flex;justify-content:center}
+table{width:100%;border-collapse:collapse;font-size:12.5px;margin:12px 0}
+th{background:#21262d;color:var(--accent);padding:8px 10px;text-align:left;font-weight:600;white-space:nowrap}
+td{padding:7px 10px;border-bottom:1px solid var(--border)}
+tr:hover td{background:rgba(88,166,255,.04)}
+.yes{color:var(--green);font-weight:700}
+.no{color:var(--dim)}
+.partial{color:var(--gold)}
+.highlight{background:rgba(63,185,80,.08);border-left:3px solid var(--green)}
+.badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600}
+.b-green{background:rgba(63,185,80,.15);color:var(--green)}
+.b-gold{background:rgba(210,153,34,.15);color:var(--gold)}
+.b-red{background:rgba(248,81,73,.15);color:var(--red)}
+.b-blue{background:rgba(88,166,255,.15);color:var(--accent)}
+.b-purple{background:rgba(188,140,255,.15);color:var(--purple)}
+.claim{background:rgba(88,166,255,.06);border:1px solid rgba(88,166,255,.3);border-radius:10px;padding:16px 20px;margin:16px 0;font-size:14px;line-height:1.7}
+.claim b{color:var(--accent)}
+.note{color:var(--dim);font-size:11.5px;margin-top:8px}
+</style>
+</head>
+<body>
+
+<h1>JAWS 2026 论文骨架 v2</h1>
+<div class="sub">From Symptom to Structure | v2 2026-08-21（GPT 反馈收缩后）</div>
+
+<div class="claim">
+<b>Paper Identity：</b>A methodology for <b>structural analysis of security scanner disagreement</b>——把 scanner disagreement 从统计症状变成可分析、可验证的对象。<br/><br/>
+<b>核心 Claim：</b>现有评测能量化扫描器<i>是否</i>分歧（症状），但无法解释分歧<i>在哪、为什么</i>，更无法预测未见盲区。我们把分歧从<b>可观察的症状</b>变成<b>可分析的结构</b>：引入三维攻击坐标空间映射异构扫描器语言，实现<b>结构化分歧分析</b>（覆盖遗漏 vs 口径分歧），将其转化为可检验的盲区假设，并用坐标驱动的对抗构造验证。
+</div>
+
+<h2>图 1：论文脉络 — Measure → Explain → Predict → Validate</h2>
+<div class="panel">
+<pre class="mermaid">
+flowchart TD
+    P0["🔍 <b>问题</b><br/>现有评测只报 κ / F1（症状）<br/>无法回答：分歧在哪？为什么？能否预测？"]
+
+    subgraph M["<b>Measure</b> — §3（C1）"]
+        direction LR
+        M1["三维攻击坐标空间<br/><i>来源 × 方式 × 目标</i>"]
+        M2["67 类扫描器语言<br/>→ 43 统一坐标"]
+        M1 --> M2
+    end
+
+    subgraph E["<b>Explain</b> — §4（C2 ★ 主贡献）"]
+        direction LR
+        E1["582 真实恶意 × 3 扫描器<br/>逐坐标分解"]
+        E2["① 覆盖遗漏<br/><i>该坐标不覆盖</i><br/>来源轴集体失明"]
+        E3["② 口径分歧<br/><i>覆盖但判法不同</i><br/>语义/字面/正则"]
+        E1 --> E2 & E3
+    end
+
+    subgraph PR["<b>Predict / Hypothesize</b> — §4（evidence-driven workflow）"]
+        PRA["<b>Type A</b> 坐标覆盖证据<br/>覆盖矩阵 → 坐标 X 未覆盖<br/>→ 预测漏检"]
+        PRB["<b>Type B</b> 架构证据<br/>读实现（build_context 跳 dotfile）<br/>→ 预测隐藏文件盲区"]
+        PRL["Hypothesis locking<br/>08-13 盲区矩阵先于 08-19 构造<br/>Arm7 源码分析在先"]
+        PRA --> PRL
+        PRB --> PRL
+    end
+
+    subgraph V["<b>Validate</b> — §5.2-5.4（C3+C4）"]
+        direction LR
+        V1["129 构造样本"]
+        V2["隐藏文件<br/>SS 93% 绕"]
+        V3["表达层<br/>Cisco 100% 绕"]
+        V4["正则层<br/>Cat 100% 盲"]
+        V5["组合策略<br/>SS 5/5 绕"]
+        V1 --> V2 & V3 & V4 & V5
+    end
+
+    IMP["<b>§6 Implications</b><br/>修复方向 / defense-in-depth / TOSEM 扩展"]
+
+    P0 --> M --> E --> PR --> V --> IMP
+
+    style P0 fill:#1c2128,stroke:#f85149,color:#e6edf3
+    style M fill:#0d2137,stroke:#58a6ff,color:#e6edf3
+    style E fill:#1a2f1a,stroke:#3fb950,color:#e6edf3
+    style PR fill:#2d1f00,stroke:#d29922,color:#e6edf3
+    style V fill:#1f0d2d,stroke:#bc8cff,color:#e6edf3
+    style IMP fill:#161b22,stroke:#8b949e,color:#e6edf3
+</pre>
+</div>
+
+<h2>图 2：四个贡献点 ↔ 章节 ↔ 证据</h2>
+<div class="panel">
+<pre class="mermaid">
+flowchart LR
+    subgraph CORE["核心发现"]
+        C2["<b>C2 ★ = PAPER</b><br/>结构化分歧分析<br/>κ = <i>that</i> / 我们 = <i>where + why</i><br/>把症状变成结构"]
+    end
+    subgraph C["让 C2 成立的证据链"]
+        C1["<b>C1</b> 测量空间<br/><i>instrument</i><br/>没它无法比较异构扫描器"]
+        C3["<b>C3</b> 假设驱动构造<br/><i>validation method</i><br/>证明不是 post-hoc"]
+        C4["<b>C4</b> 机制根因<br/><i>causal evidence</i><br/>证明不是 correlation"]
+    end
+
+    subgraph D["证据"]
+        D1[("84 源 1253 条<br/>67 类翻译表<br/>56.5% 部分三元组")]
+        D2[("582 真实恶意<br/>43 坐标检测矩阵<br/>κ按维分裂")]
+        D3[("129 构造样本<br/>Arm1-13<br/>73%/100%/100%/5/5")]
+        D4[("三家扫描器源码<br/>dotfile跳过<br/>阈值吞/正则盲")]
+    end
+
+    C2 ==> C1
+    C2 ==> C3
+    C3 ==> C4
+
+    S3["§3"] -.-> C1
+    S4["§4"] -.-> C2
+    S5["§5"] -.-> C3 & C4
+
+    C1 -.-> D1
+    C2 -.-> D2
+    C3 -.-> D3
+    C4 -.-> D4
+
+    style C2 fill:#1a2f1a,stroke:#3fb950,stroke-width:3px,color:#e6edf3
+    style CORE fill:#0d1117,stroke:#3fb950,color:#e6edf3
+</pre>
+</div>
+
+<h2>图 3：为什么非我们不可 — 能力矩阵</h2>
+<div class="panel">
+<table>
+<tr>
+  <th>能力</th>
+  <th>MalSkillBench</th>
+  <th>SkillTrustBench</th>
+  <th>ClawHub</th>
+  <th>Locate-and-Judge</th>
+  <th>SkillsMetric</th>
+  <th class="highlight"><b>我们</b></th>
+</tr>
+<tr>
+  <td><b>统一坐标空间</b></td>
+  <td class="partial">⚠️ 语料标注方案<br/><span class="note">描述自己生成了什么</span></td>
+  <td class="no">✗ 枚举 T01-T09</td>
+  <td class="no">✗</td>
+  <td class="no">✗</td>
+  <td class="no">✗ 扫描器内部 5 维</td>
+  <td class="highlight yes">✅ 扫描器输出映射空间<br/><span class="note">+ 对抗合成驱动器</span></td>
+</tr>
+<tr>
+  <td><b>分歧结构化定因</b></td>
+  <td class="no">✗ 只证"组合恢复不了"</td>
+  <td class="no">✗</td>
+  <td class="partial">⚠️ 只观测不解释</td>
+  <td class="no">✗ 只测召回</td>
+  <td class="partial">⚠️ 只测自建框架</td>
+  <td class="highlight yes">✅ 覆盖遗漏 vs 口径分歧<br/><span class="note">κ 按维分裂实证</span></td>
+</tr>
+<tr>
+  <td><b>坐标驱动构造</b></td>
+  <td class="partial">⚠️ GVF 随机迁移</td>
+  <td class="partial">⚠️ 注入+变异（枚举式）</td>
+  <td class="no">✗</td>
+  <td class="no">✗</td>
+  <td class="partial">⚠️ 对抗集非坐标采样</td>
+  <td class="highlight yes">✅ 沿坐标系统采样<br/><span class="note">43 坐标全覆盖</span></td>
+</tr>
+<tr>
+  <td><b>机制根因（源码级）</b></td>
+  <td class="no">✗</td>
+  <td class="no">✗</td>
+  <td class="no">✗</td>
+  <td class="no">✗</td>
+  <td class="partial">⚠️ 部分</td>
+  <td class="highlight yes">✅ dotfile / 阈值 / 正则<br/><span class="note">三根因源码定位</span></td>
+</tr>
+<tr>
+  <td><b>真实 wild 数据兜底</b></td>
+  <td class="yes">✅ 3944</td>
+  <td class="partial">⚠️ 95.6% 合成</td>
+  <td class="yes">✅ 67k</td>
+  <td class="partial">⚠️ 65 样本</td>
+  <td class="partial">⚠️ 138k 扫描</td>
+  <td class="highlight yes">✅ 582 真实 + 129 构造</td>
+</tr>
+</table>
+<div class="note" style="margin-top:12px;font-size:13px;color:var(--text)">
+<b>一句话：</b>竞品各自占一格。没有人同时具备「坐标 + 定因 + 构造 + 机制」四层证据链。<br/>
+MalSkillBench 的 3D 是<span class="badge b-gold">语料标注</span>（描述生成了什么）；我们是<span class="badge b-green">测量仪器</span>（把扫描器输出映射进同一空间）+ <span class="badge b-green">合成驱动器</span>（沿坐标构造样本）。标注方案无法回答"扫描器漏的是哪个坐标"。
+</div>
+</div>
+
+<h2>图 4：叙事因果链（Introduction 逻辑）</h2>
+<div class="note" style="font-size:13px;color:var(--text);margin-bottom:8px"><b>Punch line：</b>Scanner blind spots are not merely observable — they are <b>analyzable and testable</b>.</div>
+<div class="panel">
+<pre class="mermaid">
+flowchart TD
+    A["扫描器输出异构<br/>语言互不相通"] --> B["现有比较只见分歧<br/>κ ≈ 0 / 检出率差异"]
+    B --> C["但分歧不可解释<br/><i>症状 ≠ 诊断</i>"]
+    C --> D["统一攻击坐标空间<br/><b>Measure</b>"]
+    D --> E["分歧可分解<br/>覆盖遗漏 / 口径分歧<br/><b>Explain</b>"]
+    E --> F["坐标级盲区假设<br/><b>Predict</b>"]
+    F --> G["构造对抗样本验证<br/><b>Validate</b>"]
+    G --> H["✅ 观察到的盲区与结构性覆盖<br/>及实现属性一致<br/><i>可解释 · 可假设检验</i>"]
+
+    style C fill:#2d1f00,stroke:#d29922,color:#e6edf3
+    style H fill:#1a2f1a,stroke:#3fb950,color:#e6edf3
+</pre>
+</div>
+
+<h2>图 5：Hypothesis Locking 时间线（回应 reviewer "你先知道结果再造样本？"）</h2>
+<div class="panel">
+<pre class="mermaid">
+gantt
+    title Hypothesis Locking Timeline
+    dateFormat YYYY-MM-DD
+    axisFormat %m/%d
+
+    section Measure
+    84 sources and 3D design       :done, m1, 2026-07-17, 5d
+    6 scanner mapping 172 entries  :done, m2, 2026-08-02, 3d
+
+    section Explain
+    NMI and kappa by dimension     :done, e1, 2026-08-11, 2d
+
+    section Predict
+    43 coords and 83 slot matrix   :done, p1, 2026-08-13, 1d
+    Feasibility 400 space          :done, p2, 2026-08-13, 1d
+
+    section Validate
+    Main experiment 582 samples    :done, v1, 2026-08-16, 2d
+    Arm1-6 exploratory             :done, v2, 2026-08-18, 1d
+    Arm7 hypothesis locking        :crit, v3, 2026-08-19, 1d
+    Arm8-13 confirmatory           :done, v4, 2026-08-19, 3d
+</pre>
+<div class="note">Arm7 是最干净的 hypothesis locking 案例：<b>先分析 SS 源码 build_context.py 发现跳 dotfile → 预测隐藏文件是盲区 → 再构造验证</b>。Arm1-6 标注为 exploratory（方法可行性），Arm7-13 为 confirmatory（预测验证）。</div>
+</div>
+
+<script>
+mermaid.initialize({
+  startOnLoad: true,
+  theme: 'dark',
+  themeVariables: {
+    primaryColor: '#21262d',
+    primaryTextColor: '#e6edf3',
+    primaryBorderColor: '#30363d',
+    lineColor: '#8b949e',
+    secondaryColor: '#161b22',
+    tertiaryColor: '#0d1117',
+    fontFamily: '-apple-system, sans-serif',
+    fontSize: '13px'
+  },
+  flowchart: { curve: 'basis', padding: 12 },
+  gantt: { fontSize: 11 }
+});
+</script>
+</body>
+</html>
