@@ -1,0 +1,453 @@
+% JAWS 2 @ ASE 2026 — Idea Paper (≤8 pages excl. references)
+% ACM Primary Article Template, sigconf, single-anonymous
+\PassOptionsToPackage{expansion=false}{microtype}
+\documentclass[sigconf,nonacm]{acmart}
+
+% JAWS is single-anonymous: author names visible
+\settopmatter{authorsperrow=3}
+
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,calc,decorations.pathreplacing}
+
+% Blind-review off (single-anonymous)
+\setcopyright{none}
+\renewcommand\footnotetextcopyrightpermission[1]{}
+\pagestyle{plain}
+
+\title{From Symptom to Structure: Analyzing Disagreement\\in Agent-Skill Security Scanners}
+
+
+
+
+
+
+\begin{abstract}
+Automated security analyses routinely disagree, yet evaluations treat that disagreement as a statistic---Cohen's $\kappa$, pairwise overlap---and stop there, as if it were noise or merely an outcome about tool quality.
+We propose to treat disagreement differently: as \emph{analytical evidence about the analyses themselves}.
+The structure of disagreement, once made comparable, exposes each analysis's coverage of the threat space and how it operationalizes detection there.
+We develop a methodology for this conversion: a shared observation language that makes disagreement localizable, a three-layer decomposition---a miss can originate in \emph{coverage} (the input was never collected), \emph{detection} (the engine cannot recognize it), or \emph{decision} (the finding was thresholded away)---blind-spot hypotheses locked before construction, and adversarial validation.
+We instantiate the idea on agent-skill security scanners, an emerging supply-chain defense whose scanners disagree sharply.
+Across 581 malicious skills (350 wild, 231 coordinate-generated) and three heterogeneous scanners, the decomposition predicts concrete blind spots, and locked adversarial construction confirms them: hidden-file payloads evade SkillSpector on 14/15, expression variants evade Cisco on 6/6, and combined strategies evade SkillSpector on 5/5, with selected failures traced to source-level mechanisms.
+Disagreement, we argue, is not merely a statistic to report: it is evidence to mine.
+\end{abstract}
+
+\keywords{agent skills, security scanners, taxonomy, blind spots, adversarial construction}
+
+\begin{document}
+\maketitle
+
+% ============================================================
+\section{Introduction}
+\label{sec:intro}
+
+Automated security analyses disagree.
+Given the same artifact, one scanner flags it, another passes it, and a third flags something else entirely.
+The standard response is to \emph{measure} the disagreement---Cohen's $\kappa$, pairwise overlap, per-tool recall---and treat the result as an evaluation outcome: a fact about tool quality, or noise to be averaged away.
+We ask a different question: \emph{what does the pattern of disagreement reveal about the analyses themselves?}
+We argue that disagreement is not merely a statistic to report.
+It is analytical evidence: once disagreements are made comparable, their structure exposes what each analysis covers, what it cannot see, and why.
+
+Today this evidence is inaccessible, because analyses speak incompatible languages.
+One scanner reports ``tool poisoning,'' another ``supply-chain risk,'' a third a family of regex matches.
+There is no shared frame in which to ask \emph{where exactly} they disagree, so disagreement remains global---a $\kappa$---but never localizable.
+Without localization there is no explanation; without explanation, disagreement cannot be acted upon.
+
+We propose to convert disagreement into structure.
+The conversion has four steps.
+First, a \emph{shared observation language}---a coordinate space over the threat space---into which each scanner's categories are mapped, making disagreement localizable.
+Second, a \emph{three-layer decomposition}: every miss originates in exactly one architectural layer---\emph{coverage} (the input was never collected), \emph{detection} (the engine cannot recognize the behavior), or \emph{decision} (the finding exists but is thresholded away).
+Third, the decomposition yields \emph{blind-spot hypotheses}, which we lock before building anything.
+Fourth, \emph{adversarial validation}: coordinate-driven construction tests the locked hypotheses, and selected failures are traced to implementation mechanisms.
+
+We instantiate this idea on \emph{agent-skill security scanners}.
+Coding agents extend their capabilities by installing skills---packages of instructions and scripts---and malicious skills are a live supply-chain threat (the ClawHavoc incident surfaced over 1{,}184 of them~\cite{clawhub2026}).
+Scanners have emerged to screen skills, but they disagree sharply~\cite{clawhub2026,locatejudge2026}, and no existing evaluation explains the disagreement.
+The object is timely; the methodology is the contribution.
+
+An honesty point frames our results.
+In aggregate the scanners are strong: across 581 malicious skills, SkillSpector flags 92.9\%, Cisco 86.7\%, Caterpillar 72.6\% under a uniform reading of their outputs.
+The blind spots are therefore invisible in average recall; they emerge only when the threat space is partitioned.
+This is precisely the structure that aggregate metrics conceal, and precisely what disagreement, treated as evidence, exposes.
+
+\noindent\textbf{Contributions.} This is an idea paper: one general claim, a methodology, an instantiation, and early evidence.
+\begin{itemize}
+  \item \textbf{Idea.} Disagreement among automated security analyses is analytical evidence, not merely an evaluation outcome.
+  \item \textbf{Methodology.} A conversion loop: shared observation language $\rightarrow$ three-layer decomposition (coverage / detection / decision) $\rightarrow$ locked hypotheses $\rightarrow$ adversarial validation (\S\ref{sec:idea}--\S\ref{sec:validate}).
+  \item \textbf{Instantiation.} Agent-skill security scanners, studied via a three-dimensional attack-coordinate space.
+  \item \textbf{Early evidence.} 581 malicious skills and 500 benign references under three scanners; 79 confirmatory constructions (of 129 built) testing hypotheses specified before construction; source-level mechanism tracing.
+\end{itemize}
+
+\noindent\textbf{Scope.} We demonstrate the loop end-to-end on one instantiation.
+The generality of the idea---to package scanners, dependency scanners, static analyzers, LLM-based security evaluators---is the research direction this early result opens, to be developed in an extended version.
+
+\noindent\textbf{Results.} Hidden-file payloads evade SkillSpector on 14/15 samples (its build context skips dotfiles). Expression-layer variants evade Cisco on 6/6 (its pipeline requires literal command surfaces). Combined strategies evade SkillSpector on 5/5.
+A regex-only reference tool is blind to all 10 semantic variants, showing blind spots deepen as detection grows more primitive.
+
+
+
+% ============================================================
+\section{The Core Idea: Disagreement as Evidence}
+\label{sec:idea}
+
+An automated security analysis is a pipeline: it \emph{collects} an input, \emph{detects} patterns in it, and \emph{decides} what to report. Each stage can fail independently, and the stages fail differently across analyses. This gives the paper's central object a precise shape:
+
+\begin{quote}
+\textbf{Three-layer decomposition.} Every miss originates in exactly one layer:
+\emph{L1 coverage} --- the relevant input was never collected;
+\emph{L2 detection} --- the input was collected but the engine cannot recognize the behavior;
+\emph{L3 decision} --- the engine produced a finding but the decision rule discarded it.
+\end{quote}
+
+The layers are not metaphorical; they are separable by construction. A payload placed in a file the collector skips evades at L1 regardless of engine strength. A behavior expressed without the lexical or semantic surface an engine matches evades at L2. A finding demoted below a severity threshold evades at L3. Each layer implies a different fix (collect more inputs; change engines; change thresholds), a different attack strategy (hide the file; change the expression; suppress the severity), and therefore a different, falsifiable blind-spot hypothesis.
+
+Why is a new instrument needed to reach this decomposition? Because the standard tools operate at the wrong level of aggregation (Table~\ref{tab:why}):
+
+\begin{table}[t]
+\caption{What each approach can do with disagreement. ``Localize'' = say where in the threat space the disagreement arises; ``explain'' = attribute it to a mechanism in the analysis; ``predict'' = derive the failure before any new artifact is built.}
+\label{tab:why}
+\small
+\begin{tabular}{@{}lccc@{}}
+\toprule
+ & Localize & Explain & Predict \\
+\midrule
+Aggregate recall & $\times$ & $\times$ & $\times$ \\
+Pairwise $\kappa$ / overlap & $\times$ & $\times$ & $\times$ \\
+Manual post-hoc audit & \checkmark & \checkmark & $\times$ \\
+\textbf{Our loop} & \checkmark & \checkmark & \checkmark\ (locked) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Recall and $\kappa$ compress disagreement to a scalar; scalar differences cannot say \emph{where} the analyses diverge. A manual audit can, after seeing the failures---but post-hoc explanation cannot distinguish prediction from rationalization. The loop we instantiate---observe, localize, decompose by layer, hypothesize, lock, construct, validate---is the minimal pipeline that does all three, and its predictions are checkable against a locking protocol that fixes hypotheses before construction.
+
+% ============================================================
+\section{An Observation Instrument}
+\label{sec:measure}
+
+The reason disagreement cannot currently be interrogated is that the scanners speak incompatible languages: SkillSpector speaks of 17 risk classes, Cisco of 18 threat categories, Caterpillar of regex rule families. There is no frame in which to ask \emph{where exactly} they disagree. The coordinate space we introduce is, first and foremost, a \emph{shared observation language}: the instrument that makes disagreement localizable. It is not a universal taxonomy; it is the observation layer required to interrogate disagreement. Figure~\ref{fig:pipeline} shows the full conversion this paper instantiates.
+
+\begin{figure*}[t]
+\centering
+\begin{tikzpicture}[node distance=4mm and 7mm,
+  box/.style={draw=black!40, rounded corners=1pt, font=\scriptsize, align=center, inner sep=3pt},
+  plain/.style={font=\scriptsize, align=center},
+  arrow/.style={-{Stealth[length=2mm]}, thick, black!60},
+  inflow/.style={draw, rounded corners=1pt, font=\scriptsize, align=center, inner sep=3pt, fill=black!5}]
+
+% ============ LEFT: current practice ============
+\node[plain, font=\scriptsize\bfseries, black!55] (lp) at (0,4.35) {CURRENT PRACTICE};
+\node[inflow, minimum width=16mm] (art) {artifact $X$};
+\node[inflow, above right=4mm and 4mm of art] (sa) {Scanner A};
+\node[inflow, right=4mm of art] (sb) {Scanner B};
+\node[inflow, below right=4mm and 4mm of art] (sc) {Scanner C};
+\draw[arrow] (art.east) -- (sa.west); \draw[arrow] (art.east) -- (sb.west); \draw[arrow] (art.east) -- (sc.west);
+\node[plain, right=1.5mm of sa] {$\checkmark$};
+\node[plain, right=1.5mm of sb] {$\times$};
+\node[plain, right=1.5mm of sc] {$\times$};
+\node[box, right=9mm of sb, fill=black!5, minimum width=14mm] (kap) {$\kappa$, overlap};
+\draw[arrow] (sb.east) -- (kap.west);
+\node[box, below=4mm of kap, fill=black!12, text width=30mm] (stop) {``they disagree.''\\ \emph{Evaluation ends here.}};
+\draw[arrow] (kap) -- (stop);
+
+% ============ divider ============
+\draw[dashed, black!30] ($(art.north west)+(0,1.5mm)$) -- ($(stop.south east)+(0,-1.5mm)$);
+
+% ============ RIGHT: our view ============
+\node[inflow, right=36mm of art, minimum width=16mm] (art2) {artifact $X$};
+\node[box, right=5mm of art2, fill=blue!8, text width=21mm] (coord) {\textbf{observation space}\\ $(s,m,t)$ coordinate};
+\draw[arrow] (art2) -- (coord);
+
+% three layers column
+\node[box, right=6mm of coord, fill=orange!12, text width=21mm] (l1) {\textbf{L1 coverage}\\ did it collect the input?};
+\node[box, below=2.5mm of l1, fill=orange!12, text width=21mm] (l2) {\textbf{L2 detection}\\ can the engine see it?};
+\node[box, below=2.5mm of l2, fill=orange!12, text width=21mm] (l3) {\textbf{L3 decision}\\ is the finding kept?};
+\draw[arrow] (coord.east) -- (l1.west);
+\draw[arrow] (coord.east) -- ($(l2.west)+(0,0)$);
+\draw[arrow] (coord.east) -- (l3.west);
+
+% per-scanner diagnoses
+\node[plain, right=4mm of l1, text width=16mm] (d1) {A: \textcolor{green!50!black}{collects}\\ B: \textcolor{red!70!black}{skips dotfiles}\\ C: \textcolor{red!70!black}{n/a}};
+\node[plain, right=4mm of l2, text width=16mm] (d2) {A: \textcolor{green!50!black}{semantic}\\ B: \textcolor{red!70!black}{literal only}\\ C: \textcolor{red!70!black}{regex only}};
+\node[plain, right=4mm of l3, text width=16mm] (d3) {A: \textcolor{green!50!black}{score kept}\\ B: \textcolor{red!70!black}{MEDIUM dropped}\\ C: \textcolor{red!70!black}{markers dropped}};
+
+\node[box, below=13mm of d2, fill=blue!8, text width=40mm] (hyp) {\textbf{blind-spot hypothesis per scanner, per layer}};
+\draw[arrow] (d1.south) -- (hyp.north);
+\draw[arrow] (d2.south) -- (hyp.north);
+\draw[arrow] (d3.south) -- (hyp.north);
+\node[box, below=3mm of hyp, fill=green!10, text width=40mm] (val) {\textbf{locked construction $\rightarrow$ validation $\rightarrow$ mechanism}};
+\draw[arrow] (hyp) -- (val);
+\node[plain, font=\scriptsize\bfseries, black!55] at ($(coord.north)+(0,4.5mm)$) {OUR VIEW};
+\end{tikzpicture}
+\caption{\textbf{The same disagreement, read two ways.} Current practice collapses three verdicts on artifact $X$ into a scalar and stops. Our view localizes $X$ in a shared observation space, decomposes each scanner's failure into one architectural layer---coverage (L1), detection (L2), or decision (L3)---derives per-scanner blind-spot hypotheses, and validates them by construction locked before the fact.}
+\label{fig:pipeline}
+\end{figure*}
+
+\begin{table}[t]
+\caption{The three-dimensional observation language. Each threat is a coordinate $(source, mechanism, target)$; all three axes are multi-valued.}
+\label{tab:dims}
+\small
+\begin{tabular}{@{}p{1.2cm}p{1.9cm}p{4.6cm}@{}}
+\toprule
+Dimension & Question & Values (abbreviated) \\
+\midrule
+source & where does it enter? & supply chain; user input; external untrusted content; runtime environment; unknown \\
+mechanism & how does it attack? & code execution; instruction manipulation; dependency manipulation; privilege abuse; obfuscation; state corruption; \ldots \\
+target & what does it seek? & information theft; persistent control; resource abuse; system damage; financial theft; content-safety harm; defense evasion \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Three Dimensions}
+Each threat is located by three dimensions (Table~\ref{tab:dims}): \emph{source} (where it enters: supply chain, user input, external untrusted content, runtime environment, or unknown), \emph{mechanism} (how it attacks: code execution, instruction manipulation, dependency manipulation, privilege abuse, obfuscation, state corruption, \ldots), and \emph{target} (what it seeks: information theft, persistent control, resource abuse, system damage, financial theft, content-safety harm, defense evasion). The axes follow established security modeling: the attacker model (cf.\ Dolev--Yao), the technique axis (cf.\ ATT\&CK), and the security-property axis (cf.\ the CIA triad).
+
+\subsection{Mapping Scanner Languages}
+We mapped the documented category systems of six scanners (168 threat categories in total) into the space; the occupied cells consolidate into 43 distinct threat coordinates. The mapping is manual and evidence-based: each native category (e.g.\ Cisco's ``tool poisoning,'' SkillSpector's 17 risk classes, Caterpillar's rule families) is assigned to the set of coordinates its triggering conditions actually observe, with multi-valued assignment when a category spans several coordinates; a credential-harvesting rule, for instance, covers any (source $\times$ code execution $\times$ information theft) cell regardless of how the credential was reached. This is where ``semantic alignment'' becomes checkable: two categories from different scanners that map to overlapping coordinate sets are nominally the same detector, and any residual disagreement between them is operational, not semantic. To check that the space can carry existing threat descriptions, we mapped 1{,}253 threat statements from 84 sources. Only 17.9\% map cleanly to a full triple; \textbf{56.5\% are partial triples}: existing vocabularies cannot even fully express them, and 20.3\% fall into genuine gaps. This partial-triple rate is our key measurement-space evidence: current categorizations do not provide a complete description; a coordinate space does.
+
+\subsection{Orthogonality}
+The dimensions carry complementary information: on an 81-category human-verified gold standard, pairwise normalized mutual information stays moderate (0.23--0.57), no axis is redundant (removing any one collapses its 31 occupied coordinates to 15--23), and its 81 native labels compress into 31 coordinates ($2.6\times$) as synonymous scanner vocabularies merge while distinctions survive.
+
+% ============================================================
+\section{Instantiation: Agent-Skill Scanners}
+\label{sec:background}
+
+Agent skills are distributed through marketplaces such as ClawHub and skills.sh~\cite{clawhub2026}; at scale, a snapshot of 138{,}133 public SKILL.md files found 91.8\% exhibiting at least one packaging or safety defect~\cite{reusability2026}, and field measurements attribute 26.1\% of 31{,}132 wild skills with at least one security vulnerability~\cite{skillscan2026}. Because a skill can carry arbitrary instructions and scripts, it is an active supply-chain attack surface: the ClawHavoc incident identified over 1{,}184 malicious skills in a single marketplace~\cite{clawhub2026}, and injected skill instructions achieve up to 80\% attack success on frontier agents~\cite{skillinject2026}. Security scanners have emerged to screen skills before installation~\cite{locatejudge2026}.
+
+We study three scanners spanning the mainstream detection architectures (Table~\ref{tab:scanners}). \textbf{SkillSpector} (NVIDIA) combines static rules, AST analysis, YARA signatures, and an LLM semantic layer. \textbf{Cisco Skill Scanner} (AI Defense) combines static analysis, YARA, LLM-based judgment, and behavioral dataflow. \textbf{Caterpillar} is a lightweight regex-based tool. SkillSpector and Cisco are production-grade; Caterpillar serves as a lower-bound reference showing how blind spots deepen as detection grows more primitive. The three decision rules already preview the operational divergence that \S\ref{sec:explain} measures: a numeric risk score, a severity threshold, and a lexical grade.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\columnwidth]{fig_census.pdf}
+\caption{\textbf{Disagreement is the norm in the wild.} A market census (project week-0 data, no ground truth; scanner set distinct from \S\ref{sec:explain}): on 136 skills verified across platforms, all six public scanners' pairwise Cohen's $\kappa\le 0.244$ with most near zero (a), and only 5.9\% of skills are flagged by four or more scanners (b). On the full 1{,}082-skill census, 260 of 445 flagged skills are flagged by exactly one scanner. Disagreement at this scale is not noise to average away; it is the ecosystem's default output.}
+\label{fig:census}
+\end{figure}
+
+\begin{table}[t]
+\caption{The three studied scanners. ``Decision rule'' is what the raw output reduces to for an allow/block decision: each rule is later implicated in a distinct blind spot.}
+\label{tab:scanners}
+\small
+\begin{tabular}{@{}p{1.5cm}p{2.6cm}p{3.6cm}@{}}
+\toprule
+Scanner & Layers & Decision rule \\
+\midrule
+SkillSpector & static rules, AST, YARA, LLM semantic & risk score (0--100); $>$50 = detected \\
+Cisco & static, YARA, LLM judgment, dataflow & safe unless a CRITICAL/HIGH finding exists \\
+Caterpillar & regex families & letter grade; $\neq$A = flagged \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[t]
+\caption{Four corpora, four roles. Each row is a distinct evidential unit; no number crosses rows. Census scanners: SkillSpector, Snyk, Socket, ATH, VirusTotal, static analysis. Main-loop scanners: the three of Table~\ref{tab:scanners}.}
+\label{tab:datasets}
+\small
+\begin{tabular}{@{}p{2.7cm}p{1.5cm}p{3.6cm}@{}}
+\toprule
+Corpus & $n$ & Role in this paper \\
+\midrule
+Market census (wild, unlabeled) & 1{,}082 & Motivation: disagreement is pervasive (Fig.~\ref{fig:census}) \\
+Malicious corpus & 581 & Observed disagreement: 350 wild + 231 coordinate-generated \\
+Benign references & 500 + 4{,}000 & False-positive mirror (500 in-corpus; 4{,}000 official MalSkillBench audit) \\
+Constructions & 129 (79 conf.) & Prediction validation: Arms 7--13 locked; 1--6 exploratory \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Threat model.} The attacker authors and publishes a skill that a user (or an agent acting for the user) installs from a marketplace. The skill may contain natural-language instructions in SKILL.md, arbitrary scripts, and metadata declarations; everything is readable, but nothing is executed at install time. The defender runs one or more scanners over the skill \emph{before} execution and must decide allow/block with no runtime evidence. The attacker's goal is not to exploit a parser bug but to place malicious behavior where the defender's analysis does not look: outside the scanned file set, outside the literal command surface, or inside a declared capability. All blind spots we report are of this placement kind: architectural, not cryptographic.
+
+These scanners frequently disagree on the same skill. Recent measurements quantify the disagreement: across 67{,}453 skills, pairwise overlap of flagged sets is at most 10.4\%, and only 0.69\% are flagged by all scanners~\cite{clawhub2026}. Yet such numbers stay descriptive: they tell us \emph{that} scanners disagree, not \emph{where} in the attack space the disagreement arises or \emph{why}.
+
+% ============================================================
+\section{Observed Disagreement, Layer by Layer}
+\label{sec:explain}
+
+With a common observation layer in place, we project each scanner's detections onto the coordinate space and compare scanners coordinate by coordinate. This is the paper's core analysis, measured on 581 malicious skills (350 wild samples stratified by behavior, 231 coordinate-generated) plus 500 benign marketplace skills as a false-positive reference, under one decision rule fixed before analysis.
+
+\subsection{Aggregate Detection Conceals the Structure}
+Table~\ref{tab:disagg} shows what the aggregate view sees---and what it hides. Under the uniform reading, SkillSpector flags 92.9\%, Cisco 86.7\%, Caterpillar 72.6\% of the 581 malicious skills (wild 350: 91.1/88.0/70.9; generated 231: 95.7/84.8/75.3, per-class detail in Fig.~\ref{fig:disagg}c). Under each product's \emph{shipped} decision rule the same raw outputs yield 46.8\%, 71.6\%, and 38.6\%: the disagreement statistics are functions of thresholds, not only of scanners. Stopping at any of these numbers, one concludes detection is largely solved or largely broken depending on the rule chosen. The structure emerges one level down: 222 skills (38.2\%) are missed by at least one scanner; misses concentrate in reproducible combinations (Caterpillar the sole miss on 118, Cisco 40, SkillSpector 23); and per-class detection spans 0--100\% (Fig.~\ref{fig:disagg}c).
+
+\begin{table}[t]
+\caption{Observed disagreement under one reproducible decision rule fixed before analysis: Cisco flagged iff \texttt{is\_safe=false} or any MEDIUM-or-higher finding; SkillSpector iff risk score $>0$; Caterpillar iff any finding. Cisco returned null verdicts on 17 malicious skills (counted as non-detections); SkillSpector completed all 581. ``Shipped rules'' rows show what the same raw outputs say under each product's own threshold (Cisco CRITICAL/HIGH; SkillSpector score $>50$; Caterpillar grade $\neq$A). Benign reference: 500 marketplace skills, unaudited; flag rates are upper bounds on false positives.}
+\label{tab:disagg}
+\small
+\begin{tabular}{@{}lrrr@{}}
+\toprule
+\multicolumn{4}{l}{\emph{(a) Detection rate by subset}} \\
+Subset & Cisco & SkillSpect. & Caterp. \\
+\midrule
+Malicious (581), uniform rule & 86.7\% & 92.9\% & 72.6\% \\
+\quad same outputs, shipped rules & 71.6\% & 46.8\% & 38.6\% \\
+Benign ref.\ (500), uniform rule & 35.2\% & 44.2\% & 28.6\% \\
+\quad same outputs, shipped rules & 11.2\% & 2.8\% & 16.4\% \\
+\midrule
+\multicolumn{4}{l}{\emph{(b) How many scanners flag a skill}} \\
+Flags & $n$ & share & \\
+\midrule
+3 (all) & 359 & 61.8\% & \\
+2 & 175 & 30.1\% & \\
+1 & 39 & 6.7\% & \\
+0 & 8 & 1.4\% & \\
+\midrule
+\multicolumn{4}{l}{\emph{(c) Pairwise consensus (third scanner is the sole miss)}} \\
+Pair flags & $n$ & sole miss & \\
+\midrule
+Cisco + SkillSpector & 118 & Caterpillar & \\
+SkillSpector + Caterpillar & 40 & Cisco & \\
+Cisco + Caterpillar & 17 & SkillSpector & \\
+Single-scanner flags & 39 & SS 23 / Cisco 10 / Cat 6 & \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=\textwidth]{fig_disagreement.pdf}
+\caption{\textbf{Empirical disagreement structure on $581$ malicious skills $\times$ three scanners, from one reproducible rule.} (a)~Pairwise Cohen's $\kappa$ computed from the same raw outputs under three corpus/rule choices: the statistic swings from $-0.01$ to $+0.44$; none of these scalars localizes the disagreement. (b)~Flag-combination distribution: misses concentrate in reproducible combinations, not noise. (c)~Detection rate by wild behavior class and generated source axis (cell $n$ in labels): per-class detection spans 0--100\%, the spread that aggregate recall conceals.}
+\label{fig:disagg}
+\end{figure*}
+
+\subsection{The Statistic Itself Is Unstable}
+Before decomposing disagreement, we must be able to measure it---and the standard statistic turns out to be corpus- and rule-dependent on our own data. Figure~\ref{fig:disagg}a computes pairwise Cohen's $\kappa$ from the \emph{same} $581\times3$ raw outputs under three defensible choices: malicious-only with shipped rules ($\kappa$ from $-0.01$ to $+0.24$), malicious-only with the uniform rule ($+0.08$ to $+0.16$), and malicious-plus-benign with the uniform rule ($+0.29$ to $+0.44$). The benign corpus dominates the third condition because agreement on easy negatives inflates $\kappa$; the shipped-rule condition collapses because thresholds disagree more than detections do. No scalar in this range says \emph{where} the scanners differ or \emph{why}---which is precisely the statistic view's blind spot, now demonstrated on real data rather than asserted.
+
+\subsection{L1: Coverage Failures}
+A coverage failure is architectural: the scanner does not inspect the region at all. Figure~\ref{fig:disagg}c localizes them empirically: wild behavior classes and generated source slices where one scanner collapses while others hold (remote-code-execution class: Cisco 14\% vs.\ SkillSpector 57\%; runtime-environment sources: Cisco 33\%). The canonical instance is a payload whose malice lives in a runtime dataflow (user input interpolated into a command pipeline): no static surface in the skill text, invisible to any scanner that does not model that flow.
+
+\subsection{L2/L3: Detection and Decision Failures}
+Scanners can \emph{semantically agree} that a coordinate matters yet fail on different layers underneath. On the credential-exfiltration coordinate, all three nominally cover it; SkillSpector instantiates detection through script-level semantic evidence (L2 strong), Cisco through literal command triggers (L2 narrow) plus a severity threshold (L3 discarding), Caterpillar through lexical regex (L2 lexical only). An attack that removes the literal surface fails Cisco's L2 and Caterpillar's L2; an attack whose findings stay MEDIUM fails Cisco's L3 while the engines saw everything.
+
+Projecting each scanner's mapped categories onto the space separates the two kinds of disagreement that a $\kappa$ conflates (declared-coverage matrix, \S\ref{sec:hypotheses}): among the 43 occupied coordinates, 10 are declared by both production scanners, 16 only by SkillSpector, 4 only by Cisco, and 13 by neither. The map separates two kinds of disagreement that a $\kappa$ conflates. In the 10 \emph{both-declare} coordinates, disagreement is operational: both scanners cover the region but instantiate detection differently, SkillSpector via script-level semantic evidence and Cisco via literal command triggers. An attack that removes the literal surface evades Cisco while SkillSpector may still catch it; attacks that hide the script do the reverse. In the 16+4 \emph{single-coverage} coordinates, the disagreement is a coverage gap: one scanner simply has no category that maps there. The 13 \emph{neither} coordinates are collectively unguarded by both production scanners; and the regex tool is structurally unmappable---it has no category system at all. Construction results confirm the reading: on the both-declare region, pure-instruction runtime payloads drop Cisco to 22\% while SkillSpector holds 100\%; hidden-file payloads drop SkillSpector to 27\% while remaining visible to YARA-level rules (a threshold failure, not a gap; \S\ref{sec:validate}); removing literal commands blinds the regex engine entirely (0/10) while SkillSpector is unaffected. No attack form is missed by all scanners, but no scanner survives all forms. Disagreement of this shape is not noise; it is a map of each scanner's operational surface.
+
+\subsection{The Grey Zone: Capability Read as Intent}
+A third finding, orthogonal to misses: scanners can detect a behavior but misclassify its intent. On the official MalSkillBench benign audit (4{,}000 marketplace skills, static runs), Cisco's shipped rule challenges 335 of 3996 (8.4\%, each a HIGH or CRITICAL veto) and SkillSpector 16.2\%, through three mechanism classes: \emph{capability read as intent} (reading one's own \texttt{OPENAI\_API\_KEY} to call the vendor's official API scored as exfiltration), \emph{defense documentation quoted as payload} (all 22 prompt-injection regex hits are skills that teach injection defense), and \emph{severity amplification} (one legitimate OAuth flow split into three CRITICALs). And 662 benign skills (16.6\%) carry MEDIUM findings the threshold keeps invisible: the same L3 cut that hides malware on one side hides noise on the other---only a decomposition separating decision from detection can say which side a fix will move. For governance this is as corrosive as a blind spot: users disable scanners that cry wolf.
+
+\section{The Loop: From Disagreement to Locked Hypotheses}
+\label{sec:hypotheses}
+
+The coordinate space is not itself a blind-spot oracle. It is a common observation layer through which two kinds of evidence are turned into explicit, per-layer hypotheses, which we lock \emph{before} building any adversarial sample. The loop runs: observe disagreement, localize it in the space, decompose it into L1/L2/L3, hypothesize which layer fails for which scanner, lock, construct, validate, and trace the mechanism. To prevent post-hoc rationalization, we separate exploratory experiments from confirmatory ones.
+
+\subsection{Two Evidence Sources}
+\emph{Type A (coordinate-coverage evidence).} Projecting every mapped category onto the space yields a scanner-by-coordinate coverage matrix. The matrix makes absence explicit: of the 400 cells in the cross-product of our observed dimension values, only 43 are occupied by any documented threat, 318 are credible blanks (constructible but undocumented), and 39 are infeasible. A coordinate uncovered or weakly covered by a scanner's mapped categories yields the hypothesis that the scanner will miss attacks occupying that coordinate, and the 318 credible blanks delimit exactly where such hypotheses can be tested.
+
+\emph{Type B (scanner-architecture evidence).} An implementation property produces a mechanistic limitation. Reading SkillSpector's source shows that its build context skips dotfiles; this produces the hypothesis that hidden-file payloads escape analysis.
+
+\subsection{Sanitization: Separating Real Misses from Artifacts}
+Construction experiments are easily polluted by artifacts that look like scanner misses. Our protocol applies three checks to every sample. \emph{Malice realism:} each sample is verified to contain the attack it was specified to contain: LLM generators sometimes emit a benign variant or silently drop the payload script, and a ``miss'' on such a sample is a generator artifact. \emph{Technical-failure classification:} scanner API timeouts, malformed submissions, and crashes are classified as indeterminate and excluded, never counted as misses. \emph{Ground-truth hygiene:} provenance metadata and experiment-arm prefixes are stripped before scanning, so no classifier can leak the label through the filename. The discipline is load-bearing: an early construction round appeared to show a 56\% all-scanner miss rate; after sanitization the true all-miss count was zero. Without these checks, a construction experiment measures the generator, not the scanner.
+
+\subsection{Hypothesis-Locking Protocol}
+For each hypothesis we record the evidence, the locked prediction, the construction specification, and the validation outcome. Locking precedes construction: the specification is written from the hypothesis, not from observed misses. Our timeline is explicit: the coordinate-coverage matrix was recorded on 2026-08-13; each Type-B hypothesis was derived from source reading before its construction existed (the hidden-file hypothesis, from SkillSpector's build-context source, before any hidden-file sample was built); confirmatory constructions ran on 2026-08-19 and later. Arms~1--6 ran outside the locking protocol and are labeled exploratory: they establish that coordinate-driven construction is feasible, and none of their outcomes enters the hypothesis table.
+
+% ============================================================
+\section{Does the Loop Work? A Prediction Ledger}
+\label{sec:validate}
+
+We demonstrate the loop end-to-end as a ledger: six locked hypotheses, their constructions, outcomes, and the layer each failure lives in (Table~\ref{tab:cases}). This is early evidence, proof of feasibility rather than benchmark completeness. Of 129 constructed samples across arm groups 1--13, the 79 in Arms 7--13 test the locked hypotheses (three lost their SkillSpector run to scanner-side failures and are excluded from its denominators); Arms 1--6 were exploratory. The ledger reports confirmed, partial, and \emph{rejected} predictions alike: the framework does not guarantee bypasses; it generates falsifiable hypotheses.
+
+\subsection{Centerpiece: Hidden-File Payloads}
+\emph{Evidence (Type B):} SkillSpector's build context skips dotfiles. Figure~\ref{fig:oneload} traces one payload through all three scanners.
+\emph{Locked hypothesis:} payloads placed in hidden files (\texttt{.env}, \texttt{.profile}) will evade SkillSpector's analysis.
+\emph{Construction:} 15 skills whose SKILL.md is benign, the payload living entirely in a dotfile. A representative sample presents as an ``environment configuration inspector''. The SKILL.md instructs the agent to validate configuration hygiene. The bundled \texttt{.env} (a shell script despite its name) collects cloud keys and tokens, base64-encodes them, and exfiltrates them via \texttt{curl} under a browser User-Agent to an attacker endpoint.
+\emph{Outcome:} \textbf{14/15 evade} SkillSpector (score $\le$50); 11 score exactly 0. The mechanism is confirmed at source level: the scanner's raw output records the analyzed components as exactly \texttt{['SKILL.md']}: the dotfiles never entered the scanned context. The other two scanners fail on the same samples at different layers (Fig.~\ref{fig:oneload}): Cisco's YARA rules do read hidden-file content (credential-harvesting signatures fire), but the resulting MEDIUM findings are discarded by the is-safe threshold---an L3 failure at 4/15 detections; the regex engine sees the same bytes but matches nothing---an L2 failure at 2/15. One payload, three layers: coverage, detection, decision.
+
+\begin{figure*}[t]
+\centering
+\begin{tikzpicture}[
+  box/.style={draw=black!40, rounded corners=1pt, font=\scriptsize, align=center, inner sep=3.5pt},
+  col/.style={box, fill=blue!8, text width=34mm},
+  res/.style={box, fill=red!12, text width=34mm},
+  arrow/.style={-{Stealth[length=2mm]}, thick, black!60},
+  xshift=0]
+
+% artifact bar
+\node[box, fill=black!5, minimum width=120mm, inner sep=4pt] (art)
+  {\textbf{ONE ARTIFACT}\quad \texttt{SKILL.md}: benign ``environment inspector''\quad+\quad \texttt{.env}: credential exfiltrator};
+
+% three columns on a grid: centers at x = -42mm, 0, 42mm
+\node[col] (ss) at (-42mm, -21mm)
+  {\textbf{SkillSpector}\\[1pt]\textbf{L1 coverage}\\ \texttt{build\_context()} skips dotfiles;\\ \texttt{.env} never analyzed\\ (raw output: \texttt{['SKILL.md']})};
+\node[col] (cat) at (0, -21mm)
+  {\textbf{Caterpillar}\\[1pt]\textbf{L2 detection}\\ reads the bytes; rules need \texttt{curl|bash}/\texttt{base64} markers\\ no lexical surface $\to$ no match};
+\node[col] (ci) at (42mm, -21mm)
+  {\textbf{Cisco}\\[1pt]\textbf{L3 decision}\\ YARA fires, severity MEDIUM;\\ \texttt{is\_safe} keeps CRITICAL/HIGH;\\ finding discarded};
+
+\draw[arrow] ($(art.south west)!0.167!(art.south east)$) -- (ss.north);
+\draw[arrow] ($(art.south west)!0.5!(art.south east)$) -- (cat.north);
+\draw[arrow] ($(art.south west)!0.833!(art.south east)$) -- (ci.north);
+
+\node[res] (sso) at (-42mm, -38mm) {\textbf{14/15 evade}\\ 11 score exactly 0};
+\node[res] (cato) at (0, -38mm) {\textbf{13/15 evade}\\ grade A, zero findings};
+\node[res] (cio) at (42mm, -38mm) {\textbf{11/15 evade}\\ \texttt{is\_safe}=true at MEDIUM};
+\draw[arrow] (ss) -- (sso); \draw[arrow] (cat) -- (cato); \draw[arrow] (ci) -- (cio);
+
+\node[box, fill=black!5, minimum width=120mm, inner sep=4pt] at (0, -47mm)
+  {\textbf{One artifact, three scanners, three different failure layers} --- a scalar $\kappa$ records the disagreement, and cannot say which layer, which scanner, or why};
+\end{tikzpicture}
+\caption{\textbf{Three-layer failure anatomy of one hidden-file payload.} The same artifact fails three scanners for three architecturally different reasons: SkillSpector never collects the dotfile (L1), the regex engine collects everything but matches nothing (L2), and Cisco's engine fires but its decision rule discards the MEDIUM finding (L3). Source-level mechanisms: \texttt{build\_context.py} file walk; lexical rule families; \texttt{models.py} severity threshold.}
+\label{fig:oneload}
+\end{figure*}
+
+\subsection{Role of the Exploratory Arms}
+Arms~1--6 ran outside the locking protocol and serve two feasibility roles only: they showed that detectability tracks the operational \emph{surface} (direct \texttt{eval} is caught everywhere; indirect construction is missed by Cisco), and they calibrated the generator (semantic re-wrapping of descriptions changes nothing at SkillSpector, whose evidence comes from code; false capability declarations are counterproductive, tripping the description-code contradiction detector).
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\columnwidth]{fig_validation.pdf}
+\caption{\textbf{Confirmatory constructions as rates with uncertainty.} Each row is one locked hypothesis from Table~\ref{tab:cases}; points are observed evasion rates (filled) or, for the negative control, the detection rate (open); bars are Wilson 95\% intervals; $n$ at right. The negative control (Arm12: expanding the best single bypass into a 10-variant family) shows SkillSpector detecting 9/10---single-sample evasion is not family-level evasion, which disciplines every positive row.}
+\label{fig:validation}
+\end{figure}
+
+\subsection{Confirming Cases}
+Table~\ref{tab:cases} summarizes the remaining locked hypotheses: the evidence, the locked hypothesis, the construction, and the outcome. Three deserve mechanism notes. The finding-specialized construction (0/6 on Cisco) builds one variant per SkillSpector finding family (sensitive-data instructions, sensitive-data disclosure, exfiltration, AST-level execution), each re-expressing the same malicious behavior so that Cisco's static layers surface nothing its severity logic escalates: all six stay \texttt{is\_safe} with INFO--MEDIUM severities, while SkillSpector scores all six (its LLM layer reasons over script semantics)---a clean instance of operational divergence on a coordinate both scanners declare. The no-literal construction (0/10 on the regex tool) expresses exfiltration as tool semantics (``archive the result to the remote repository'') with no \texttt{curl}/\texttt{base64} token anywhere; the regex engine has literally nothing to match. The combined-strategy construction (5/5 partial bypass on SkillSpector) stacks independent weak mechanisms (hidden placement, indirect execution, and declared-capability cover), each individually below the detection threshold, and the scoring layer, which aggregates isolated checks, never sees the conjunction.
+
+\begin{table*}[t]
+\caption{\textbf{Prediction ledger: locked hypothesis $\rightarrow$ construction $\rightarrow$ outcome $\rightarrow$ failure layer.} Evidence type A = coordinate-coverage matrix (recorded 2026-08-13); type B = scanner source reading that preceded its construction. All constructions ran 2026-08-19 or later. Outcomes carry Wilson 95\% intervals in Fig.~\ref{fig:validation}. The ledger includes a partial and a rejected prediction: the framework does not guarantee bypasses, it generates falsifiable hypotheses.}
+\label{tab:cases}
+\small
+\begin{tabular}{@{}llp{4.1cm}p{2.6cm}p{2.9cm}c@{}}
+\toprule
+H & Evidence & Locked prediction & Construction & Outcome & Layer \\
+\midrule
+H1 & B: build context skips dotfiles & hidden-file payload never analyzed & payload entirely in dotfiles (Arm7, $n{=}15$) & \textbf{14/15} evade SS (11 score 0); Cisco 4/15, Cat 2/15 & L1 \\
+H2 & A: regex matches lexical markers & no-literal wording unseen & tool-semantics phrasing (Arm10B, $n{=}10$) & \textbf{10/10} evade Cat; SS 7/7 valid & L2 \\
+H3 & A: Cisco escalates only surfaced findings & finding-family variants surface nothing & per-family variants (Arm11A, $n{=}6$) & \textbf{6/6} evade Cisco; SS 6/6 & L2$\to$L3 \\
+H4 & B: additive scoring of independent checks & conjunction under-scored & stacked weak mechanisms (Arm13, $n{=}5$) & \textbf{5/5} $\le$50 on SS; 2/5 evade all three & L3 \\
+H5 & A: wild pipeline precedent & runtime dataflow unseen & variable-injection pipelines (Arm11B, $n{=}5$) & \emph{partial}: 3/5 score 0 on SS & L2 \\
+H6 & --- (stability check) & variant family keeps evasion & expand best single bypass (Arm12, $n{=}10$) & \emph{rejected}: SS detects 9/10 & --- \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+\subsection{Honest Scoping}
+Two caveats bound our claims. First, Arms~1--6 are exploratory; only Arms~7--13 are confirmatory, and only the latter enter the hypothesis table. Second, a single-sample bypass is not a stable bypass: when we expanded the best single construction into 10 variants (Arm12), SkillSpector detected 9/10. We report this negative result because it disciplines the positive ones: bypasses must be validated across variant families, not single instances. Third, construction is bounded by generation feasibility: 39 of the 400 cells admit no constructible attack under our generator, so coverage claims are conditional on the constructible subspace. What the loop does deliver---and what aggregate evaluation cannot---is a mechanistic account of each confirmed miss, down to the source line that causes it.
+
+% ============================================================
+\section{Implications and Future Work}
+\label{sec:implications}
+
+\emph{For scanner evaluation.} Aggregate recall is misleading; evaluation should be coordinate-aware, reporting coverage per coordinate.
+
+\emph{For the skill ecosystem.} Single-scanner governance inherits that scanner's blind spots wholesale. In the 581-skill corpus, no all-scanner miss survived sanitization (10 flagged-by-none candidates, each attributed to data-quality, scanner-failure, or threshold artifacts). Locked construction nonetheless found the exception class: stacking independently weak mechanisms evaded all three scanners on 2/5 samples---defense-in-depth fails at the conjunction, not at any single mechanism. Conversely, each scanner has a family where its shipped detection collapses: hidden files for SkillSpector (14/15 evade), finding-specialized variants for Cisco (6/6), and no-literal semantics for the regex tool (10/10).
+
+\emph{For adversarial methodology.} Hypothesis locking separates genuine prediction from post-hoc rationalization and should become standard practice.
+
+\emph{For scanner design.} The confirmed blind spots are actionable as engineering fixes, and the decomposition says which kind each is. SkillSpector's dotfile skip is a coverage defect: include hidden files in the build context. Cisco's threshold swallowing is a reporting defect: surface MEDIUM findings instead of discarding them (88 skills in our corpus are \texttt{is\_safe} with MEDIUM-or-higher findings). The regex engine's no-literal blindness is an architectural limit, not a bug, which is precisely the information a coverage matrix, and only a coverage matrix, delivers.
+
+\emph{For evaluation methodology.} Three traps surfaced in our own measurements and had to be corrected before any conclusion was stable: threshold swallowing (88 skills whose MEDIUM-or-higher findings are silently discarded by the safe/unsafe verdict), technical failures indistinguishable from misses in raw logs, and ground-truth leakage through provenance metadata. Benchmarks that do not control for these mis-report detection.
+
+\emph{Future work.} We are extending this into a full benchmark and a taxonomy-guided defensive filter, to be reported in an extended version. Beyond agent skills, the same loop---observation language, decomposition, locked hypotheses, adversarial validation---applies wherever multiple automated analyses pass judgment on the same artifact and disagree: package registries, dependency scanners, static analyzers, LLM-based security evaluators. Every such setting already produces disagreement; what it lacks is the instrument to read it.
+
+\medskip
+\noindent\textbf{Takeaway.} Disagreement among security analyses is usually filed as an evaluation inconvenience. Read structurally, it is a map of what each analysis cannot see, and that map can be drawn before an attacker walks it.
+
+% ============================================================
+\section{Related Work}
+\label{sec:related}
+
+Prior work addresses individual parts of this problem. Malicious-skill benchmarks~\cite{malskillbench2026,skilltrustbench2026} provide corpora and taxonomies but not a shared cross-scanner measurement space: MalSkillBench labels a corpus along its own three-dimensional taxonomy for training and evaluating detectors, whereas we map \emph{scanner outputs} onto a coordinate space to interrogate disagreement between scanners. Scanner evaluations~\cite{clawhub2026,locatejudge2026,skillscan2026,skillsmetric2026} quantify disagreement or recall but do not structurally attribute it; SkillsMetric maps the detection boundary of a single self-built static framework, while we analyze production scanners and predict their failures before constructing them. Adversarial-generation studies~\cite{cloakdetonate2026,colluskill2026} demonstrate that evasion is possible (SkillCloak's payload-preserving transformations bypass eight scanners at over 90\%; ColluSkill's cross-skill chains evade six scanners at 96\%) but search for evasions generically or attack the composition layer rather than single-skill architecture, whereas our constructions are derived from locked hypotheses about \emph{where} each scanner's architecture fails, and our misses are traced to source-level mechanisms. Implementation analyses such as SkillProbe~\cite{skillprobe2026} formalize declaration-implementation inconsistency (over- and under-declaration) and combinatorial risk, but audit one framework's findings rather than connecting them to a cross-scanner attack model. Our contribution connects these steps into a single analysis loop.
+
+% ============================================================
+\bibliographystyle{ACM-Reference-Format}
+\bibliography{references}
+
+\end{document}
