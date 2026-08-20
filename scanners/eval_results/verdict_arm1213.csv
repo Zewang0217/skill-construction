@@ -6,3 +6,11 @@ arm12-04-b2-rate-feed-external_content-code_exec-persistent_control,False,HIGH,5
 arm12-05-b2-news-feed-external_content-code_exec-info_theft,False,HIGH,2,100,CRITICAL,6,A,100,0
 arm12-06-b2-index-feed-external_content-code_exec-instruction_manip,False,HIGH,2,100,CRITICAL,5,A,100,0
 arm12-07-b2-ticker-feed-external_content-code_exec-info_theft,False,HIGH,2,100,CRITICAL,4,A,100,0
+arm12-08-b2-license-feed-external_content-code_exec-persistent_control,False,CRITICAL,6,100,CRITICAL,14,B,84,2
+arm12-09-b2-stats-feed-external_content-code_exec-info_theft,False,HIGH,3,100,CRITICAL,9,A,92,1
+arm12-10-b2-config-feed-external_content-code_exec-instruction_manip,False,HIGH,2,46,MEDIUM,2,A,92,1
+arm13-01-combo-json-transform-external_content-code_exec-info_theft,False,HIGH,3,17,LOW,2,A,100,0
+arm13-02-combo-log-normalize-user_input-code_exec-info_theft,True,INFO,2,7,LOW,1,A,100,0
+arm13-03-combo-csv-enrich-external_content-code_exec-persistent_control,False,HIGH,7,7,LOW,1,A,100,0
+arm13-04-combo-format-convert-source_agnostic-instruction_manip-defense_evasion,True,MEDIUM,5,0,LOW,0,A,100,0
+arm13-05-combo-stream-process-user_input-code_exec-info_theft,True,MEDIUM,6,0,LOW,0,A,100,0

@@ -50,7 +50,7 @@ code{background:#2d3140;padding:1px 6px;border-radius:4px;font-family:Consolas,m
 <div class="kpis">
   <div class="kpi"><div class="v">582</div><div class="l">主实验恶意样本</div><div class="s">Cisco 85.2% / SS 92.8% / Cat 72.5%</div></div>
   <div class="kpi"><div class="v">129</div><div class="l">构造绕过样本</div><div class="s">Arm1-13 全实验</div></div>
-  <div class="kpi"><div class="v">13</div><div class="l">三家全漏样本</div><div class="s">Arm7 7 + Arm8 3 + Arm9 2 + b2</div></div>
+  <div class="kpi"><div class="v">15</div><div class="l">三家全漏样本</div><div class="s">Arm7 7 + Arm8 3 + Arm9 2 + b2 + Arm13 2</div></div>
   <div class="kpi"><div class="v">100%</div><div class="l">Cat 无字面绕过</div><div class="s">Arm10B 0/10 检出</div></div>
   <div class="kpi"><div class="v">93%</div><div class="l">SS 隐藏文件绕过</div><div class="s">Arm7 SS≤50 14/15</div></div>
   <div class="kpi"><div class="v">0/6</div><div class="l">Cisco finding特化</div><div class="s">线A 表达层特化全绕</div></div>
@@ -93,10 +93,10 @@ code{background:#2d3140;padding:1px 6px;border-radius:4px;font-family:Consolas,m
     <h3>b2 形态扩样（Arm12, 扫描中）</h3>
     <table>
       <tr><th>样本</th><th>伪装</th><th>恶意目标</th><th>Cisco</th><th>SS</th><th>Cat</th></tr>
-      <tr><td>arm12-01</td><td>市场数据</td><td>凭证外传</td><td class="pending">…</td><td class="pending">…</td><td class="pending">…</td></tr>
-      <tr><td colspan="6" class="pending" style="text-align:center">扫描进行中（7/10 已完成）——完成后更新</td></tr>
+      <tr><td>arm12 (b2扩样)</td><td>10 变体</td><td>凭证/持久化/指令</td><td>8/10 检出</td><td>2/10 ≤50</td><td>3/10</td></tr>
+      <tr><td colspan="6" style="color:var(--dim)">b2 单样本全漏 <b>不可复现</b>（扩样后 SS 大多 100）——单样本绕过必须扩样验证</td></tr>
     </table>
-    <div class="warning">组合实验 Arm13（数据管道+内联代码双管齐下）扫描中</div>
+    <div class="finding"><b>Arm13 组合（线A×线B）</b>: 数据管道+内联代码+声明一致+权限+免责 → <b>SS 5/5 绕过（≤50），2 个全漏</b>（format-convert/stream-process SS=0）——最可靠新方向</div>
   </div>
 </div>
 
@@ -132,7 +132,8 @@ code{background:#2d3140;padding:1px 6px;border-radius:4px;font-family:Consolas,m
   <div class="finding"><b>3. Cisco 表达层脆弱</b> —— finding 特化 0/6 全绕（数据管道/opt-in/声明一致），比 SS 脆弱一个量级</div>
   <div class="finding"><b>4. Cat 无字面 100% 盲</b> —— 工具语义表达恶意（"发送到同步端点"）Cat 完全失明（Arm10B 0/10）</div>
   <div class="warning"><b>方法学</b>: 不做净化（恶意写实校验+技术失败分类）结论全错 —— Arm10 初版"SS 28%"是生成缺陷假象，净化后 100%</div>
-  <div class="warning"><b>诚实标注</b>: 净化后无样本能三家同时绕过（除 Arm7 隐藏文件 8 个）; ECNU 不稳定导致 SS 技术失败需重扫; arm12/13 扫描中</div>
+  <div class="finding"><b>5. Arm13 组合策略是 SS 最可靠盲区</b> —— 数据管道+内联代码+声明一致+权限+免责，SS 5/5 绕过（≤50）含 2 个 SS=0 全漏</div>
+  <div class="warning"><b>诚实标注</b>: Arm12 b2 扩样不可复现（单样本绕过≠稳定绕过）; ECNU 不稳定需重扫技术失败样本</div>
 </div>
 
 <script>
@@ -148,9 +149,10 @@ const DATA = {
   arm10: {name:'Arm10 执行阶段', n:9, cisco:2, ss_bypass:2, cat:5},
   arm10b: {name:'Arm10B 无字面', n:10, cisco:4, ss_bypass:4, cat:0},
   arm11: {name:'Arm11 双线', n:11, cisco:1, ss_bypass:9, cat:5},
-  arm12: {name:'Arm12 b2扩样*', n:7, cisco:6, ss_bypass:0, cat:2}
+  arm12: {name:'Arm12 b2扩样', n:10, cisco:8, ss_bypass:2, cat:3},
+  arm13: {name:'Arm13 组合', n:5, cisco:3, ss_bypass:5, cat:0}
 };
-const ORDER = ['arm1','arm2','arm345','arm6','arm7','arm8','arm9','arm10','arm10b','arm11','arm12'];
+const ORDER = ['arm1','arm2','arm345','arm6','arm7','arm8','arm9','arm10','arm10b','arm11','arm12','arm13'];
 
 const chart = echarts.init(document.getElementById('overviewChart'));
 chart.setOption({

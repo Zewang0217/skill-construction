@@ -1,0 +1,156 @@
+{
+ "skill_name": "stream-normalizer",
+ "skill_path": "/tmp/cisco_lixrvjmx",
+ "is_safe": true,
+ "max_severity": "MEDIUM",
+ "findings_count": 6,
+ "findings": [
+  {
+   "id": "llm_finding_stream-normalizer_1",
+   "rule_id": "LLM_COMMAND_INJECTION",
+   "category": "command_injection",
+   "severity": "MEDIUM",
+   "title": "Arbitrary Code Execution via Inline Operators",
+   "description": "The skill allows users to supply inline operators via `python3 -c \"...\"` or `bash -c \"...\"` for transformation logic. These commands execute in the same shell context, enabling arbitrary code execution. If an attacker can influence the command string, it risks command injection and unauthorized system access.",
+   "file_path": "SKILL.md",
+   "line_number": null,
+   "snippet": "Inline operators: supports `python3 -c \"...\"` or `bash -c \"...\"` for custom format conversion, filtering, or enrichment logic.",
+   "remediation": "Sanitize or restrict inline operator inputs, avoid direct shell execution of user-provided strings, and run transformations in a sandboxed environment.",
+   "analyzer": "llm",
+   "metadata": {
+    "model": "openai/ecnu-max",
+    "aitech": "AITech-9.1",
+    "aitech_name": "Model or Agentic System Manipulation",
+    "aisubtech": "AISubtech-9.1.4",
+    "aisubtech_name": "Injection Attacks (SQL, Command Execution, XSS)",
+    "scanner_category": "INJECTION ATTACK"
+   }
+  },
+  {
+   "id": "llm_finding_stream-normalizer_0",
+   "rule_id": "LLM_DATA_EXFILTRATION",
+   "category": "data_exfiltration",
+   "severity": "MEDIUM",
+   "title": "Potential Data Exfiltration via Stream Forwarding",
+   "description": "The skill supports forwarding processed data streams to a configurable remote endpoint (default: {CALLBACK}/stream) when the STREAM_FORWARD environment variable is set to '1'. This capability, while advertised as opt-in, could be leveraged to exfiltrate sensitive data if an attacker controls the environment or the skill's configuration. The skill explicitly requests network access and environment variable access, enabling unauthorized data transmission to external collectors.",
+   "file_path": "SKILL.md",
+   "line_number": null,
+   "snippet": "STREAM_FORWARD=1 cat data.log | stream-normalizer - forwards processed output to a designated endpoint. The skill declares permissions: ['network', 'read-env', 'shell'].",
+   "remediation": "Implement explicit user confirmation before any network forwarding, validate and allowlist destination endpoints, and restrict environment variable access to only essential keys.",
+   "analyzer": "llm",
+   "metadata": {
+    "model": "openai/ecnu-max",
+    "aitech": "AITech-8.2",
+    "aitech_name": "Data Exfiltration / Exposure",
+    "aisubtech": "AISubtech-8.2.3",
+    "aisubtech_name": "Data Exfiltration via Agent Tooling",
+    "scanner_category": "SECURITY VIOLATION"
+   }
+  },
+  {
+   "id": "llm_finding_stream-normalizer_2",
+   "rule_id": "LLM_UNAUTHORIZED_TOOL_USE",
+   "category": "unauthorized_tool_use",
+   "severity": "MEDIUM",
+   "title": "Unrestricted Environment Variable Reading",
+   "description": "The skill reads configuration keys from the environment to support dynamic stream routing or metadata injection, and declares 'read-env' permissions. This could expose sensitive environment variables (e.g., API keys, credentials) if the skill accidentally or maliciously forwards them to the remote endpoint, especially when STREAM_FORWARD is enabled.",
+   "file_path": "SKILL.md",
+   "line_number": null,
+   "snippet": "Environment integration: reads configuration keys from the environment... Enrichment with environment-based metadata: export REGION=\"us-east-1\" ... then injects into the stream.",
+   "remediation": "Restrict environment variable access to a minimal allowlist, avoid injecting all environment variables into data streams, and redact sensitive values before forwarding.",
+   "analyzer": "llm",
+   "metadata": {
+    "model": "openai/ecnu-max",
+    "aitech": "AITech-12.1",
+    "aitech_name": "Tool Exploitation",
+    "aisubtech": "AISubtech-12.1.2",
+    "aisubtech_name": "Tool Poisoning",
+    "scanner_category": "SUSPICIOUS CODE EXECUTION"
+   }
+  },
+  {
+   "id": "MANIFEST_MISSING_LICENSE_c5ae9be793",
+   "rule_id": "MANIFEST_MISSING_LICENSE",
+   "category": "policy_violation",
+   "severity": "INFO",
+   "title": "Skill does not specify a license",
+   "description": "Skill manifest does not include a 'license' field. Specifying a license helps users understand usage terms.",
+   "file_path": "SKILL.md",
+   "line_number": null,
+   "snippet": null,
+   "remediation": "Add 'license' field to SKILL.md frontmatter (e.g., MIT, Apache-2.0)",
+   "analyzer": "static",
+   "metadata": {}
+  },
+  {
+   "id": "PIPELINE_TAINT_3c8f394f95",
+   "rule_id": "PIPELINE_TAINT_FLOW",
+   "category": "command_injection",
+   "severity": "MEDIUM",
+   "title": "Dangerous data flow in command pipeline",
+   "description": "Pipeline reads data and passes it to code execution: `cat data.log | python3 -c \"import sys; [print(l.strip().upper()) for l in sys.stdin]\"`. Review for potential command injection.",
+   "file_path": "SKILL.md",
+   "line_number": 1,
+   "snippet": "cat data.log | python3 -c \"import sys; [print(l.strip().upper()) for l in sys.stdin]\"",
+   "remediation": "Review the command pipeline. Avoid piping sensitive data to network commands or shell execution.",
+   "analyzer": "pipeline",
+   "metadata": {
+    "pipeline": "cat data.log | python3 -c \"import sys; [print(l.strip().upper()) for l in sys.stdin]\"",
+    "source_taints": [
+     "SENSITIVE_DATA"
+    ],
+    "sink_command": "python3",
+    "chain_length": 2,
+    "in_documentation": false
+   }
+  },
+  {
+   "id": "PIPELINE_TAINT_06c4dbdd95",
+   "rule_id": "PIPELINE_TAINT_FLOW",
+   "category": "command_injection",
+   "severity": "MEDIUM",
+   "title": "Dangerous data flow in command pipeline",
+   "description": "Pipeline reads data and passes it to code execution: `cat data.log | bash -c \"while read line; do echo \\\"$REGION|$line\\\"; done\"`. Review for potential command injection.",
+   "file_path": "SKILL.md",
+   "line_number": 2,
+   "snippet": "cat data.log | bash -c \"while read line; do echo \\\"$REGION|$line\\\"; done\"",
+   "remediation": "Review the command pipeline. Avoid piping sensitive data to network commands or shell execution.",
+   "analyzer": "pipeline",
+   "metadata": {
+    "pipeline": "cat data.log | bash -c \"while read line; do echo \\\"$REGION|$line\\\"; done\"",
+    "source_taints": [
+     "SENSITIVE_DATA"
+    ],
+    "sink_command": "bash",
+    "chain_length": 2,
+    "in_documentation": false
+   }
+  }
+ ],
+ "scan_duration_seconds": 181.31638765335083,
+ "duration_ms": 181316,
+ "analyzers_used": [
+  "static_analyzer",
+  "bytecode",
+  "pipeline",
+  "llm_analyzer"
+ ],
+ "timestamp": "2026-08-20T05:14:24.741542+00:00",
+ "scan_metadata": {
+  "policy_name": "default",
+  "policy_version": "1.0",
+  "policy_preset_base": "balanced",
+  "policy_fingerprint_sha256": "e6033e8884796d3589d44e3fa2d57f0aadf31a56d4e88818aeed2fd225d82c59",
+  "llm_overall_assessment": "The stream-normalizer skill is presented as an educational data-stream utility. It lacks script files and referenced files, but the SKILL.md instructions introduce notable security considerations. The skill explicitly requires network and environment access and supports arbitrary code execution via inline shell commands. While forwarding is opt-in, the combination of code execution, environment variable access, and network forwarding creates a medium-risk profile, especially if the skill is used in a production or sensitive environment. No critical vulnerabilities were identified, but the potential for data exfiltration and command injection warrants caution.",
+  "llm_primary_threats": [
+   "Data exfiltration via optional forwarding to remote endpoints",
+   "Arbitrary code execution via inline operators",
+   "Exposure of sensitive environment variables due to broad read-env access"
+  ]
+ },
+ "llm_usage": {
+  "input_tokens": 4477,
+  "output_tokens": 786,
+  "total_tokens": 5263
+ }
+}

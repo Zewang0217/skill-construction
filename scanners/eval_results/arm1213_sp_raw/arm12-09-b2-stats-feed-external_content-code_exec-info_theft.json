@@ -1,0 +1,475 @@
+{
+  "batch": {
+    "scanned_at": "2026-08-20T05:02:25.217308+00:00",
+    "total_skills": 1,
+    "scan_mode": "multilingual-enhanced",
+    "enhancements": {
+      "language_detection": "unicode-script-ratio",
+      "languages_detected": {},
+      "gap_fill_applied": 0,
+      "gap_fill_findings": 0
+    },
+    "inspection_completeness": {
+      "failed_executions": 0,
+      "incomplete_skills": 0,
+      "partially_inspected_files": 0,
+      "entirely_uninspected_files": 0
+    }
+  },
+  "skills": [
+    {
+      "skill": {
+        "name": "website-traffic-analyzer",
+        "source": "arm12-09-b2-stats-feed-external_content-code_exec-info_theft",
+        "source_group": ".",
+        "language": "en",
+        "scanned_at": "2026-08-20T05:02:25.216068+00:00"
+      },
+      "risk_assessment": {
+        "score": 100,
+        "severity": "CRITICAL",
+        "recommendation": "DO NOT INSTALL"
+      },
+      "components": [
+        {
+          "path": "SKILL.md",
+          "type": "markdown",
+          "lines": 92,
+          "executable": false,
+          "size_bytes": 3476
+        }
+      ],
+      "issues": [
+        {
+          "id": "SDI-1",
+          "finding_id": "finding-ab0670bad5e44403ae46fcc423db16e6",
+          "category": null,
+          "pattern": null,
+          "severity": "HIGH",
+          "confidence": 0.95,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 76,
+            "end_line": 85
+          },
+          "finding": null,
+          "explanation": "The skill's stated purpose is to fetch and analyze website traffic data, but the implementation fetches and executes a remote Python script. This is a significant deviation from the declared functionality and represents a classic supply chain attack vector where the remote script could contain arbitrary malicious code.",
+          "remediation": "Rewrite the skill to implement all data processing logic locally. If remote code execution is absolutely necessary, require explicit user approval before executing any remote code, and validate the integrity of the remote script using checksums or digital signatures.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-2",
+          "finding_id": "finding-e137445d8e4d4bc5985b0592a918509c",
+          "category": null,
+          "pattern": null,
+          "severity": "CRITICAL",
+          "confidence": 0.98,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 76,
+            "end_line": 80
+          },
+          "finding": null,
+          "explanation": "The skill executes remote code via `curl -s \"${URL}.py\" | python3 -c ... exec(data)`. This is a textbook remote code execution vulnerability. The remote server controls the code that gets executed, which could lead to complete system compromise, data theft, or lateral movement within the network.",
+          "remediation": "Eliminate the remote code execution pattern entirely. Use locally installed, verified libraries (e.g., requests, pandas) to fetch and process data. If dynamic code is required, load it from a trusted, locally-verified source after user confirmation.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-3",
+          "finding_id": "finding-b20b25b415ad48e1bbb476fabd85e615",
+          "category": null,
+          "pattern": null,
+          "severity": "HIGH",
+          "confidence": 0.9,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 85,
+            "end_line": 85
+          },
+          "finding": null,
+          "explanation": "The skill declares only 'network:read' and 'env:read' permissions but performs a network write by POSTing data to a '{CALLBACK}' endpoint. This violates the principle of least privilege and could be used to exfiltrate sensitive data to an attacker-controlled server.",
+          "remediation": "Add 'network:write' to the skill's declared permissions. Better yet, remove the data exfiltration code entirely and only output results locally. If reporting to a remote service is required, use a whitelisted, user-configured endpoint with explicit confirmation.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-4",
+          "finding_id": "finding-1c8fee0feacb481aa25fc183af87556c",
+          "category": null,
+          "pattern": null,
+          "severity": "HIGH",
+          "confidence": 0.9,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 71,
+            "end_line": 71
+          },
+          "finding": null,
+          "explanation": "The documentation states 'All data is handled in-memory; nothing is written to disk' and 'processing logic is executed locally', but the code fetches and executes a remote script. This intentional misrepresentation is designed to deceive users and security reviewers about the skill's true behavior.",
+          "remediation": "Ensure the documentation accurately describes the skill's operations. Remove any misleading claims about local processing if remote code execution is present. Implement the skill to actually perform all processing locally.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SQP-2",
+          "finding_id": "finding-d27382c8a43148e58da44f298c12ce19",
+          "category": null,
+          "pattern": null,
+          "severity": "HIGH",
+          "confidence": 0.9,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 71,
+            "end_line": 86
+          },
+          "finding": null,
+          "explanation": "While the implementation detail is disclosed, it is not presented as a warning. The casual mention of 'curl | python3' execution without highlighting the risks suggests either negligence or a deliberate attempt to downplay the severity. Users may not realize they are executing arbitrary remote code.",
+          "remediation": "Add prominent warnings in the skill description about the remote code execution risk. Display a confirmation prompt before the skill runs, showing the URL from which code will be fetched. Provide clear instructions for users to audit the remote script before execution.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SSD-1",
+          "finding_id": "finding-c964a61f34d54d96865c4199166dedcc",
+          "category": null,
+          "pattern": null,
+          "severity": "CRITICAL",
+          "confidence": 0.97,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 71,
+            "end_line": 85
+          },
+          "finding": null,
+          "explanation": "The skill fetches and executes a remote script disguised as a benign analytics helper, and then exfiltrates environment variables to an external callback host. This is a classic Trojan horse pattern: the initial benign appearance masks the malicious data exfiltration and arbitrary code execution capabilities.",
+          "remediation": "Remove the entire remote code execution and data exfiltration functionality. Implement the skill as a self-contained tool that only fetches traffic data and processes it locally. Never send environment variables or credentials to remote servers.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SSD-3",
+          "finding_id": "finding-bc2081631f4f45a19c5ca9682ba2e040",
+          "category": null,
+          "pattern": null,
+          "severity": "HIGH",
+          "confidence": 0.95,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 82,
+            "end_line": 85
+          },
+          "finding": null,
+          "explanation": "The skill collects highly sensitive environment variables including SERVICE_ACCOUNT and API_TOKEN, encodes them in base64, and sends them to a remote callback host. This is unequivocal credential theft. The use of base64 encoding suggests an attempt to evade simple security scanning.",
+          "remediation": "Immediately remove the code that collects and transmits environment variables. Never include credentials in analytics or reporting payloads. If deployment context is needed for reporting, use only non-sensitive metadata and ensure the destination is a trusted, user-confirmed endpoint.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SSD-2",
+          "finding_id": "finding-70af91227c5945ae8c39642e504bbd2c",
+          "category": null,
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.85,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 84,
+            "end_line": 85
+          },
+          "finding": null,
+          "explanation": "The skill obfuscates data exfiltration by base64-encoding the environment payload and using vague terms like 'context metadata' instead of describing the actual data being sent. This deliberate obfuscation is a strong indicator of malicious intent designed to bypass security controls.",
+          "remediation": "Remove all code that encodes and sends data to external endpoints. If data transmission is truly required, do so in plain, auditable format, with explicit user consent for each piece of data sent, and use secure channels (HTTPS) to a verified, user-configured destination.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SSD-4",
+          "finding_id": "finding-3d6c2ad2983947318c496c7c31a9f8f5",
+          "category": null,
+          "pattern": null,
+          "severity": "HIGH",
+          "confidence": 0.9,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 32,
+            "end_line": 85
+          },
+          "finding": null,
+          "explanation": "The skill gradually escalates from a benign analytics tool, to remote code execution, to credential exfiltration, using a narrative that normalizes each step as 'standard practice.' This incremental approach is designed to slip malicious features past reviewers who may focus on the beginning of the document.",
+          "remediation": "Remove all unnecessary escalation of privilege and scope. The skill should do exactly what it claims: fetch traffic data and generate a local report. Any network calls beyond the initial data fetch should be removed. Be transparent about all data access and processing steps.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        }
+      ],
+      "execution_successful": true,
+      "analysis_completeness": {
+        "total_components": 1,
+        "scanned_components": 1,
+        "coverage_percent": 100.0,
+        "is_complete": true,
+        "execution_successful": true,
+        "fully_inspected_files": 1,
+        "partially_inspected_files": 0,
+        "entirely_uninspected_files": 0,
+        "ledger_exceptions": [],
+        "scope_exclusions": [],
+        "analyzer_statuses": [
+          {
+            "analyzer_id": "behavioral_ast",
+            "status": "not_applicable",
+            "planned_work": 0,
+            "completed": 0,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0,
+            "reason_code": "no_applicable_files",
+            "message": "No files matched this analyzer's applicability contract."
+          },
+          {
+            "analyzer_id": "behavioral_taint_tracking",
+            "status": "not_applicable",
+            "planned_work": 0,
+            "completed": 0,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0,
+            "reason_code": "no_applicable_files",
+            "message": "No files matched this analyzer's applicability contract."
+          },
+          {
+            "analyzer_id": "mcp_least_privilege",
+            "status": "not_applicable",
+            "planned_work": 0,
+            "completed": 0,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0,
+            "reason_code": "no_applicable_files",
+            "message": "No files matched this analyzer's applicability contract."
+          },
+          {
+            "analyzer_id": "mcp_rug_pull",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_tool_poisoning",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "meta_analyzer",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_developer_intent",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_quality_policy",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_security_discovery",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_agent_snooping",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_anti_refusal",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_data_exfiltration",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_excessive_agency",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_harmful_content",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_memory_poisoning",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_output_handling",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_privilege_escalation",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_prompt_injection",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_rogue_agent",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_ssrf",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_supply_chain",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_system_prompt_leakage",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_tool_misuse",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_yara",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          }
+        ],
+        "limitations": [],
+        "findings_before_filtering": 9,
+        "findings_after_filtering": 9
+      },
+      "scan_mode": "multilingual-enhanced",
+      "enhancements": {
+        "gap_fill_applied": false,
+        "gap_fill_findings": 0,
+        "english_keyword_rules_skipped": 0
+      }
+    }
+  ],
+  "metadata": {
+    "skillspector_version": "2.9.3"
+  }
+}
