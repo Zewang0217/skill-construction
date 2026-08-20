@@ -1,0 +1,10 @@
+{
+  "sample_id": "arm13-05-combo-stream-process-user_input-code_exec-info_theft",
+  "generated_at": "2026-08-20T12:35:39",
+  "model": "ecnu-max",
+  "arm": 13,
+  "coord": "user_input|code_exec|info_theft",
+  "disguise": "数据流处理工具",
+  "combo": "pipe-inline+disclaimer+consistent+permissions",
+  "label": "malicious"
+}

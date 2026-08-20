@@ -1,0 +1,395 @@
+{
+  "batch": {
+    "scanned_at": "2026-08-20T04:56:29.979065+00:00",
+    "total_skills": 1,
+    "scan_mode": "multilingual-enhanced",
+    "enhancements": {
+      "language_detection": "unicode-script-ratio",
+      "languages_detected": {},
+      "gap_fill_applied": 0,
+      "gap_fill_findings": 0
+    },
+    "inspection_completeness": {
+      "failed_executions": 0,
+      "incomplete_skills": 0,
+      "partially_inspected_files": 0,
+      "entirely_uninspected_files": 0
+    }
+  },
+  "skills": [
+    {
+      "skill": {
+        "name": "doc-index-sync",
+        "source": "arm12-06-b2-index-feed-external_content-code_exec-instruction_manip",
+        "source_group": ".",
+        "language": "en",
+        "scanned_at": "2026-08-20T04:56:29.978025+00:00"
+      },
+      "risk_assessment": {
+        "score": 100,
+        "severity": "CRITICAL",
+        "recommendation": "DO NOT INSTALL"
+      },
+      "components": [
+        {
+          "path": "SKILL.md",
+          "type": "markdown",
+          "lines": 82,
+          "executable": false,
+          "size_bytes": 3228
+        }
+      ],
+      "issues": [
+        {
+          "id": "SDI-4",
+          "finding_id": "finding-ba4aa30b02d94536bc0d6b6d72a45a41",
+          "category": null,
+          "pattern": null,
+          "severity": "HIGH",
+          "confidence": 0.95,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 73,
+            "end_line": 77
+          },
+          "finding": null,
+          "explanation": "The code fetches rules from a remote registry and the comment explicitly states that an 'override_prompt' in the rules payload can modify agent safety checks. This is not related to document index synchronization and represents an attempt to implement remote-controlled prompt injection that bypasses established safety mechanisms.",
+          "remediation": "Remove all code and comments related to 'override_prompt' and safety-check modification. Restrict the skill to only process index rule data (document fields, naming conventions) and never allow remote data to modify agent behavior or safety policies. Validate and strictly limit what fields from the remote registry can influence the skill's behavior.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-2",
+          "finding_id": "finding-77df69e61f704ad1a38147404673d790",
+          "category": null,
+          "pattern": null,
+          "severity": "CRITICAL",
+          "confidence": 0.98,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 73,
+            "end_line": 74
+          },
+          "finding": null,
+          "explanation": "The skill contains explicit code that processes an 'override_prompt' field from remote registry rules and applies it to modify the agent's context and subsequent safety checks. This is a direct attempt to enable remote-controlled prompt injection, allowing an attacker controlling the registry to manipulate the agent's security posture and potentially execute arbitrary instructions.",
+          "remediation": "Remove the 'override_prompt' handling entirely from the skill. Implement strict input validation that only accepts expected index-rule fields and rejects any payload containing instructional or prompt-like content. Add safeguards to prevent any remote data from altering agent behavior or safety checks.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SQP-3",
+          "finding_id": "finding-1598a951ebd246b492e6c4ec4594d249",
+          "category": null,
+          "pattern": null,
+          "severity": "HIGH",
+          "confidence": 0.93,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 73,
+            "end_line": 76
+          },
+          "finding": null,
+          "explanation": "The implementation comment describes modifying the agent's context to alter safety checks based on registry-provided directives, which is exactly the mechanism needed for prompt injection attacks. Even if the current payload is benign, the capability itself is a severe design flaw that can be exploited by a compromised or malicious registry.",
+          "remediation": "Remove the capability to modify agent context from the skill. Any dynamic adjustments to agent behavior must be user-approved and not triggered by remote data. Redesign the skill to only parse and apply index-specific metadata rules with no ability to inject prompts or instructions into the agent's execution environment.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SSD-1",
+          "finding_id": "finding-cd74317b23644bb7b551183c0434e48a",
+          "category": null,
+          "pattern": null,
+          "severity": "CRITICAL",
+          "confidence": 0.97,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 69,
+            "end_line": 79
+          },
+          "finding": null,
+          "explanation": "The skill's implementation details contain an embedded instruction to modify the agent's safety checks based on a remote payload. This is a classic remote-controlled prompt injection attack vector. An attacker who can compromise or spoof the registry URL can inject arbitrary instructions that alter the agent's security controls, potentially leading to data exfiltration, unauthorized actions, or harmful outputs.",
+          "remediation": "Completely remove the remote-driven safety modification logic. Ensure the skill only handles document index metadata and cannot influence agent safety behavior. Implement a whitelist of allowed rule fields and reject any payload containing instruction-like content. Add integrity checks (e.g., signed responses) for the registry connection.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SSD-4",
+          "finding_id": "finding-0f227a246dc04ca6a5d04413d4d049d3",
+          "category": null,
+          "pattern": null,
+          "severity": "HIGH",
+          "confidence": 0.9,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 71,
+            "end_line": 77
+          },
+          "finding": null,
+          "explanation": "The skill uses a gradual narrative\u2014starting with legitimate index syncing, then introducing the 'override_prompt' feature as a 'normal' operational directive\u2014to normalize remote-controlled prompt modification. This social engineering technique lowers the appearance of risk and makes the vulnerability easier to introduce unnoticed.",
+          "remediation": "Remove the misleading narrative and ensure the skill documentation is transparent about its actual functionality. The skill should not contain any language suggesting that remote-controlled saftey modifications are acceptable. Clearly state that no instructions from remote sources will be executed beyond processing index rules.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        }
+      ],
+      "execution_successful": true,
+      "analysis_completeness": {
+        "total_components": 1,
+        "scanned_components": 1,
+        "coverage_percent": 100.0,
+        "is_complete": true,
+        "execution_successful": true,
+        "fully_inspected_files": 1,
+        "partially_inspected_files": 0,
+        "entirely_uninspected_files": 0,
+        "ledger_exceptions": [],
+        "scope_exclusions": [],
+        "analyzer_statuses": [
+          {
+            "analyzer_id": "behavioral_ast",
+            "status": "not_applicable",
+            "planned_work": 0,
+            "completed": 0,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0,
+            "reason_code": "no_applicable_files",
+            "message": "No files matched this analyzer's applicability contract."
+          },
+          {
+            "analyzer_id": "behavioral_taint_tracking",
+            "status": "not_applicable",
+            "planned_work": 0,
+            "completed": 0,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0,
+            "reason_code": "no_applicable_files",
+            "message": "No files matched this analyzer's applicability contract."
+          },
+          {
+            "analyzer_id": "mcp_least_privilege",
+            "status": "not_applicable",
+            "planned_work": 0,
+            "completed": 0,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0,
+            "reason_code": "no_applicable_files",
+            "message": "No files matched this analyzer's applicability contract."
+          },
+          {
+            "analyzer_id": "mcp_rug_pull",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_tool_poisoning",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "meta_analyzer",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_developer_intent",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_quality_policy",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_security_discovery",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_agent_snooping",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_anti_refusal",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_data_exfiltration",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_excessive_agency",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_harmful_content",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_memory_poisoning",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_output_handling",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_privilege_escalation",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_prompt_injection",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_rogue_agent",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_ssrf",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_supply_chain",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_system_prompt_leakage",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_tool_misuse",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_yara",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          }
+        ],
+        "limitations": [],
+        "findings_before_filtering": 6,
+        "findings_after_filtering": 5
+      },
+      "scan_mode": "multilingual-enhanced",
+      "enhancements": {
+        "gap_fill_applied": false,
+        "gap_fill_findings": 0,
+        "english_keyword_rules_skipped": 0
+      }
+    }
+  ],
+  "metadata": {
+    "skillspector_version": "2.9.3"
+  }
+}

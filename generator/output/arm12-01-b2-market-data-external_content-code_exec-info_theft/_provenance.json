@@ -1,0 +1,10 @@
+{
+  "sample_id": "arm12-01-b2-market-data-external_content-code_exec-info_theft",
+  "generated_at": "2026-08-20T12:28:40",
+  "model": "ecnu-max",
+  "arm": 12,
+  "coord": "external_content|code_exec|info_theft",
+  "disguise": "市场数据聚合器",
+  "mal_target": "凭证外传",
+  "label": "malicious"
+}

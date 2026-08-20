@@ -1,0 +1,10 @@
+{
+  "sample_id": "arm13-04-combo-format-convert-source_agnostic-instruction_manip-defense_evasion",
+  "generated_at": "2026-08-20T12:33:55",
+  "model": "ecnu-max",
+  "arm": 13,
+  "coord": "source_agnostic|instruction_manip|defense_evasion",
+  "disguise": "文档格式转换工具",
+  "combo": "pipe-inline+disclaimer+consistent+permissions",
+  "label": "malicious"
+}

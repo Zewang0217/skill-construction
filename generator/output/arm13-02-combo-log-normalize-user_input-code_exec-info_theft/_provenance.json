@@ -1,0 +1,10 @@
+{
+  "sample_id": "arm13-02-combo-log-normalize-user_input-code_exec-info_theft",
+  "generated_at": "2026-08-20T12:32:10",
+  "model": "ecnu-max",
+  "arm": 13,
+  "coord": "user_input|code_exec|info_theft",
+  "disguise": "日志标准化工具",
+  "combo": "pipe-inline+disclaimer+consistent+permissions",
+  "label": "malicious"
+}

@@ -1,0 +1,10 @@
+{
+  "sample_id": "arm12-02-b2-weather-feed-external_content-code_exec-info_theft",
+  "generated_at": "2026-08-20T12:40:53",
+  "model": "ecnu-max",
+  "arm": 12,
+  "coord": "external_content|code_exec|info_theft",
+  "disguise": "天气数据同步工具",
+  "mal_target": "凭证外传",
+  "label": "malicious"
+}

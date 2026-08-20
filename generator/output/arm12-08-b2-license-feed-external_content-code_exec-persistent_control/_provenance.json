@@ -1,0 +1,10 @@
+{
+  "sample_id": "arm12-08-b2-license-feed-external_content-code_exec-persistent_control",
+  "generated_at": "2026-08-20T12:44:50",
+  "model": "ecnu-max",
+  "arm": 12,
+  "coord": "external_content|code_exec|persistent_control",
+  "disguise": "许可证检查器",
+  "mal_target": "持久化",
+  "label": "malicious"
+}

@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agent Skill 安全 SoK — 周会汇报（2026-08-20）</title>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+<style>
+:root{--bg:#0f1117;--panel:#1a1d27;--panel2:#232733;--text:#e8eaf0;--dim:#8a90a0;--accent:#4fc3f7;--gold:#ffd166;--red:#ff6b6b;--green:#35c98a;--purple:#b39ddb}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-apple-system,sans-serif;padding:24px;max-width:1280px;margin:0 auto}
+h1{font-size:22px;margin-bottom:4px}
+h2{font-size:17px;margin:28px 0 12px;color:var(--accent);border-left:3px solid var(--accent);padding-left:10px}
+h3{font-size:14px;margin:16px 0 8px;color:var(--gold)}
+.sub{color:var(--dim);font-size:12.5px;margin-bottom:20px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:16px 0}
+.kpi{background:var(--panel);border-radius:10px;padding:14px;text-align:center;border:1px solid #2a2e3a}
+.kpi .v{font-size:24px;font-weight:700;color:var(--accent)}
+.kpi .l{font-size:11.5px;color:var(--dim);margin-top:4px}
+.kpi .s{font-size:11px;color:var(--green);margin-top:2px}
+.panel{background:var(--panel);border-radius:12px;padding:18px;margin:14px 0;border:1px solid #2a2e3a}
+.chart{width:100%;height:340px}
+table{width:100%;border-collapse:collapse;font-size:12.5px;margin:10px 0}
+th{background:var(--panel2);color:var(--accent);padding:8px 10px;text-align:left;font-weight:600}
+td{padding:7px 10px;border-bottom:1px solid #2a2e3a}
+tr:hover td{background:rgba(79,195,247,.05)}
+.tag{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600}
+.tag-red{background:rgba(255,107,107,.15);color:var(--red)}
+.tag-gold{background:rgba(255,209,102,.15);color:var(--gold)}
+.tag-green{background:rgba(53,201,138,.15);color:var(--green)}
+.tag-blue{background:rgba(79,195,247,.15);color:var(--accent)}
+.tag-purple{background:rgba(179,157,219,.15);color:var(--purple)}
+code{background:#2d3140;padding:1px 6px;border-radius:4px;font-family:Consolas,monospace;font-size:11.5px;color:var(--gold)}
+.badge{font-size:10px;padding:1px 6px;border-radius:8px;background:#2a2e3a;color:var(--dim);margin-left:6px}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--dim);margin:8px 0}
+.legend span{display:inline-flex;align-items:center;gap:5px}
+.dot{width:10px;height:10px;border-radius:50%;display:inline-block}
+.finding{background:rgba(53,201,138,.06);border-left:3px solid var(--green);padding:10px 14px;border-radius:0 8px 8px 0;margin:8px 0;font-size:13px}
+.warning{background:rgba(255,209,102,.06);border-left:3px solid var(--gold);padding:10px 14px;border-radius:0 8px 8px 0;margin:8px 0;font-size:13px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:900px){.grid2{grid-template-columns:1fr}}
+.pending{color:var(--gold);font-size:11px}
+</style>
+</head>
+<body>
+
+<h1>Agent Skill 安全 SoK — 扫描器盲区与绕过实验全景</h1>
+<div class="sub">2026-08-20 周会汇报 · 数据: 主实验 582 + Arm1-13 构造实验 129 样本 × 3 扫描器（ecnu-max 后端）· 绕过标准: SS≤50=部分绕过, SS=0=全绕, Cisco MEDIUM+=检出但可能被阈值吞</div>
+
+<div class="kpis">
+  <div class="kpi"><div class="v">582</div><div class="l">主实验恶意样本</div><div class="s">Cisco 85.2% / SS 92.8% / Cat 72.5%</div></div>
+  <div class="kpi"><div class="v">129</div><div class="l">构造绕过样本</div><div class="s">Arm1-13 全实验</div></div>
+  <div class="kpi"><div class="v">13</div><div class="l">三家全漏样本</div><div class="s">Arm7 7 + Arm8 3 + Arm9 2 + b2</div></div>
+  <div class="kpi"><div class="v">100%</div><div class="l">Cat 无字面绕过</div><div class="s">Arm10B 0/10 检出</div></div>
+  <div class="kpi"><div class="v">93%</div><div class="l">SS 隐藏文件绕过</div><div class="s">Arm7 SS≤50 14/15</div></div>
+  <div class="kpi"><div class="v">0/6</div><div class="l">Cisco finding特化</div><div class="s">线A 表达层特化全绕</div></div>
+</div>
+
+<div class="panel">
+  <h3>各实验绕过率（新标准: SS≤50=绕过）</h3>
+  <div class="legend">
+    <span><span class="dot" style="background:#ff6b6b"></span>Cisco 检出率</span>
+    <span><span class="dot" style="background:#4fc3f7"></span>SS 绕过率 (≤50)</span>
+    <span><span class="dot" style="background:#ffd166"></span>Cat 检出率</span>
+  </div>
+  <div id="overviewChart" class="chart"></div>
+</div>
+
+<div class="panel">
+  <h3>四层盲区谱系（Arm1-13 系统性攻击发现）</h3>
+  <table>
+    <tr><th>层级</th><th>攻击形态</th><th>实验</th><th>SS 绕过</th><th>Cisco 检出</th><th>Cat 检出</th><th>本质</th></tr>
+    <tr><td>坐标层</td><td>同坐标 24 原语</td><td>Arm1</td><td>5/24</td><td>16/24</td><td>8/24</td><td>原语决定可检测性</td></tr>
+    <tr><td>载荷层</td><td>执行阶段载荷</td><td>Arm10/10B</td><td>6/19</td><td>6/19</td><td>5/19</td><td>静态分析看不到运行时数据流</td></tr>
+    <tr><td>语义层</td><td>manifest 声明</td><td>Arm9</td><td><span class="tag tag-red">5/5</span></td><td>1/5</td><td>0/5</td><td>合理能力声明削弱 SDI</td></tr>
+    <tr><td><b>文件层</b></td><td><b>隐藏文件载荷</b></td><td><b>Arm7/8</b></td><td><b><span class="tag tag-red">19/20</span></b></td><td>5/20</td><td>3/20</td><td><b>SS 范围排除（真看不到）</b></td></tr>
+  </table>
+</div>
+
+<div class="grid2">
+  <div class="panel">
+    <h3>双线推边界（Arm11）</h3>
+    <table>
+      <tr><th>线</th><th>方法</th><th>样本</th><th>Cisco 检出</th><th>SS 绕过(≤50)</th><th>SS=0</th></tr>
+      <tr><td><span class="tag tag-blue">线A</span></td><td>finding 特化</td><td>6</td><td><b>0/6</b></td><td>3/6</td><td>1</td></tr>
+      <tr><td><span class="tag tag-purple">线B</span></td><td>taxonomy+wild</td><td>5</td><td>1/5</td><td><b>5/5</b></td><td><b>3</b></td></tr>
+    </table>
+    <div class="finding">线A: 表达层特化（数据管道/opt-in/声明一致）<b>Cisco 0/6 全绕</b> —— Cisco 比 SS 脆弱一个量级</div>
+    <div class="finding">线B: wild 变量注入管道机制 <b>构造复现成功</b>（b1/b3 SS=0）; <b>b2 三家全漏</b>（远端拉取+免责+内联代码）</div>
+  </div>
+
+  <div class="panel">
+    <h3>b2 形态扩样（Arm12, 扫描中）</h3>
+    <table>
+      <tr><th>样本</th><th>伪装</th><th>恶意目标</th><th>Cisco</th><th>SS</th><th>Cat</th></tr>
+      <tr><td>arm12-01</td><td>市场数据</td><td>凭证外传</td><td class="pending">…</td><td class="pending">…</td><td class="pending">…</td></tr>
+      <tr><td colspan="6" class="pending" style="text-align:center">扫描进行中（7/10 已完成）——完成后更新</td></tr>
+    </table>
+    <div class="warning">组合实验 Arm13（数据管道+内联代码双管齐下）扫描中</div>
+  </div>
+</div>
+
+<div class="panel">
+  <h3>三家扫描器盲区全景（实证）</h3>
+  <table>
+    <tr><th>扫描器</th><th>主实验检出</th><th>盲区类型</th><th>绕过证据</th><th>根因</th></tr>
+    <tr>
+      <td><b>Cisco</b></td><td>85.2%</td>
+      <td>① 阈值吞 MEDIUM<br>② 纯指令执行阶段<br>③ 表达层特化</td>
+      <td>80 MEDIUM 被吞<br>Arm10 22%<br>线A 0/6</td>
+      <td><code>models.py:226</code> 只认 HIGH/CRITICAL; YARA/DFA 无字面无触发面</td>
+    </tr>
+    <tr>
+      <td><b>SS</b></td><td>92.8%</td>
+      <td>① 文件收集层<br>② 变量注入管道<br>③ manifest 声明</td>
+      <td>Arm7 14/15<br>b1/b3 SS=0<br>Arm9 5/5</td>
+      <td><code>build_context.py</code> 跳过 dotfile; 静态看不到运行时数据流; SDI 只查矛盾</td>
+    </tr>
+    <tr>
+      <td><b>Cat</b></td><td>72.5%</td>
+      <td>① 无字面命令全盲<br>② 工具语义表达</td>
+      <td>Arm10B 0/10<br>Arm1 6/24</td>
+      <td>纯正则引擎，只认 curl|bash/base64 字面</td>
+    </tr>
+  </table>
+</div>
+
+<div class="panel">
+  <h3>核心发现（周会要点）</h3>
+  <div class="finding"><b>1. SS 文件收集层盲区</b> —— 隐藏文件载荷 93% 绕过（Arm7 SS≤50 14/15），根因 <code>_walk_skill_files</code> 跳过 dotfile</div>
+  <div class="finding"><b>2. wild 机制构造复现成功</b> —— insider-wallets-finder 的变量注入管道（<code>curl ...${VAR}... | python3 -c</code>）SS=0，可复现系统性盲区</div>
+  <div class="finding"><b>3. Cisco 表达层脆弱</b> —— finding 特化 0/6 全绕（数据管道/opt-in/声明一致），比 SS 脆弱一个量级</div>
+  <div class="finding"><b>4. Cat 无字面 100% 盲</b> —— 工具语义表达恶意（"发送到同步端点"）Cat 完全失明（Arm10B 0/10）</div>
+  <div class="warning"><b>方法学</b>: 不做净化（恶意写实校验+技术失败分类）结论全错 —— Arm10 初版"SS 28%"是生成缺陷假象，净化后 100%</div>
+  <div class="warning"><b>诚实标注</b>: 净化后无样本能三家同时绕过（除 Arm7 隐藏文件 8 个）; ECNU 不稳定导致 SS 技术失败需重扫; arm12/13 扫描中</div>
+</div>
+
+<script>
+const DATA = {
+  main: {cisco: 85.2, ss: 7.2, cat: 72.5, n: 582},  // ss=绕过率 7.2% (1-92.8)
+  arm1: {name:'Arm1 原语谱系', n:24, cisco:16, ss_bypass:5, cat:8},
+  arm2: {name:'Arm2 语义包装', n:6, cisco:5, ss_bypass:0, cat:2},
+  arm345: {name:'Arm3-5 攻击面', n:15, cisco:7, ss_bypass:3, cat:6},
+  arm6: {name:'Arm6 描述一致', n:5, cisco:2, ss_bypass:0, cat:3},
+  arm7: {name:'Arm7 隐藏文件', n:15, cisco:4, ss_bypass:14, cat:2},
+  arm8: {name:'Arm8 混合', n:5, cisco:1, ss_bypass:5, cat:1},
+  arm9: {name:'Arm9 manifest', n:5, cisco:1, ss_bypass:5, cat:0},
+  arm10: {name:'Arm10 执行阶段', n:9, cisco:2, ss_bypass:2, cat:5},
+  arm10b: {name:'Arm10B 无字面', n:10, cisco:4, ss_bypass:4, cat:0},
+  arm11: {name:'Arm11 双线', n:11, cisco:1, ss_bypass:9, cat:5},
+  arm12: {name:'Arm12 b2扩样*', n:7, cisco:6, ss_bypass:0, cat:2}
+};
+const ORDER = ['arm1','arm2','arm345','arm6','arm7','arm8','arm9','arm10','arm10b','arm11','arm12'];
+
+const chart = echarts.init(document.getElementById('overviewChart'));
+chart.setOption({
+  backgroundColor: 'transparent',
+  tooltip: {trigger: 'axis', backgroundColor:'#232733', borderColor:'#2a2e3a', textStyle:{color:'#e8eaf0'}},
+  legend: {data:['Cisco 检出','SS 绕过(≤50)','Cat 检出'], textStyle:{color:'#8a90a0'}, top:0},
+  grid: {left:40, right:20, top:40, bottom:60},
+  xAxis: {type:'category', data: ORDER.map(k=>DATA[k].name), axisLabel:{color:'#8a90a0', rotate:30, fontSize:10}, axisLine:{lineStyle:{color:'#2a2e3a'}}},
+  yAxis: {type:'value', max:100, axisLabel:{color:'#8a90a0'}, splitLine:{lineStyle:{color:'#2a2e3a'}}, name:'%', nameTextStyle:{color:'#8a90a0'}},
+  series: [
+    {name:'Cisco 检出', type:'bar', data: ORDER.map(k=>+(DATA[k].cisco/DATA[k].n*100).toFixed(1)), itemStyle:{color:'#ff6b6b', borderRadius:[4,4,0,0]}, barWidth:18},
+    {name:'SS 绕过(≤50)', type:'bar', data: ORDER.map(k=>+(DATA[k].ss_bypass/DATA[k].n*100).toFixed(1)), itemStyle:{color:'#4fc3f7', borderRadius:[4,4,0,0]}, barWidth:18},
+    {name:'Cat 检出', type:'bar', data: ORDER.map(k=>+(DATA[k].cat/DATA[k].n*100).toFixed(1)), itemStyle:{color:'#ffd166', borderRadius:[4,4,0,0]}, barWidth:18}
+  ]
+});
+window.addEventListener('resize', ()=>chart.resize());
+</script>
+</body>
+</html>

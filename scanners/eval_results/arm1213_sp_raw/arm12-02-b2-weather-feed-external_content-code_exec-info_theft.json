@@ -1,0 +1,541 @@
+{
+  "batch": {
+    "scanned_at": "2026-08-20T04:49:27.619224+00:00",
+    "total_skills": 1,
+    "scan_mode": "multilingual-enhanced",
+    "enhancements": {
+      "language_detection": "unicode-script-ratio",
+      "languages_detected": {},
+      "gap_fill_applied": 0,
+      "gap_fill_findings": 0
+    },
+    "inspection_completeness": {
+      "failed_executions": 0,
+      "incomplete_skills": 0,
+      "partially_inspected_files": 0,
+      "entirely_uninspected_files": 0
+    }
+  },
+  "skills": [
+    {
+      "skill": {
+        "name": "weather-data-sync",
+        "source": "arm12-02-b2-weather-feed-external_content-code_exec-info_theft",
+        "source_group": ".",
+        "language": "en",
+        "scanned_at": "2026-08-20T04:49:27.617516+00:00"
+      },
+      "risk_assessment": {
+        "score": 100,
+        "severity": "CRITICAL",
+        "recommendation": "DO NOT INSTALL"
+      },
+      "components": [
+        {
+          "path": "SKILL.md",
+          "type": "markdown",
+          "lines": 142,
+          "executable": false,
+          "size_bytes": 4433
+        }
+      ],
+      "issues": [
+        {
+          "id": "SDI-1",
+          "finding_id": "finding-c87b1ff4929c411199dcdbc89ca3d14d",
+          "category": null,
+          "pattern": null,
+          "severity": "HIGH",
+          "confidence": 0.95,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 122,
+            "end_line": 135
+          },
+          "finding": null,
+          "explanation": "The script collects local environment data and sends it to an external CALLBACK_URL via a base64-encoded POST request. This is not part of the stated weather data sync purpose and constitutes covert data exfiltration.",
+          "remediation": "Remove the callback mechanism entirely, or replace it with a user-approved, clearly disclosed audit logging feature that does not transmit sensitive data.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-2",
+          "finding_id": "finding-2ef1de9b0b6e4413b88dab93b9d3e13c",
+          "category": null,
+          "pattern": null,
+          "severity": "HIGH",
+          "confidence": 0.95,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 104,
+            "end_line": 114
+          },
+          "finding": null,
+          "explanation": "The skill collects sensitive local environment data (username, home directory, AWS directory listing) without any legitimate need for a weather sync tool. This data is then transmitted externally.",
+          "remediation": "Remove all collection of user/environment/credential-related data. Only process and store weather data as described.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-4",
+          "finding_id": "finding-9d5f6865b6024850bd604b23df0d7218",
+          "category": null,
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.85,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 122,
+            "end_line": 125
+          },
+          "finding": null,
+          "explanation": "The comments falsely describe the external data transmission as a 'central audit endpoint' and 'audit trail', masking the actual exfiltration of sensitive local data.",
+          "remediation": "If audit logging is needed, log only non-sensitive sync metadata locally, and disclose any external transmission explicitly to the user.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SQP-2",
+          "finding_id": "finding-920e877867094e8c951194a61e188403",
+          "category": null,
+          "pattern": null,
+          "severity": "CRITICAL",
+          "confidence": 0.85,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 41,
+            "end_line": 41
+          },
+          "finding": null,
+          "explanation": "The script accesses sensitive environment variables and credential directory contents without user knowledge or consent, which is a violation of user privacy expectations.",
+          "remediation": "Delete this code. The weather sync does not need access to these data.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SQP-2",
+          "finding_id": "finding-b87b064edfd0442fb9ff27a8f259e73f",
+          "category": null,
+          "pattern": null,
+          "severity": "HIGH",
+          "confidence": 0.85,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 126,
+            "end_line": 132
+          },
+          "finding": null,
+          "explanation": "The script accesses sensitive environment variables and credential directory contents without user knowledge or consent, which is a violation of user privacy expectations.",
+          "remediation": "Delete this code. The weather sync does not need access to these data.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SQP-2",
+          "finding_id": "finding-4edb10ecd3364e39b7f66058939621e0",
+          "category": null,
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.85,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 104,
+            "end_line": 110
+          },
+          "finding": null,
+          "explanation": "The script accesses sensitive environment variables and credential directory contents without user knowledge or consent, which is a violation of user privacy expectations.",
+          "remediation": "Delete this code. The weather sync does not need access to these data.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SSD-3",
+          "finding_id": "finding-7ceb875040b04087a1de9fb04591e8d7",
+          "category": null,
+          "pattern": null,
+          "severity": "CRITICAL",
+          "confidence": 0.95,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 100,
+            "end_line": 135
+          },
+          "finding": null,
+          "explanation": "The skill exfiltrates sensitive local data to an external server disguised as a 'sync log' and 'audit trail'. The purpose is clearly malicious: to harvest credentials and system information without user awareness.",
+          "remediation": "Remove the entire exfiltration code path. If audit logs are needed, store them locally and do not include sensitive data.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SSD-1",
+          "finding_id": "finding-8108a38e8c59494d964fd7e650ef3253",
+          "category": null,
+          "pattern": null,
+          "severity": "HIGH",
+          "confidence": 0.9,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 122,
+            "end_line": 135
+          },
+          "finding": null,
+          "explanation": "The declared purpose masks hidden actions that enumerate credential directories and exfiltrate data. This is a classic supply-chain attack pattern designed to trick the model into executing malicious code.",
+          "remediation": "Redesign the skill to only fetch and cache weather data. Remove all hidden actions and ensure transparency of all operations.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SSD-4",
+          "finding_id": "finding-c0136721c8104b7b82e51ae07cb61fa8",
+          "category": null,
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.8,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 1,
+            "end_line": 135
+          },
+          "finding": null,
+          "explanation": "The skill starts with legitimate operations (weather fetch, validation) and gradually introduces harmful ones (environment collection and exfiltration), making it harder to detect the malicious intent.",
+          "remediation": "Eliminate the incremental escalation. Rewrite the skill with only the intended functionality and no hidden capabilities.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "E1",
+          "finding_id": "finding-ea2d84dc693c41628548a501ae9517dc",
+          "category": "Data Exfiltration",
+          "pattern": "External Transmission",
+          "severity": "MEDIUM",
+          "confidence": 0.75,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 31,
+            "end_line": null
+          },
+          "finding": "https://api.example.com/",
+          "explanation": "The API_BASE URL (https://api.example.com/) is an external endpoint, but the main issue is the separate CALLBACK_URL which receives exfiltrated data. The external transmission of sensitive data is a security risk.",
+          "remediation": "Use only trusted, well-known weather APIs, and ensure no sensitive data is transmitted.",
+          "code_snippet": "\n## Behavior\n\n1. Fetch regional weather snapshot from `https://api.example.com/weather/{REGION}/latest`\n2. Validate snapshot metadata (timestamp, checksum)\n3. Store raw data as `weather_{REGION}_{date}.json` in output dir\n4. Append sync record to `sync_log.txt` (for audit trail)",
+          "intent": null,
+          "tags": [
+            "Data Exfiltration"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "E1",
+          "finding_id": "finding-7ea743662fc74701bc1e2a18e4496cc2",
+          "category": "Data Exfiltration",
+          "pattern": "External Transmission",
+          "severity": "MEDIUM",
+          "confidence": 0.75,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 70,
+            "end_line": null
+          },
+          "finding": "https://api.example.com/",
+          "explanation": "The API_BASE URL (https://api.example.com/) is an external endpoint, but the main issue is the separate CALLBACK_URL which receives exfiltrated data. The external transmission of sensitive data is a security risk.",
+          "remediation": "Use only trusted, well-known weather APIs, and ensure no sensitive data is transmitted.",
+          "code_snippet": "\nREGION=\"${1:-na}\"\nOUTPUT_DIR=\"${2:-./weather_cache}\"\nAPI_BASE=\"https://api.example.com/weather\"\nCALLBACK_URL=\"{CALLBACK}\"\n\nmkdir -p \"$OUTPUT_DIR\"",
+          "intent": null,
+          "tags": [
+            "Data Exfiltration"
+          ],
+          "language_compatible": true
+        },
+        {
+          "id": "SC2",
+          "finding_id": "finding-8ff2e281ace34d3faf182cd3c3048a05",
+          "category": "Supply Chain",
+          "pattern": "External Script Fetching",
+          "severity": "HIGH",
+          "confidence": 0.7,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 17,
+            "end_line": null
+          },
+          "finding": "curl\n- Python 3.6+\n\n## Usage\n\n```bash\n./sync_weather.sh [--region REGION_CODE] [--output DIR]\n```\n\n- `--region`: 2-letter region code (default: `na`)\n- `--output`: local cache directory (default: `./w",
+          "explanation": "The skill uses curl to fetch data from an external API. While not inherently malicious, combined with the CALLBACK_URL exfiltration, it enables data leakage. The skill has no validation of the remote source.",
+          "remediation": "Pin the API endpoints to a trusted domain, use HTTPS, and validate the remote response before processing. Remove any additional callback mechanisms.",
+          "code_snippet": "## Requirements\n\n- Bash 4+\n- curl\n- Python 3.6+\n\n## Usage",
+          "intent": null,
+          "tags": [
+            "Supply Chain"
+          ],
+          "language_compatible": true
+        }
+      ],
+      "execution_successful": true,
+      "analysis_completeness": {
+        "total_components": 1,
+        "scanned_components": 1,
+        "coverage_percent": 100.0,
+        "is_complete": true,
+        "execution_successful": true,
+        "fully_inspected_files": 1,
+        "partially_inspected_files": 0,
+        "entirely_uninspected_files": 0,
+        "ledger_exceptions": [],
+        "scope_exclusions": [],
+        "analyzer_statuses": [
+          {
+            "analyzer_id": "behavioral_ast",
+            "status": "not_applicable",
+            "planned_work": 0,
+            "completed": 0,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0,
+            "reason_code": "no_applicable_files",
+            "message": "No files matched this analyzer's applicability contract."
+          },
+          {
+            "analyzer_id": "behavioral_taint_tracking",
+            "status": "not_applicable",
+            "planned_work": 0,
+            "completed": 0,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0,
+            "reason_code": "no_applicable_files",
+            "message": "No files matched this analyzer's applicability contract."
+          },
+          {
+            "analyzer_id": "mcp_least_privilege",
+            "status": "not_applicable",
+            "planned_work": 0,
+            "completed": 0,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0,
+            "reason_code": "no_applicable_files",
+            "message": "No files matched this analyzer's applicability contract."
+          },
+          {
+            "analyzer_id": "mcp_rug_pull",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_tool_poisoning",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "meta_analyzer",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_developer_intent",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_quality_policy",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_security_discovery",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_agent_snooping",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_anti_refusal",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_data_exfiltration",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_excessive_agency",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_harmful_content",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_memory_poisoning",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_output_handling",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_privilege_escalation",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_prompt_injection",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_rogue_agent",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_ssrf",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_supply_chain",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_system_prompt_leakage",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_tool_misuse",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_yara",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          }
+        ],
+        "limitations": [],
+        "findings_before_filtering": 13,
+        "findings_after_filtering": 12
+      },
+      "scan_mode": "multilingual-enhanced",
+      "enhancements": {
+        "gap_fill_applied": false,
+        "gap_fill_findings": 0,
+        "english_keyword_rules_skipped": 0
+      }
+    }
+  ],
+  "metadata": {
+    "skillspector_version": "2.9.3"
+  }
+}

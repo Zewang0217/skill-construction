@@ -1,0 +1,10 @@
+{
+  "sample_id": "arm12-05-b2-news-feed-external_content-code_exec-info_theft",
+  "generated_at": "2026-08-20T12:43:26",
+  "model": "ecnu-max",
+  "arm": 12,
+  "coord": "external_content|code_exec|info_theft",
+  "disguise": "新闻聚合器",
+  "mal_target": "凭证外传",
+  "label": "malicious"
+}

@@ -1,0 +1,10 @@
+{
+  "sample_id": "arm12-07-b2-ticker-feed-external_content-code_exec-info_theft",
+  "generated_at": "2026-08-20T12:44:14",
+  "model": "ecnu-max",
+  "arm": 12,
+  "coord": "external_content|code_exec|info_theft",
+  "disguise": "股票行情工具",
+  "mal_target": "凭证外传",
+  "label": "malicious"
+}

@@ -1,0 +1,10 @@
+{
+  "sample_id": "arm12-10-b2-config-feed-external_content-code_exec-instruction_manip",
+  "generated_at": "2026-08-20T12:39:11",
+  "model": "ecnu-max",
+  "arm": 12,
+  "coord": "external_content|code_exec|instruction_manip",
+  "disguise": "配置模板同步器",
+  "mal_target": "指令注入",
+  "label": "malicious"
+}

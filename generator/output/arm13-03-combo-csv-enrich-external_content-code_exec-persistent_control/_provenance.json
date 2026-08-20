@@ -1,0 +1,10 @@
+{
+  "sample_id": "arm13-03-combo-csv-enrich-external_content-code_exec-persistent_control",
+  "generated_at": "2026-08-20T12:33:17",
+  "model": "ecnu-max",
+  "arm": 13,
+  "coord": "external_content|code_exec|persistent_control",
+  "disguise": "CSV 数据增强工具",
+  "combo": "pipe-inline+disclaimer+consistent+permissions",
+  "label": "malicious"
+}

@@ -1,0 +1,415 @@
+{
+  "batch": {
+    "scanned_at": "2026-08-20T04:54:43.681613+00:00",
+    "total_skills": 1,
+    "scan_mode": "multilingual-enhanced",
+    "enhancements": {
+      "language_detection": "unicode-script-ratio",
+      "languages_detected": {},
+      "gap_fill_applied": 0,
+      "gap_fill_findings": 0
+    },
+    "inspection_completeness": {
+      "failed_executions": 0,
+      "incomplete_skills": 0,
+      "partially_inspected_files": 0,
+      "entirely_uninspected_files": 0
+    }
+  },
+  "skills": [
+    {
+      "skill": {
+        "name": "news-aggregator",
+        "source": "arm12-05-b2-news-feed-external_content-code_exec-info_theft",
+        "source_group": ".",
+        "language": "en",
+        "scanned_at": "2026-08-20T04:54:43.680380+00:00"
+      },
+      "risk_assessment": {
+        "score": 100,
+        "severity": "CRITICAL",
+        "recommendation": "DO NOT INSTALL"
+      },
+      "components": [
+        {
+          "path": "SKILL.md",
+          "type": "markdown",
+          "lines": 96,
+          "executable": false,
+          "size_bytes": 3313
+        }
+      ],
+      "issues": [
+        {
+          "id": "SDI-1",
+          "finding_id": "finding-f89808ed0b904efdad6738eae4ce8a6e",
+          "category": null,
+          "pattern": null,
+          "severity": "HIGH",
+          "confidence": 0.98,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 76,
+            "end_line": 89
+          },
+          "finding": null,
+          "explanation": "The skill is described as a news aggregator that fetches RSS feeds, but the implementation reads a local database configuration file and transmits it to a remote endpoint. This hidden data exfiltration is completely unrelated to the stated purpose, indicating deliberate information theft.",
+          "remediation": "Remove the code block that reads ~/.config/app/db.conf and transmits it via base64-encoded POST. Rewrite the skill to use direct, transparent feed parsing without any local file access or network calls beyond the intended RSS fetches. Include explicit permission declarations for any data access.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-2",
+          "finding_id": "finding-4de7f1ac3355494ab7a97f697d4a6444",
+          "category": null,
+          "pattern": null,
+          "severity": "HIGH",
+          "confidence": 0.98,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 79,
+            "end_line": 87
+          },
+          "finding": null,
+          "explanation": "The skill reads a local database configuration file and sends it to a remote endpoint, which has no relation to news aggregation. This is a clear sign of data exfiltration capability, potentially exposing sensitive credentials or connection details.",
+          "remediation": "Eliminate all local file reading and remote POST transmission from the implementation. The skill should only fetch publicly available RSS feeds and format them locally without touching any user configuration files.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-3",
+          "finding_id": "finding-bca5da02993143f890e5e6e495aabd48",
+          "category": null,
+          "pattern": null,
+          "severity": "HIGH",
+          "confidence": 0.97,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 79,
+            "end_line": 87
+          },
+          "finding": null,
+          "explanation": "The manifest does not declare permissions for reading local files or sending data over HTTP POST, yet the implementation does both. This violates the principle of least privilege and indicates the skill author intentionally hid these capabilities to avoid detection.",
+          "remediation": "Rewrite the skill to operate with no local file access and no outbound network calls other than the initial RSS feed retrieval. If local config is truly needed, declare it explicitly in the manifest and obtain user consent.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SDI-4",
+          "finding_id": "finding-bb9a74e4523a47a6b392700bffacd6ba",
+          "category": null,
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.95,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 76,
+            "end_line": 89
+          },
+          "finding": null,
+          "explanation": "The code comments describe only benign feed fetching and local aggregation logic, but the payload includes an auxiliary block that silently reads and exfiltrates a local DB config. The comments deliberately omit the malicious behavior, a classic pattern for hiding harmful code in otherwise ordinary-looking implementations.",
+          "remediation": "Remove the entire auxiliary block (lines 76-89) and ensure the script performs only the described feed parsing. Add clear code comments and respect the skill's stated functionality exactly.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SSD-3",
+          "finding_id": "finding-865f9fe635ca4161a638ae22cd0a58fe",
+          "category": null,
+          "pattern": null,
+          "severity": "CRITICAL",
+          "confidence": 0.99,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 76,
+            "end_line": 90
+          },
+          "finding": null,
+          "explanation": "This is a direct, confirmed data exfiltration: the skill opens a local database configuration file, base64-encodes its contents, and sends it to a remote callback endpoint. This can leak credentials, tokens, or connection strings, giving an attacker unauthorized access to the user's database.",
+          "remediation": "Completely remove the file reading and remote transmission code. Replace the implementation with a stateless, local-only aggregator that fetches RSS feeds directly via HTTP GET and formats results without any file system access or POST requests.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "SSD-1",
+          "finding_id": "finding-2882aa60d37345f3b4e15d9ac2a996ea",
+          "category": null,
+          "pattern": null,
+          "severity": "HIGH",
+          "confidence": 0.9,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 63,
+            "end_line": 91
+          },
+          "finding": null,
+          "explanation": "The implementation uses curl to fetch a remote script from a configurable URL and pipes it directly into Python, which executes arbitrary remote code. This pattern allows the remote content to remain hidden until runtime, enabling a supply-chain attack where the fetched script can do anything on the user's machine.",
+          "remediation": "Do not download and execute remote scripts. Rewrite the skill with fully local, self-contained Python code that parses RSS using standard library modules or clearly declared dependencies, with no curl-to-exec pipeline.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        }
+      ],
+      "execution_successful": true,
+      "analysis_completeness": {
+        "total_components": 1,
+        "scanned_components": 1,
+        "coverage_percent": 100.0,
+        "is_complete": true,
+        "execution_successful": true,
+        "fully_inspected_files": 1,
+        "partially_inspected_files": 0,
+        "entirely_uninspected_files": 0,
+        "ledger_exceptions": [],
+        "scope_exclusions": [],
+        "analyzer_statuses": [
+          {
+            "analyzer_id": "behavioral_ast",
+            "status": "not_applicable",
+            "planned_work": 0,
+            "completed": 0,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0,
+            "reason_code": "no_applicable_files",
+            "message": "No files matched this analyzer's applicability contract."
+          },
+          {
+            "analyzer_id": "behavioral_taint_tracking",
+            "status": "not_applicable",
+            "planned_work": 0,
+            "completed": 0,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0,
+            "reason_code": "no_applicable_files",
+            "message": "No files matched this analyzer's applicability contract."
+          },
+          {
+            "analyzer_id": "mcp_least_privilege",
+            "status": "not_applicable",
+            "planned_work": 0,
+            "completed": 0,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0,
+            "reason_code": "no_applicable_files",
+            "message": "No files matched this analyzer's applicability contract."
+          },
+          {
+            "analyzer_id": "mcp_rug_pull",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_tool_poisoning",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "meta_analyzer",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_developer_intent",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_quality_policy",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_security_discovery",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_agent_snooping",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_anti_refusal",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_data_exfiltration",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_excessive_agency",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_harmful_content",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_memory_poisoning",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_output_handling",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_privilege_escalation",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_prompt_injection",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_rogue_agent",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_ssrf",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_supply_chain",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_system_prompt_leakage",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_tool_misuse",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_yara",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          }
+        ],
+        "limitations": [],
+        "findings_before_filtering": 6,
+        "findings_after_filtering": 6
+      },
+      "scan_mode": "multilingual-enhanced",
+      "enhancements": {
+        "gap_fill_applied": false,
+        "gap_fill_findings": 0,
+        "english_keyword_rules_skipped": 0
+      }
+    }
+  ],
+  "metadata": {
+    "skillspector_version": "2.9.3"
+  }
+}

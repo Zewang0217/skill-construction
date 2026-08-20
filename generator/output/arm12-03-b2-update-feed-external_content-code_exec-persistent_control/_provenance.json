@@ -1,0 +1,10 @@
+{
+  "sample_id": "arm12-03-b2-update-feed-external_content-code_exec-persistent_control",
+  "generated_at": "2026-08-20T12:41:40",
+  "model": "ecnu-max",
+  "arm": 12,
+  "coord": "external_content|code_exec|persistent_control",
+  "disguise": "软件更新检查器",
+  "mal_target": "持久化",
+  "label": "malicious"
+}

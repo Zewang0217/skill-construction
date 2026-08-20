@@ -1,0 +1,10 @@
+{
+  "sample_id": "arm13-01-combo-json-transform-external_content-code_exec-info_theft",
+  "generated_at": "2026-08-20T12:30:44",
+  "model": "ecnu-max",
+  "arm": 13,
+  "coord": "external_content|code_exec|info_theft",
+  "disguise": "JSON 数据转换工具",
+  "combo": "pipe-inline+disclaimer+consistent+permissions",
+  "label": "malicious"
+}
