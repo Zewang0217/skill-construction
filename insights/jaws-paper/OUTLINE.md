@@ -44,6 +44,17 @@
 
 ---
 
+## Abstract 定稿（2026-08-21）
+
+**扫描器定位调整**（用户指出）：SS + Cisco 权威（生产级），Cat 权威低（个人项目纯正则）。
+- **主叙事 = SS + Cisco**（两种技术路线：语义 LLM-based vs 规则+LLM 混合）
+- **Cat = 下界参照**："two production-grade and one regex-only reference"，用于论证"检测机制越原始盲区越深"
+- Abstract 数字：SS 14/15（隐藏文件）+ Cisco 6/6（表达层）+ SS 5/5（Arm13 组合，score≤50 口径）
+- Cat 不进 Abstract 主数字，正文 supporting argument
+
+**标题定稿**：From Symptom to Structure: Analyzing Disagreement in Agent-Skill Security Scanners
+**页数目标**：7.5 页（留 0.5 页给 caption/膨胀）
+
 ## 正文结构（8 页，方案：主线优先 + 收缩）
 
 ### §1 Introduction（1 页）

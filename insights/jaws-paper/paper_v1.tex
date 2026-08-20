@@ -1,0 +1,202 @@
+% JAWS 2 @ ASE 2026 — Idea Paper (≤8 pages excl. references)
+% ACM Primary Article Template, sigconf, single-anonymous
+\PassOptionsToPackage{expansion=false}{microtype}
+\documentclass[sigconf,nonacm]{acmart}
+
+% JAWS is single-anonymous: author names visible
+\settopmatter{authorsperrow=3}
+
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{xcolor}
+
+% Blind-review off (single-anonymous)
+\setcopyright{none}
+\renewcommand\footnotetextcopyrightpermission[1]{}
+\pagestyle{plain}
+
+\title{From Symptom to Structure: Analyzing Disagreement\\in Agent-Skill Security Scanners}
+
+
+
+
+
+% TODO: add co-authors (Xinhe Zhang, supervisor, etc.)
+
+\begin{abstract}
+Agent-skill security scanners frequently disagree about which skills are malicious, yet existing evaluations treat that disagreement as a statistic---Cohen's $\kappa$, pairwise overlap---without explaining \emph{where} it originates or whether it can be acted upon.
+We introduce a shared three-dimensional attack-coordinate space (source $\times$ mechanism $\times$ target) that maps the heterogeneous taxonomies of three scanners---two production-grade and one regex-only reference---into a common measurement framework, turning scanner disagreement from an observable symptom into an analyzable structure.
+We decompose disagreement into (i)~\emph{coverage gaps}, where a scanner does not inspect a coordinate at all, and (ii)~\emph{operational divergence}, where scanners nominally cover the same coordinate but instantiate detection differently.
+We then convert these structural differences into \emph{locked} blind-spot hypotheses and validate them through coordinate-driven adversarial construction.
+Across 582 real malicious skills and two production-grade scanners, hidden-file payloads evade SkillSpector on 14/15 constructed samples, expression-layer variants evade Cisco on 6/6, and combined strategies evade SkillSpector on 5/5; we trace selected failures to concrete implementation mechanisms.
+A regex-only reference tool is fully blind to the same semantic variants, indicating that blind spots deepen as detection mechanisms grow more primitive.
+Scanner disagreement, we show, is more than a number: it reveals structure that can be hypothesized about and tested.
+\end{abstract}
+
+\keywords{agent skills, security scanners, taxonomy, blind spots, adversarial construction}
+
+\begin{document}
+\maketitle
+
+% ============================================================
+\section{Introduction}
+\label{sec:intro}
+
+Coding agents extend their capabilities by installing \emph{skills}---small packages of instructions, scripts, and metadata that the agent reads and executes.
+Because a skill is simultaneously documentation and executable behavior, a malicious skill is a potent supply-chain vector: it can exfiltrate credentials, persist across sessions, or hijack the agent's own reasoning.
+Security scanners have proliferated to screen skills before installation.
+Yet when multiple scanners screen the \emph{same} skill, they frequently disagree.
+
+Existing evaluations treat that disagreement as a statistic.
+They report Cohen's $\kappa$, pairwise overlap, or per-scanner detection rates, and stop there.
+But a low $\kappa$ is a \emph{symptom}, not a diagnosis: it tells us \emph{that} scanners disagree, not \emph{where in the attack space} the disagreement arises or \emph{why}.
+Without that structure, a practitioner cannot tell whether a scanner missed a malicious skill because the attack is genuinely hard, or because the scanner's architecture simply does not inspect the relevant region.
+
+We turn scanner disagreement from an observable symptom into an analyzable structure.
+We introduce a shared three-dimensional \emph{attack-coordinate space}---source $\times$ mechanism $\times$ target---and map the heterogeneous taxonomies of three scanners into this common frame.
+Within the frame, disagreement decomposes into two structurally distinct causes:
+(i)~\emph{coverage gaps}, where a scanner does not inspect a coordinate at all, and
+(ii)~\emph{operational divergence}, where scanners nominally cover the same coordinate but instantiate detection differently (semantic versus literal versus lexical evidence).
+
+We then convert these structural differences into \emph{locked} blind-spot hypotheses and validate them through coordinate-driven adversarial construction.
+Crucially, the coordinate space is not itself a blind-spot oracle; it is a common observation layer through which coverage evidence and scanner-specific architectural evidence are formulated into explicit, pre-specified hypotheses \emph{before} any adversarial sample is built (\S\ref{sec:hypotheses}).
+
+An important honesty point frames our results.
+On aggregate, the scanners are strong: across 582 real malicious skills, SkillSpector detects 92.8\%, Cisco 85.2\%, and Caterpillar 72.5\%.
+The blind spots are therefore not visible in average recall.
+They emerge only when the attack space is partitioned: specific coordinates that a scanner's detection mechanism cannot reach, regardless of how well it performs elsewhere.
+This is precisely the structure that aggregate metrics conceal.
+
+\noindent\textbf{Contributions.} This is a single discovery supported by a chain of evidence, not four independent contributions.
+\begin{itemize}
+  \item \textbf{Core discovery (C2).} Scanner disagreement decomposes into structural differences in attack-space coverage and detection operationalization (\S\ref{sec:explain}). This is the paper.
+  \item \textbf{Measurement instrument (C1).} The coordinate space that makes the above comparison possible (\S\ref{sec:measure}).
+  \item \textbf{Validation methodology (C3).} Hypothesis-locked adversarial construction that confirms the analysis is not post-hoc rationalization (\S\ref{sec:hypotheses}, \S\ref{sec:validate}).
+  \item \textbf{Mechanistic evidence (C4).} Source-level tracing of selected blind spots to concrete detection mechanisms (\S\ref{sec:validate}).
+\end{itemize}
+
+\noindent\textbf{Results.} Hidden-file payloads evade SkillSpector on 14/15 constructed samples, because its build context excludes dotfiles.
+Expression-layer variants evade Cisco on 6/6, because its trigger pipeline requires literal command surfaces.
+Combined strategies evade SkillSpector on 5/5 under a partial-bypass threshold.
+A regex-only reference tool is blind to all 10 semantic variants, showing blind spots deepen as detection mechanisms grow more primitive.
+We trace the SkillSpector and Cisco failures to specific source-level mechanisms.
+
+\noindent\textbf{Paper identity.} This is a methodology for \emph{structural analysis of security-scanner disagreement}, instantiated on agent skills.
+Scanner disagreement, we argue, is more than a number: it reveals structure that can be hypothesized about and tested.
+
+% ============================================================
+\section{Background and Motivation}
+\label{sec:background}
+
+Agent skills are distributed through marketplaces such as ClawHub and skills.sh. Because a skill can carry arbitrary instructions and scripts, it is an active supply-chain attack surface: the ClawHavoc incident identified over 1{,}184 malicious skills in a single marketplace. Security scanners have emerged to screen skills before installation.
+
+We study three scanners spanning the mainstream detection architectures. \textbf{SkillSpector} (NVIDIA) combines static rules, AST analysis, YARA signatures, and an LLM semantic layer. \textbf{Cisco Skill Scanner} (AI Defense) combines static analysis, YARA, LLM-based judgment, and behavioral dataflow. \textbf{Caterpillar} is a lightweight regex-based tool. SkillSpector and Cisco are production-grade; Caterpillar serves as a lower-bound reference showing how blind spots deepen as detection grows more primitive.
+
+These scanners frequently disagree on the same skill. Recent measurements quantify the disagreement: across 67{,}453 skills, pairwise overlap of flagged sets is at most 10.4\%, and only 0.69\% are flagged by all scanners. Yet such numbers stay descriptive: they tell us \emph{that} scanners disagree, not \emph{where} in the attack space the disagreement arises or \emph{why}.
+
+% ============================================================
+\section{A Shared Attack-Coordinate Space}
+\label{sec:measure}
+
+Existing scanners describe threats in incompatible vocabularies: SkillSpector speaks of 17 risk classes, Cisco of 18 threat categories, Caterpillar of regex rule families. We operationalize these heterogeneous labels into a compositional coordinate space for cross-scanner comparison. We position it as a \emph{measurement instrument}, not a universal taxonomy.
+
+\subsection{Three Dimensions}
+Each threat is located by three dimensions: \emph{source} (where it enters: supply chain, user input, external untrusted content, runtime environment, or unknown), \emph{mechanism} (how it attacks: code execution, instruction manipulation, dependency manipulation, privilege abuse, obfuscation, state corruption, \ldots), and \emph{target} (what it seeks: information theft, persistent control, resource abuse, system damage, financial theft, content-safety harm, defense evasion). The axes follow established security modeling: the attacker model (cf.\ Dolev--Yao), the technique axis (cf.\ ATT\&CK), and the security-property axis (cf.\ the CIA triad).
+
+\subsection{Mapping Scanner Languages}
+We mapped 67 scanner-native categories into the space, yielding 43 coordinates. To check that the space can carry existing threat descriptions, we mapped 1{,}253 threat statements from 84 sources. Only 17.9\% map cleanly to a full triple; \textbf{56.5\% are partial triples}---existing vocabularies cannot even fully express them---and 20.3\% fall into genuine gaps. This partial-triple rate is our key measurement-space evidence: current categorizations do not provide a complete description; a coordinate space does.
+
+\subsection{Orthogonality}
+The dimensions are near-orthogonal (normalized mutual information between source and target is 0.232), and ablating any single axis collapses coordinate resolution. The space therefore carries non-redundant information and serves as the observation layer for all subsequent analysis.
+
+% ============================================================
+\section{Structural Disagreement Analysis}
+\label{sec:explain}
+
+With a common observation layer in place, we project each scanner's detections onto the coordinate space and compare scanners coordinate by coordinate. This is the paper's core analysis, measured on 582 real malicious skills (350 wild samples stratified by behavior, 232 coordinate-generated).
+
+\subsection{Aggregate Detection Conceals the Structure}
+In aggregate the scanners are strong: SkillSpector detects 92.8\%, Cisco 85.2\%, Caterpillar 72.5\%. Stopping here, one would conclude detection is largely solved. The blind spots are invisible at this level of abstraction; they emerge only when the attack space is partitioned.
+
+\subsection{Coverage Gaps}
+The first structural cause of disagreement is a \emph{coverage gap}: a scanner does not inspect a coordinate at all. The source axis is collectively under-determined---after mapping to coordinates, inter-scanner agreement on source is negative ($\kappa_{source}=-0.137$), because scanners report behavior, not provenance. Coordinates whose source is runtime environment or user input are systematically less covered than supply-chain coordinates.
+
+\subsection{Operational Divergence: Semantic Alignment, Operational Divergence}
+The second cause is subtler. Scanners can \emph{semantically agree} that a coordinate matters while \emph{operationally diverging} on how to detect it. Consider the coordinate (credential access $\times$ code execution $\times$ data exfiltration): all three scanners nominally cover it, yet SkillSpector instantiates detection through script-level semantic evidence, Cisco through literal command triggers, and Caterpillar through lexical regex patterns. Same coordinate, same semantic intent, three different operational surfaces. An attack that removes the literal surface evades Cisco and Caterpillar while SkillSpector may still catch it---and vice versa for attacks that hide the script.
+
+\subsection{Misclassification}
+A third, orthogonal finding: scanners can detect a behavior but misclassify its intent. In a pilot audit of 30 SkillSpector findings, every one described a real capability that was in fact a legitimate, declared tool behavior---``dangerous but legal.'' Detection fired; the verdict was wrong.
+
+% ============================================================
+\section{From Analysis to Blind-Spot Hypotheses}
+\label{sec:hypotheses}
+
+The coordinate space is not itself a blind-spot oracle. It is a common observation layer through which two kinds of evidence are turned into explicit, pre-specified hypotheses, which we lock \emph{before} building any adversarial sample. To prevent post-hoc rationalization, we separate exploratory experiments from confirmatory ones.
+
+\subsection{Two Evidence Sources}
+\emph{Type A (coordinate-coverage evidence).} A coordinate uncovered or weakly covered in the coverage matrix yields the hypothesis that the scanner will miss attacks occupying that coordinate.
+
+\emph{Type B (scanner-architecture evidence).} An implementation property yields a mechanistic limitation. Reading SkillSpector's source, for instance, reveals that its build context skips dotfiles; this yields the hypothesis that hidden-file payloads will evade analysis.
+
+\subsection{Hypothesis-Locking Protocol}
+For each hypothesis we record the evidence, the locked prediction, the construction specification, and the validation outcome. Locking precedes construction: the construction specification is written from the hypothesis, not from observed misses. Our timeline is explicit: the coverage matrix and blind-spot hypotheses were formed \emph{before} the confirmatory construction experiments (Arm7 onward); earlier arms (Arm1--6) are labeled exploratory and serve only to establish that coordinate-driven construction is feasible.
+
+% ============================================================
+\section{Validation and Mechanistic Analysis}
+\label{sec:validate}
+
+We validate locked hypotheses through coordinate-driven adversarial construction: 129 constructed samples across 13 experiment arms, each scanned by all three scanners.
+
+\subsection{Centerpiece: Hidden-File Payloads}
+\emph{Evidence (Type B):} SkillSpector's build context walks only non-dotfiles.
+\emph{Locked hypothesis:} payloads placed in hidden files (.env, .profile, .gitconfig) will evade SkillSpector.
+\emph{Construction:} 15 skills whose SKILL.md is benign while the payload lives entirely in a dotfile.
+\emph{Outcome:} \textbf{14/15 evade} SkillSpector (score $\le$50); 11 score 0. The mechanism is confirmed at source level: the dotfiles never enter the scanned context.
+
+\subsection{Confirming Cases}
+Table~\ref{tab:cases} summarizes the remaining locked hypotheses: the evidence, the locked hypothesis, the construction, and the outcome.
+
+\begin{table}[t]
+\caption{Locked blind-spot hypotheses and validation outcomes.}
+\label{tab:cases}
+\small
+\begin{tabular}{@{}p{1.1cm}p{2.6cm}p{3.4cm}p{2.9cm}@{}}
+\toprule
+Scanner & Evidence & Locked hypothesis & Outcome \\
+\midrule
+Cisco & literal-trigger dependence & expression variants lack a detection surface & 0/6 detected \\
+Cat & regex-only matching & semantic variants without lexical markers evade & 0/10 detected \\
+SS & multi-strategy interaction & combined mechanisms escape isolated checks & 5/5 bypass \\
+SS & wild variable-injection & pipeline injection evades semantic analysis & 3/5 score 0 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Honest Scoping}
+Two caveats bound our claims. First, Arms~1--6 are exploratory; only Arms~7--13 are confirmatory, and only the latter enter the hypothesis table. Second, a single-sample bypass is not a stable bypass: when we expanded the best single construction into 10 variants (Arm12), SkillSpector detected 9/10. We report this negative result because it disciplines the positive ones: bypasses must be validated across variant families, not single instances.
+
+% ============================================================
+\section{Implications and Future Work}
+\label{sec:implications}
+
+\emph{For scanner evaluation.} Aggregate recall is misleading; evaluation should be coordinate-aware, reporting coverage per coordinate.
+
+\emph{For the skill ecosystem.} Single-scanner governance inherits that scanner's blind spots wholesale. Defense-in-depth across scanners with complementary operational surfaces is warranted.
+
+\emph{For adversarial methodology.} Hypothesis locking separates genuine prediction from post-hoc rationalization and should become standard practice.
+
+\emph{Future work.} We are extending this into a full benchmark and a taxonomy-guided defensive filter, to be reported in an extended version.
+
+% ============================================================
+\section{Related Work}
+\label{sec:related}
+
+Prior work addresses individual parts of this problem. Malicious-skill benchmarks (MalSkillBench, SkillTrustBench) provide corpora but not a shared cross-scanner measurement space. Scanner evaluations (ClawHub, Locate-and-Judge, SkillsMetric) quantify disagreement or recall but do not structurally attribute it. Adversarial-generation studies expose failures but are not driven by an explicit attack-space hypothesis. Implementation analyses identify individual bugs but do not connect them to a cross-scanner attack model. Our contribution connects these steps into a single analysis loop.
+
+Adversarial evasion of security tools is well studied in malware detection (e.g., semantics-preserving transformations). Our setting differs in that the artifact is a hybrid of prose instructions and code, and the blind spots we find are architectural rather than feature-space perturbations.
+
+% ============================================================
+\bibliographystyle{ACM-Reference-Format}
+\bibliography{references}
+
+\end{document}
