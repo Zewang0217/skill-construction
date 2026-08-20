@@ -1,0 +1,337 @@
+{
+ "n_malicious": 581,
+ "n_benign": 500,
+ "groups": {
+  "benign": 500,
+  "wild": 350,
+  "gen": 231
+ },
+ "det_wild": {
+  "recovered": {
+   "cisco": 308,
+   "ss": 319,
+   "cat": 248
+  },
+  "shipped": {
+   "cisco": 296,
+   "ss": 171,
+   "cat": 102
+  }
+ },
+ "det_gen": {
+  "recovered": {
+   "cisco": 196,
+   "ss": 221,
+   "cat": 174
+  },
+  "shipped": {
+   "cisco": 120,
+   "ss": 101,
+   "cat": 122
+  }
+ },
+ "det_mal": {
+  "recovered": {
+   "cisco": 504,
+   "ss": 540,
+   "cat": 422
+  },
+  "shipped": {
+   "cisco": 416,
+   "ss": 272,
+   "cat": 224
+  }
+ },
+ "det_benign": {
+  "recovered": {
+   "cisco": 176,
+   "ss": 221,
+   "cat": 143
+  },
+  "shipped": {
+   "cisco": 56,
+   "ss": 14,
+   "cat": 82
+  }
+ },
+ "combos_recovered": {
+  "CP": 17,
+  "CSP": 359,
+  "CS": 118,
+  "S": 23,
+  "none": 8,
+  "SP": 40,
+  "C": 10,
+  "P": 6
+ },
+ "combos_shipped": {
+  "CP": 72,
+  "CSP": 87,
+  "CS": 143,
+  "C": 114,
+  "S": 18,
+  "none": 82,
+  "SP": 24,
+  "P": 41
+ },
+ "kappa": {
+  "mal_recovered": {
+   "cisco_ss": 0.15991902834008148,
+   "cisco_cat": 0.1024238657551272,
+   "ss_cat": 0.0763653283185665
+  },
+  "mal_shipped": {
+   "cisco_ss": 0.23616108497093816,
+   "cisco_cat": -0.008680555555555625,
+   "ss_cat": 0.04284511784511765
+  },
+  "all_recovered": {
+   "cisco_ss": 0.4437438906115796,
+   "cisco_cat": 0.3204495666253928,
+   "ss_cat": 0.28747148965257485
+  }
+ },
+ "tech_fail": {
+  "cisco_null": 17,
+  "ss_missing": 0
+ },
+ "wild_by_b": {
+  "B1": {
+   "n": 18,
+   "cisco": 11,
+   "ss": 13,
+   "cat": 11
+  },
+  "B10": {
+   "n": 2,
+   "cisco": 2,
+   "ss": 2,
+   "cat": 0
+  },
+  "B11": {
+   "n": 1,
+   "cisco": 1,
+   "ss": 1,
+   "cat": 0
+  },
+  "B12": {
+   "n": 3,
+   "cisco": 2,
+   "ss": 2,
+   "cat": 0
+  },
+  "B14": {
+   "n": 5,
+   "cisco": 2,
+   "ss": 5,
+   "cat": 0
+  },
+  "B15": {
+   "n": 1,
+   "cisco": 1,
+   "ss": 0,
+   "cat": 1
+  },
+  "B2": {
+   "n": 33,
+   "cisco": 29,
+   "ss": 19,
+   "cat": 16
+  },
+  "B3": {
+   "n": 7,
+   "cisco": 1,
+   "ss": 4,
+   "cat": 3
+  },
+  "B4": {
+   "n": 256,
+   "cisco": 238,
+   "ss": 253,
+   "cat": 199
+  },
+  "B5": {
+   "n": 3,
+   "cisco": 2,
+   "ss": 2,
+   "cat": 2
+  },
+  "B6": {
+   "n": 1,
+   "cisco": 1,
+   "ss": 0,
+   "cat": 0
+  },
+  "B8": {
+   "n": 5,
+   "cisco": 3,
+   "ss": 3,
+   "cat": 2
+  },
+  "B9": {
+   "n": 15,
+   "cisco": 15,
+   "ss": 15,
+   "cat": 14
+  }
+ },
+ "gen_by_src": {
+  "code_exec": {
+   "n": 54,
+   "cisco": 45,
+   "ss": 51,
+   "cat": 46
+  },
+  "defense_evasion": {
+   "n": 5,
+   "cisco": 4,
+   "ss": 5,
+   "cat": 3
+  },
+  "dependency_manip": {
+   "n": 24,
+   "cisco": 23,
+   "ss": 23,
+   "cat": 22
+  },
+  "instruction_manip": {
+   "n": 47,
+   "cisco": 41,
+   "ss": 47,
+   "cat": 28
+  },
+  "mechanism_unknown": {
+   "n": 20,
+   "cisco": 18,
+   "ss": 19,
+   "cat": 13
+  },
+  "obfuscation": {
+   "n": 20,
+   "cisco": 16,
+   "ss": 19,
+   "cat": 16
+  },
+  "privilege_abuse": {
+   "n": 30,
+   "cisco": 26,
+   "ss": 27,
+   "cat": 24
+  },
+  "state_corruption": {
+   "n": 21,
+   "cisco": 14,
+   "ss": 20,
+   "cat": 15
+  },
+  "subagent_escalation": {
+   "n": 5,
+   "cisco": 4,
+   "ss": 5,
+   "cat": 2
+  },
+  "trigger_abuse": {
+   "n": 5,
+   "cisco": 5,
+   "ss": 5,
+   "cat": 5
+  }
+ },
+ "arms": {
+  "Arm7": {
+   "n": 15,
+   "ss_evade": 14,
+   "ss_zero": 11,
+   "cisco_detect": 4,
+   "cat_detect": 2,
+   "ss_evade_ci": [
+    0.702,
+    0.988
+   ],
+   "cisco_detect_ci": [
+    0.109,
+    0.52
+   ],
+   "cat_detect_ci": [
+    0.037,
+    0.379
+   ],
+   "ss_zero_ci": [
+    0.48,
+    0.891
+   ]
+  },
+  "Arm11A": {
+   "n": 6,
+   "cisco_detect": 0,
+   "ss_detect": 6,
+   "ss_detect_ci": [
+    0.61,
+    1.0
+   ],
+   "cisco_detect_ci": [
+    0.0,
+    0.39
+   ]
+  },
+  "Arm11B": {
+   "n": 5,
+   "ss_zero": 3,
+   "triple_miss": 1,
+   "ss_zero_ci": [
+    0.231,
+    0.882
+   ],
+   "triple_miss_ci": [
+    0.036,
+    0.624
+   ]
+  },
+  "Arm10B": {
+   "n": 10,
+   "cat_detect": 0,
+   "cisco_detect": 4,
+   "ss_valid": 7,
+   "ss_detect": 7,
+   "ss_techfail": 3,
+   "ss_detect_ci": [
+    0.646,
+    1.0
+   ],
+   "cisco_detect_ci": [
+    0.168,
+    0.687
+   ],
+   "cat_detect_ci": [
+    -0.0,
+    0.278
+   ]
+  },
+  "Arm12": {
+   "n": 10,
+   "ss_detect": 9,
+   "ss_detect_ci": [
+    0.596,
+    0.982
+   ]
+  },
+  "Arm13": {
+   "n": 5,
+   "ss_evade": 5,
+   "ss_zero": 2,
+   "triple_miss": 2,
+   "ss_evade_ci": [
+    0.566,
+    1.0
+   ],
+   "ss_zero_ci": [
+    0.118,
+    0.769
+   ],
+   "triple_miss_ci": [
+    0.118,
+    0.769
+   ]
+  }
+ }
+}
