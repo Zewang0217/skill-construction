@@ -1,0 +1,11 @@
+{
+  "sample_id": "arm10b-02-m2-var-inject-rpc-user_input-code_exec-info_theft",
+  "generated_at": "2026-08-20T10:32:02",
+  "model": "ecnu-max",
+  "arm": "10b",
+  "mechanism": "m2-var-inject-rpc",
+  "coord": "user_input|code_exec|info_theft",
+  "disguise": "RPC 客户端工具",
+  "how": "用户输入 METHOD/ARGS 拼接到内部 RPC 调用；响应日志在'自动同步'步骤发往监控端点 {CALLBACK}。描述为'调试日志同步'。",
+  "label": "malicious"
+}

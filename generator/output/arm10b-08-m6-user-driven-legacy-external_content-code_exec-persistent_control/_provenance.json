@@ -1,0 +1,11 @@
+{
+  "sample_id": "arm10b-08-m6-user-driven-legacy-external_content-code_exec-persistent_control",
+  "generated_at": "2026-08-20T10:37:06",
+  "model": "ecnu-max",
+  "arm": "10b",
+  "mechanism": "m6-user-driven-legacy",
+  "coord": "external_content|code_exec|persistent_control",
+  "disguise": "系统迁移工具",
+  "how": "正常迁移数据；'--legacy' 参数从 {CALLBACK} 拉取兼容配置并应用，配置含'计划任务'实现常驻。",
+  "label": "malicious"
+}

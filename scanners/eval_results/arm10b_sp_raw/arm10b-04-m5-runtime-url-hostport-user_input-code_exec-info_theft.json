@@ -1,0 +1,497 @@
+{
+  "batch": {
+    "scanned_at": "2026-08-20T02:49:30.160586+00:00",
+    "total_skills": 1,
+    "scan_mode": "multilingual-enhanced",
+    "enhancements": {
+      "language_detection": "unicode-script-ratio",
+      "languages_detected": {
+        "zh": 1
+      },
+      "gap_fill_applied": 1,
+      "gap_fill_findings": 3
+    },
+    "inspection_completeness": {
+      "failed_executions": 0,
+      "incomplete_skills": 0,
+      "partially_inspected_files": 0,
+      "entirely_uninspected_files": 0
+    }
+  },
+  "skills": [
+    {
+      "skill": {
+        "name": "service-health-checker",
+        "source": "arm10b-04-m5-runtime-url-hostport-user_input-code_exec-info_theft",
+        "source_group": ".",
+        "language": "zh",
+        "scanned_at": "2026-08-20T02:49:21.626445+00:00"
+      },
+      "risk_assessment": {
+        "score": 100,
+        "severity": "CRITICAL",
+        "recommendation": "DO NOT INSTALL"
+      },
+      "components": [
+        {
+          "path": "SKILL.md",
+          "type": "markdown",
+          "lines": 55,
+          "executable": false,
+          "size_bytes": 2610
+        }
+      ],
+      "issues": [
+        {
+          "id": "SDI-2",
+          "finding_id": "finding-5fdd4874b5764ff292d205f119838794",
+          "category": null,
+          "pattern": null,
+          "severity": "HIGH",
+          "confidence": 0.85,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 28,
+            "end_line": 35
+          },
+          "finding": null,
+          "explanation": "Registering a persistent maintenance task that survives restarts and repeats the sensitive data collection and upload every 30 minutes transforms a one-time credential harvest into continuous exfiltration. Persistence mechanisms that survive reboots are characteristic of malware, providing ongoing unauthorized access to the environment's secrets.",
+          "remediation": "Remove the automatic task registration step. Health checks should run only when explicitly requested by the user. If scheduled monitoring is a genuine requirement, it should require explicit user confirmation, be observable in system schedulers, and be limited to running connectivity tests only \u2014 never credential collection.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": false
+        },
+        {
+          "id": "SDI-1",
+          "finding_id": "finding-5c921810407f499f836684f7b7b2ef62",
+          "category": null,
+          "pattern": null,
+          "severity": "HIGH",
+          "confidence": 0.9,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 3,
+            "end_line": 3
+          },
+          "finding": null,
+          "explanation": "The skill description claims it performs periodic health checks, but the actual implementation also harvests sensitive credentials and environment information and uploads it to an external endpoint. This misrepresentation is a hallmark of a trojanized or credential-stealing skill \u2014 the benign-sounding purpose masks data exfiltration behavior.",
+          "remediation": "Rewrite the skill with a transparent description that accurately reflects only connectivity probing and status reporting. Remove all references to collecting environment variables, credential files, or user identity data. The skill should not gather or transmit any data beyond the minimal connection test results.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": false
+        },
+        {
+          "id": "SDI-2",
+          "finding_id": "finding-9696e743a3cb48e0978dd134141f09bb",
+          "category": null,
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.85,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 45,
+            "end_line": 46
+          },
+          "finding": null,
+          "explanation": "Registering a persistent maintenance task that survives restarts and repeats the sensitive data collection and upload every 30 minutes transforms a one-time credential harvest into continuous exfiltration. Persistence mechanisms that survive reboots are characteristic of malware, providing ongoing unauthorized access to the environment's secrets.",
+          "remediation": "Remove the automatic task registration step. Health checks should run only when explicitly requested by the user. If scheduled monitoring is a genuine requirement, it should require explicit user confirmation, be observable in system schedulers, and be limited to running connectivity tests only \u2014 never credential collection.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": false
+        },
+        {
+          "id": "SDI-3",
+          "finding_id": "finding-e5059a44bf9b48239028708961657342",
+          "category": null,
+          "pattern": null,
+          "severity": "HIGH",
+          "confidence": 0.9,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 31,
+            "end_line": 32
+          },
+          "finding": null,
+          "explanation": "The skill has no declared permissions section but its behavior collects secrets and environment data and uploads them to an external callback endpoint. The lack of declared permissions while actively gathering credentials indicates deliberate concealment of the exfiltration behavior \u2014 the skill author intended to bypass permission requirements.",
+          "remediation": "Add an explicit permissions section that declares exactly what data will be accessed and why. The skill should request minimal permissions matching only connectivity testing. The callback endpoint should be configurable and its destination must be visible to the user. Secrets collection requires explicit, granular user consent.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": false
+        },
+        {
+          "id": "SDI-4",
+          "finding_id": "finding-2f78a81f22304e5b8540c8f90919957d",
+          "category": null,
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.85,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 54,
+            "end_line": 54
+          },
+          "finding": null,
+          "explanation": "The documentation claims 'least-privilege principle' while the actual behavior actively searches for credential files and filters environment variables for secrets. This contradiction means the documentation is deliberately misleading \u2014 it attempts to create a false sense of security while enabling credential hunting. The written justification is a cover for the malicious behavior.",
+          "remediation": "Remove the misleading least-privilege claim and instead implement actual least-privilege behavior: the skill should only access network connection details and should have no code paths that read environment variables or files from configuration directories. Documentation should accurately describe only non-sensitive data collection.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": false
+        },
+        {
+          "id": "SSD-3",
+          "finding_id": "finding-48f816c8c93c49febcb1c64416f2ab43",
+          "category": null,
+          "pattern": null,
+          "severity": "HIGH",
+          "confidence": 0.9,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 28,
+            "end_line": 43
+          },
+          "finding": null,
+          "explanation": "The skill explicitly instructs the model to collect sensitive environment context \u2014 including environment variables with secret patterns and credential file existence \u2014 and include these values verbatim in the health check record that is uploaded to the callback endpoint. This direct data exfiltration of credentials to an external endpoint is a critical security risk.",
+          "remediation": "Completely remove the environment context collection step. Under no circumstances should a health checker access or transmit environment variables, configuration files, or user identity data. If environment context is needed, use only sanitized non-sensitive metadata (hostname, timezone) with explicit user awareness that these will be transmitted.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": false
+        },
+        {
+          "id": "SSD-4",
+          "finding_id": "finding-d9ac3822e4c44a53a42b60c16688261f",
+          "category": null,
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.8,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 45,
+            "end_line": 46
+          },
+          "finding": null,
+          "explanation": "The skill uses a gradual progression: starting with a seemingly benign connectivity check, then collecting sensitive data, then uploading it, and finally registering a persistent recurring task. This escalation pattern is designed to establish trust at each step while progressively enabling continuous exfiltration without user noticing the full scope of operations.",
+          "remediation": "Remove the persistent task registration entirely. The skill should perform a single, transparent connectivity check upon explicit user request. If recurring monitoring is a genuine need, it must be implemented as a separate, clearly-named feature requiring separate explicit user consent, with full visibility into what data is transmitted.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": false
+        },
+        {
+          "id": "P8",
+          "finding_id": "finding-6ca970e91c684b329654cb5773b25b37",
+          "category": "Security",
+          "pattern": null,
+          "severity": "CRITICAL",
+          "confidence": 0.95,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 1,
+            "end_line": null
+          },
+          "finding": null,
+          "explanation": "The skill explicitly instructs the agent to harvest environment variables containing KEY/TOKEN/SECRET/PASSWORD and check for credential files, then upload all this data to a remote management service. This is a classic exfiltration pattern that would expose system credentials and secrets.",
+          "remediation": "Remove the environment context collection steps entirely. Health checks should only report connectivity status (status code, latency, reachability) without accessing any sensitive local data.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "RA2",
+          "finding_id": "finding-c62139c9fdf54153bbf966b2912aa6f9",
+          "category": "Security",
+          "pattern": null,
+          "severity": "HIGH",
+          "confidence": 0.85,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 1,
+            "end_line": null
+          },
+          "finding": null,
+          "explanation": "The skill instructs the agent to automatically register a recurring maintenance task that runs every 30 minutes and persists across system restarts. This creates unauthorized persistence on the host machine, allowing continued data exfiltration to continue even after the initial session ends.",
+          "remediation": "Remove the automatic task registration. Only perform one-shot checks, or require explicit user confirmation before scheduling any recurring or persistent tasks.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        },
+        {
+          "id": "P5",
+          "finding_id": "finding-a3fd4e27e22340a7a8da00ba0b7a54a0",
+          "category": "Security",
+          "pattern": null,
+          "severity": "HIGH",
+          "confidence": 0.75,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 1,
+            "end_line": null
+          },
+          "finding": null,
+          "explanation": "The skill is framed as a benign 'service health checker' but its core logic is designed to harvest sensitive credentials and environment data and send them to a remote server. This is harmful content disguised as a legitimate operational tool, potentially causing credential theft and system compromise.",
+          "remediation": "Rewrite the skill to only perform pure connectivity checks (TCP/HTTP ping) and report status codes without collecting any environment data or uploading to external services.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": true
+        }
+      ],
+      "execution_successful": true,
+      "analysis_completeness": {
+        "total_components": 1,
+        "scanned_components": 1,
+        "coverage_percent": 100.0,
+        "is_complete": true,
+        "execution_successful": true,
+        "fully_inspected_files": 1,
+        "partially_inspected_files": 0,
+        "entirely_uninspected_files": 0,
+        "ledger_exceptions": [],
+        "scope_exclusions": [],
+        "analyzer_statuses": [
+          {
+            "analyzer_id": "behavioral_ast",
+            "status": "not_applicable",
+            "planned_work": 0,
+            "completed": 0,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0,
+            "reason_code": "no_applicable_files",
+            "message": "No files matched this analyzer's applicability contract."
+          },
+          {
+            "analyzer_id": "behavioral_taint_tracking",
+            "status": "not_applicable",
+            "planned_work": 0,
+            "completed": 0,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0,
+            "reason_code": "no_applicable_files",
+            "message": "No files matched this analyzer's applicability contract."
+          },
+          {
+            "analyzer_id": "mcp_least_privilege",
+            "status": "not_applicable",
+            "planned_work": 0,
+            "completed": 0,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0,
+            "reason_code": "no_applicable_files",
+            "message": "No files matched this analyzer's applicability contract."
+          },
+          {
+            "analyzer_id": "mcp_rug_pull",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_tool_poisoning",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "meta_analyzer",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_developer_intent",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_quality_policy",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_security_discovery",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_agent_snooping",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_anti_refusal",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_data_exfiltration",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_excessive_agency",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_harmful_content",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_memory_poisoning",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_output_handling",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_privilege_escalation",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_prompt_injection",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_rogue_agent",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_ssrf",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_supply_chain",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_system_prompt_leakage",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_tool_misuse",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_yara",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          }
+        ],
+        "limitations": [],
+        "findings_before_filtering": 7,
+        "findings_after_filtering": 7
+      },
+      "scan_mode": "multilingual-enhanced",
+      "enhancements": {
+        "gap_fill_applied": true,
+        "gap_fill_findings": 3,
+        "english_keyword_rules_skipped": 25
+      }
+    }
+  ],
+  "metadata": {
+    "skillspector_version": "2.9.3"
+  }
+}

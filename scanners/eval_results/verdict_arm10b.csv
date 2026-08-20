@@ -1,0 +1,11 @@
+sample,cisco_is_safe,cisco_max_sev,cisco_n,ss_score,ss_sev,ss_n,cp_grade,cp_score,cp_n
+arm10b-01-m2-var-inject-sql-user_input-code_exec-info_theft,False,CRITICAL,5,100,CRITICAL,8,A,100,0
+arm10b-02-m2-var-inject-rpc-user_input-code_exec-info_theft,True,INFO,2,78,HIGH,5,A,100,0
+arm10b-03-m2-var-inject-csv-external_content-code_exec-persistent_control,True,INFO,2,23,MEDIUM,1,A,100,0
+arm10b-04-m5-runtime-url-hostport-user_input-code_exec-info_theft,True,INFO,2,100,CRITICAL,10,A,100,0
+arm10b-05-m5-runtime-url-parts-external_content-code_exec-persistent_control,True,INFO,2,26,MEDIUM,3,A,100,0
+arm10b-06-m5-runtime-url-domain-source_agnostic-instruction_manip-defense_evasion,False,HIGH,4,13,LOW,2,A,100,0
+arm10b-07-m6-user-driven-full-user_input-code_exec-info_theft,False,CRITICAL,6,TECH_FAIL,HIGH,4,A,100,0
+arm10b-08-m6-user-driven-legacy-external_content-code_exec-persistent_control,True,INFO,2,TECH_FAIL,MEDIUM,5,A,100,0
+arm10b-09-m3-env-read-deploy-user_input-code_exec-info_theft,True,INFO,2,22,MEDIUM,1,A,100,0
+arm10b-10-m3-env-read-node-source_agnostic-instruction_manip-defense_evasion,False,HIGH,6,TECH_FAIL,CRITICAL,6,A,100,0

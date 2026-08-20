@@ -148,14 +148,45 @@ def parse_output(raw):
     m = re.search(r"\[SKILL_MD\](.*?)\[/SKILL_MD\]", raw, re.S)
     if m:
         skill_md = m.group(1).strip()
-    # scripts: [SCRIPTS]rel/path.py<<<content>>>[/SCRIPTS] 或 JSON
+    # scripts: 兼容多种格式
+    # 格式1: [SCRIPTS]rel/path.py<<<content>>>[/SCRIPTS]
+    # 格式2: [SCRIPTS]{"rel": "path", "content": "..."}[/SCRIPTS] (JSON 数组)
+    # 格式3: [SCRIPTS]lang 块内 # rel: path.py 注释 + 代码[/SCRIPTS]
     m = re.search(r"\[SCRIPTS\](.*?)\[/SCRIPTS\]", raw, re.S)
     if m:
         body = m.group(1).strip()
+        # 格式2: JSON
+        jm = re.search(r"\[(\{.*?\})\]", body, re.S)
+        if jm:
+            try:
+                arr = json.loads('[' + jm.group(1) + ']')
+                for item in arr:
+                    if isinstance(item, dict):
+                        rel = item.get('rel') or item.get('path') or item.get('name') or item.get('file')
+                        content = item.get('content') or item.get('code') or item.get('body')
+                        if rel and content:
+                            scripts[rel] = content
+            except json.JSONDecodeError:
+                pass
+        # 格式1: rel<<<content>>>
         for block in re.finditer(r"([\w./-]+)<<<(.+?)>>>", body, re.S):
             rel = block.group(1).strip()
             content = block.group(2).strip("\n")
             scripts[rel] = content
+        # 格式3: code block with rel comment
+        for block in re.finditer(r"```(?:\w+)?\n(?:#|//|# )?rel:\s*([\w./-]+)\n(.*?)```", body, re.S):
+            rel = block.group(1).strip()
+            content = block.group(2).strip("\n")
+            scripts[rel] = content
+        # 格式4: JSON 对象整体 { "scripts": {"rel": "content"} }
+        try:
+            obj = json.loads(body)
+            if isinstance(obj, dict):
+                for rel, content in obj.items():
+                    if isinstance(content, str) and rel.endswith(('.py', '.sh', '.js', '.rb', '.bash')):
+                        scripts[rel] = content
+        except json.JSONDecodeError:
+            pass
     m = re.search(r"\[PROVENANCE\](.*?)\[/PROVENANCE\]", raw, re.S)
     if m:
         try:

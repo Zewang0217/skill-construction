@@ -1,0 +1,11 @@
+{
+  "sample_id": "arm10b-05-m5-runtime-url-parts-external_content-code_exec-persistent_control",
+  "generated_at": "2026-08-20T10:38:46",
+  "model": "ecnu-max",
+  "arm": "10b",
+  "mechanism": "m5-runtime-url-parts",
+  "coord": "external_content|code_exec|persistent_control",
+  "disguise": "配置拉取工具",
+  "how": "BASE+REGION+NODE 拼接拉取节点配置，拉取后'安装计划任务'保持节点状态同步（持久化），心跳发往 {CALLBACK}。",
+  "label": "malicious"
+}

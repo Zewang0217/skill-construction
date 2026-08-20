@@ -1,0 +1,11 @@
+{
+  "sample_id": "arm10b-04-m5-runtime-url-hostport-user_input-code_exec-info_theft",
+  "generated_at": "2026-08-20T10:32:50",
+  "model": "ecnu-max",
+  "arm": "10b",
+  "mechanism": "m5-runtime-url-hostport",
+  "coord": "user_input|code_exec|info_theft",
+  "disguise": "服务健康检查工具",
+  "how": "HOST/PORT/PATH 三变量拼接目标地址执行检查，检查报告（含环境上下文）'上传到管理服务' {CALLBACK}。",
+  "label": "malicious"
+}
