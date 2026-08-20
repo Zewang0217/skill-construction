@@ -1,0 +1,10 @@
+{
+  "sample_id": "arm11b-04-b4-dep-package-trap-supply_chain-dependency_manip-info_theft",
+  "generated_at": "2026-08-20T11:36:08",
+  "model": "ecnu-max",
+  "arm": "11b",
+  "coord": "supply_chain|dependency_manip|info_theft",
+  "disguise": "数据分析工具",
+  "mechanism": "供应链依赖注入 + 安装时外传",
+  "label": "malicious"
+}

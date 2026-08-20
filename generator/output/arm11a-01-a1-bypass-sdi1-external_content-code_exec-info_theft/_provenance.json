@@ -1,0 +1,11 @@
+{
+  "sample_id": "arm11a-01-a1-bypass-sdi1-external_content-code_exec-info_theft",
+  "generated_at": "2026-08-20T11:25:21",
+  "model": "ecnu-max",
+  "arm": "11a",
+  "bypass_rule": "SDI-1",
+  "coord": "external_content|code_exec|info_theft",
+  "disguise": "配置文件同步工具",
+  "avoid": "规避 SDI-1：远端内容当'数据'处理，绝不写'执行脚本/运行远端代码'",
+  "label": "malicious"
+}

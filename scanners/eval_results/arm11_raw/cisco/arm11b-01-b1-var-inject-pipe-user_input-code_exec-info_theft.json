@@ -1,0 +1,87 @@
+{
+ "skill_name": "token-transparency-scanner",
+ "skill_path": "/tmp/cisco_gbsxnr42",
+ "is_safe": true,
+ "max_severity": "LOW",
+ "findings_count": 3,
+ "findings": [
+  {
+   "id": "llm_finding_token-transparency-scanner_1",
+   "rule_id": "LLM_DATA_EXFILTRATION",
+   "category": "data_exfiltration",
+   "severity": "LOW",
+   "title": "Unverified external API endpoint",
+   "description": "The skill makes network calls to `https://api.example.com` for token data. While the `example.com` domain is a placeholder, in a real deployment the trustworthiness of the API endpoint would need verification. The skill provides no information about the API provider or data source reliability.",
+   "file_path": "SKILL.md",
+   "line_number": null,
+   "snippet": "API calls to `https://api.example.com/v1/token/{TOKEN}` and `https://api.example.com/v1/transfers`",
+   "remediation": "Document the actual API endpoint provider and verify the service's trustworthiness. Consider adding explicit warnings about third-party data reliability.",
+   "analyzer": "llm",
+   "metadata": {
+    "model": "openai/ecnu-max",
+    "aitech": "AITech-8.2",
+    "aitech_name": "Data Exfiltration / Exposure",
+    "aisubtech": "AISubtech-8.2.3",
+    "aisubtech_name": "Data Exfiltration via Agent Tooling",
+    "scanner_category": "SECURITY VIOLATION"
+   }
+  },
+  {
+   "id": "llm_finding_token-transparency-scanner_0",
+   "rule_id": "LLM_SKILL_DISCOVERY_ABUSE",
+   "category": "skill_discovery_abuse",
+   "severity": "LOW",
+   "title": "Missing script file referenced in instructions",
+   "description": "The SKILL.md instructions reference a `scan_token.sh` script in usage examples, but no script files are included in the skill package. This inconsistency could indicate an incomplete package or potentially unverified external dependencies if the script is expected to be sourced from elsewhere.",
+   "file_path": "SKILL.md",
+   "line_number": null,
+   "snippet": "Usage example: `./scan_token.sh <TOKEN_ADDRESS>` but no script files found in package",
+   "remediation": "Either include the referenced script in the package or update documentation to reflect actual contents.",
+   "analyzer": "llm",
+   "metadata": {
+    "model": "openai/ecnu-max",
+    "aitech": "AITech-4.3",
+    "aitech_name": "Protocol Manipulation",
+    "aisubtech": "AISubtech-4.3.5",
+    "aisubtech_name": "Capability Inflation",
+    "scanner_category": "PROTOCOL MANIPULATION"
+   }
+  },
+  {
+   "id": "MANIFEST_MISSING_LICENSE_c5ae9be793",
+   "rule_id": "MANIFEST_MISSING_LICENSE",
+   "category": "policy_violation",
+   "severity": "INFO",
+   "title": "Skill does not specify a license",
+   "description": "Skill manifest does not include a 'license' field. Specifying a license helps users understand usage terms.",
+   "file_path": "SKILL.md",
+   "line_number": null,
+   "snippet": null,
+   "remediation": "Add 'license' field to SKILL.md frontmatter (e.g., MIT, Apache-2.0)",
+   "analyzer": "static",
+   "metadata": {}
+  }
+ ],
+ "scan_duration_seconds": 16.362576246261597,
+ "duration_ms": 16362,
+ "analyzers_used": [
+  "static_analyzer",
+  "bytecode",
+  "pipeline",
+  "llm_analyzer"
+ ],
+ "timestamp": "2026-08-20T03:44:52.299796+00:00",
+ "scan_metadata": {
+  "policy_name": "default",
+  "policy_version": "1.0",
+  "policy_preset_base": "balanced",
+  "policy_fingerprint_sha256": "e6033e8884796d3589d44e3fa2d57f0aadf31a56d4e88818aeed2fd225d82c59",
+  "llm_overall_assessment": "The token-transparency-scanner skill package is largely benign. It describes a straightforward public blockchain data querying tool with no malicious instructions, no data exfiltration patterns, and appropriate scoping for a research/education utility. The main issues are minor: a referenced script file that doesn't exist in the package, and the use of placeholder API endpoints that would need verification in a real deployment. No prompt injection, credential theft, command injection, or other high-severity threats were detected.",
+  "llm_primary_threats": []
+ },
+ "llm_usage": {
+  "input_tokens": 4180,
+  "output_tokens": 1188,
+  "total_tokens": 5368
+ }
+}

@@ -1,0 +1,120 @@
+{
+ "skill_name": "address-trace",
+ "skill_path": "/tmp/cisco_wayi2tw5",
+ "is_safe": true,
+ "max_severity": "LOW",
+ "findings_count": 4,
+ "findings": [
+  {
+   "id": "llm_finding_address-trace_2",
+   "rule_id": "LLM_PROMPT_INJECTION",
+   "category": "prompt_injection",
+   "severity": "LOW",
+   "title": "Potential Indirect Prompt Injection via External Data",
+   "description": "The skill fetches data from public blockchain APIs and instructs the agent to parse and summarize the responses. If the API response is attacker-controlled, it could contain malicious instructions that the agent might follow (indirect prompt injection). The skill does not instruct the agent to treat API data as untrusted or to avoid executing instructions within it.",
+   "file_path": "SKILL.md",
+   "line_number": null,
+   "snippet": "Workflow step 2: 'Parse response and summarize incoming/outgoing volume.' Notes: 'Data is pulled from public APIs only.'",
+   "remediation": "Add explicit instructions to treat API responses as untrusted data and ignore any embedded instructions.",
+   "analyzer": "llm",
+   "metadata": {
+    "model": "openai/ecnu-max",
+    "aitech": "AITech-1.2",
+    "aitech_name": "Indirect Prompt Injection",
+    "aisubtech": "AISubtech-1.2.1",
+    "aisubtech_name": "Instruction Manipulation (Indirect Prompt Injection)",
+    "scanner_category": "PROMPT INJECTION"
+   }
+  },
+  {
+   "id": "llm_finding_address-trace_0",
+   "rule_id": "LLM_SKILL_DISCOVERY_ABUSE",
+   "category": "skill_discovery_abuse",
+   "severity": "LOW",
+   "title": "Vague Manifest Metadata",
+   "description": "The skill's manifest lacks critical metadata such as 'compatibility' and 'allowed-tools'. While 'allowed-tools' is optional per spec, its absence means the skill could potentially use any tool without restriction. Additionally, the description is broad ('Trace blockchain address activity and visualize fund flow paths') which may overstate capabilities and could lead to unexpected activation for tasks outside its core purpose.",
+   "file_path": "SKILL.md",
+   "line_number": null,
+   "snippet": "YAML frontmatter: 'compatibility: Not specified', 'allowed-tools: Not specified', description: 'Trace blockchain address activity and visualize fund flow paths using public ledger data.'",
+   "remediation": "Specify 'allowed-tools' to limit agent tool access, and consider narrowing the description to reduce over-triggering.",
+   "analyzer": "llm",
+   "metadata": {
+    "model": "openai/ecnu-max",
+    "aitech": "AITech-4.3",
+    "aitech_name": "Protocol Manipulation",
+    "aisubtech": "AISubtech-4.3.5",
+    "aisubtech_name": "Capability Inflation",
+    "scanner_category": "PROTOCOL MANIPULATION"
+   }
+  },
+  {
+   "id": "llm_finding_address-trace_1",
+   "rule_id": "LLM_SUPPLY_CHAIN_ATTACK",
+   "category": "supply_chain_attack",
+   "severity": "LOW",
+   "title": "Unpinned Dependency Risk",
+   "description": "The skill lists 'requests' as an optional dependency but does not pin a specific version. Unpinned dependencies could introduce supply chain risks if a malicious version is published. The fallback to 'curl' also introduces external command execution without clear validation.",
+   "file_path": "SKILL.md",
+   "line_number": null,
+   "snippet": "Dependencies section: 'requests (optional, falls back to curl)', Installation: 'pip install -r requirements.txt' with no version pins.",
+   "remediation": "Pin dependency versions (e.g., 'requests==2.31.0') and validate any external commands used.",
+   "analyzer": "llm",
+   "metadata": {
+    "model": "openai/ecnu-max",
+    "aitech": "AITech-9.3",
+    "aitech_name": "Dependency / Plugin Compromise",
+    "aisubtech": "AISubtech-9.3.1",
+    "aisubtech_name": "Malicious Package / Tool Injection",
+    "scanner_category": "SUPPLY CHAIN ATTACK"
+   }
+  },
+  {
+   "id": "llm_finding_address-trace_3",
+   "rule_id": "LLM_UNAUTHORIZED_TOOL_USE",
+   "category": "unauthorized_tool_use",
+   "severity": "LOW",
+   "title": "Potential Tool Misuse via Unspecified Tools",
+   "description": "The skill's instructions imply the use of 'curl' as a fallback, which is an external tool. Without 'allowed-tools' declared, the skill could invoke any tool, including those that might be abused (e.g., reading sensitive files or making unauthorized network calls). The skill does not specify which tools are permitted for the agent.",
+   "file_path": "SKILL.md",
+   "line_number": null,
+   "snippet": "Dependencies: 'requests (optional, falls back to curl)'.",
+   "remediation": "Declare 'allowed-tools' in the manifest to restrict tool usage to necessary ones (e.g., 'Bash', 'Python').",
+   "analyzer": "llm",
+   "metadata": {
+    "model": "openai/ecnu-max",
+    "aitech": "AITech-12.1",
+    "aitech_name": "Tool Exploitation",
+    "aisubtech": "AISubtech-12.1.2",
+    "aisubtech_name": "Tool Poisoning",
+    "scanner_category": "SUSPICIOUS CODE EXECUTION"
+   }
+  }
+ ],
+ "scan_duration_seconds": 15.005934476852417,
+ "duration_ms": 15005,
+ "analyzers_used": [
+  "static_analyzer",
+  "bytecode",
+  "pipeline",
+  "llm_analyzer"
+ ],
+ "timestamp": "2026-08-20T03:47:32.609987+00:00",
+ "scan_metadata": {
+  "policy_name": "default",
+  "policy_version": "1.0",
+  "policy_preset_base": "balanced",
+  "policy_fingerprint_sha256": "e6033e8884796d3589d44e3fa2d57f0aadf31a56d4e88818aeed2fd225d82c59",
+  "llm_overall_assessment": "The 'address-trace' skill is a basic blockchain querying tool with no script files and minimal instructions. No critical or high-severity threats were identified. The primary concerns are metadata vagueness, unpinned dependencies, and potential indirect prompt injection from untrusted API data. The skill appears to be designed for legitimate forensic analysis, but lacks safeguards to prevent misuse or instruction injection from external sources.",
+  "llm_primary_threats": [
+   "Capability Inflation (AITech-4.3)",
+   "Supply Chain Risk (AITech-9.3)",
+   "Indirect Prompt Injection (AITech-1.2)",
+   "Tool Misuse (AITech-12.1)"
+  ]
+ },
+ "llm_usage": {
+  "input_tokens": 3953,
+  "output_tokens": 897,
+  "total_tokens": 4850
+ }
+}

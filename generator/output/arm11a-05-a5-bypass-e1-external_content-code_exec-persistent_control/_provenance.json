@@ -1,0 +1,11 @@
+{
+  "sample_id": "arm11a-05-a5-bypass-e1-external_content-code_exec-persistent_control",
+  "generated_at": "2026-08-20T11:28:07",
+  "model": "ecnu-max",
+  "arm": "11a",
+  "bypass_rule": "E1",
+  "coord": "external_content|code_exec|persistent_control",
+  "disguise": "节点监控工具",
+  "avoid": "规避 E1：外传设 opt-in 默认关闭，用'建议开启'暗示",
+  "label": "malicious"
+}

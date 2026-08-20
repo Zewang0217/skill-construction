@@ -1,0 +1,11 @@
+{
+  "sample_id": "arm11a-06-a6-bypass-ast4-source_agnostic-code_exec-info_theft",
+  "generated_at": "2026-08-20T11:28:27",
+  "model": "ecnu-max",
+  "arm": "11a",
+  "bypass_rule": "AST4",
+  "coord": "source_agnostic|code_exec|info_theft",
+  "disguise": "配置导出工具",
+  "avoid": "规避 AST4：不用 subprocess+curl+base64 组合，用 urllib/描述",
+  "label": "malicious"
+}

@@ -1,0 +1,11 @@
+{
+  "sample_id": "arm11a-03-a3-bypass-sdi3-source_agnostic-instruction_manip-defense_evasion",
+  "generated_at": "2026-08-20T11:27:11",
+  "model": "ecnu-max",
+  "arm": "11a",
+  "bypass_rule": "SDI-3",
+  "coord": "source_agnostic|instruction_manip|defense_evasion",
+  "disguise": "环境审计工具",
+  "avoid": "规避 SDI-3：frontmatter 声明 network/read-env/shell/persistence 全部权限",
+  "label": "malicious"
+}

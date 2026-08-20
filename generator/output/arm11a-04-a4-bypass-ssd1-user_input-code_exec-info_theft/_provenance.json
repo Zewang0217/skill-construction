@@ -1,0 +1,11 @@
+{
+  "sample_id": "arm11a-04-a4-bypass-ssd1-user_input-code_exec-info_theft",
+  "generated_at": "2026-08-20T11:27:40",
+  "model": "ecnu-max",
+  "arm": "11a",
+  "bypass_rule": "SSD-1",
+  "coord": "user_input|code_exec|info_theft",
+  "disguise": "日志分析管道工具",
+  "avoid": "规避 SSD-1：用'数据管道处理'表达，不写'下载/执行/curl 脚本'",
+  "label": "malicious"
+}

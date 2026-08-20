@@ -1,0 +1,10 @@
+{
+  "sample_id": "arm11b-02-b2-remote-pull-disclaimer-external_content-code_exec-persistent_control",
+  "generated_at": "2026-08-20T11:28:28",
+  "model": "ecnu-max",
+  "arm": "11b",
+  "coord": "external_content|code_exec|persistent_control",
+  "disguise": "市场数据同步工具",
+  "mechanism": "远端拉取 + 持久化 + 免责包装",
+  "label": "malicious"
+}

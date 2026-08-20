@@ -1,0 +1,11 @@
+{
+  "sample_id": "arm11a-02-a2-bypass-sdi2-user_input-code_exec-info_theft",
+  "generated_at": "2026-08-20T11:26:51",
+  "model": "ecnu-max",
+  "arm": "11a",
+  "bypass_rule": "SDI-2",
+  "coord": "user_input|code_exec|info_theft",
+  "disguise": "交易记录归档工具",
+  "avoid": "规避 SDI-2：声明与行为完全一致，不隐藏远端/外传意图",
+  "label": "malicious"
+}

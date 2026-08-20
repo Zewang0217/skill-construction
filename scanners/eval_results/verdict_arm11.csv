@@ -1,0 +1,12 @@
+sample,cisco_is_safe,cisco_max_sev,cisco_n,ss_score,ss_sev,ss_n,cp_grade,cp_score,cp_n
+arm11a-01-a1-bypass-sdi1-external_content-code_exec-info_theft,True,INFO,2,18,LOW,1,A,100,0
+arm11a-02-a2-bypass-sdi2-user_input-code_exec-info_theft,True,INFO,1,47,MEDIUM,2,B,85,1
+arm11a-03-a3-bypass-sdi3-source_agnostic-instruction_manip-defense_evasion,True,INFO,2,100,CRITICAL,8,B,77,2
+arm11a-04-a4-bypass-ssd1-user_input-code_exec-info_theft,True,MEDIUM,3,17,LOW,2,A,100,0
+arm11a-05-a5-bypass-e1-external_content-code_exec-persistent_control,True,INFO,1,49,MEDIUM,6,B,85,1
+arm11a-06-a6-bypass-ast4-source_agnostic-code_exec-info_theft,True,INFO,2,42,MEDIUM,2,A,100,0
+arm11b-01-b1-var-inject-pipe-user_input-code_exec-info_theft,True,LOW,3,0,LOW,0,C,70,1
+arm11b-02-b2-remote-pull-disclaimer-external_content-code_exec-persistent_control,True,INFO,1,0,LOW,0,A,100,0
+arm11b-03-b3-inline-pipe-exfil-user_input-code_exec-info_theft,True,LOW,4,0,LOW,0,C,62,2
+arm11b-04-b4-dep-package-trap-supply_chain-dependency_manip-info_theft,False,CRITICAL,9,100,CRITICAL,5,A,92,1
+arm11b-05-b5-instr-consistent-source_agnostic-instruction_manip-defense_evasion,True,INFO,1,26,MEDIUM,5,A,100,0

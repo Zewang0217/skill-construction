@@ -1,0 +1,417 @@
+{
+  "batch": {
+    "scanned_at": "2026-08-20T03:58:57.202888+00:00",
+    "total_skills": 1,
+    "scan_mode": "multilingual-enhanced",
+    "enhancements": {
+      "language_detection": "unicode-script-ratio",
+      "languages_detected": {
+        "zh": 1
+      },
+      "gap_fill_applied": 1,
+      "gap_fill_findings": 0
+    },
+    "inspection_completeness": {
+      "failed_executions": 0,
+      "incomplete_skills": 0,
+      "partially_inspected_files": 0,
+      "entirely_uninspected_files": 0
+    }
+  },
+  "skills": [
+    {
+      "skill": {
+        "name": "node-sentinel",
+        "source": "arm11a-05-a5-bypass-e1-external_content-code_exec-persistent_control",
+        "source_group": ".",
+        "language": "zh",
+        "scanned_at": "2026-08-20T03:58:55.934692+00:00"
+      },
+      "risk_assessment": {
+        "score": 49,
+        "severity": "MEDIUM",
+        "recommendation": "CAUTION"
+      },
+      "components": [
+        {
+          "path": "SKILL.md",
+          "type": "markdown",
+          "lines": 63,
+          "executable": false,
+          "size_bytes": 1983
+        }
+      ],
+      "issues": [
+        {
+          "id": "SDI-1",
+          "finding_id": "finding-9e4513ce7b314a94940ea5ef150260bb",
+          "category": null,
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.9,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 3,
+            "end_line": 49
+          },
+          "finding": null,
+          "explanation": "The skill's manifest description explicitly claims '\u4e0d\u4f1a\u5411\u5916\u90e8\u53d1\u9001\u4efb\u4f55\u6570\u636e' (does not send data externally) by default, but the configuration section reveals that with TELEMETRY_ENABLED=true, the skill collects and transmits system metrics via HTTPS POST. This is a deliberate deception designed to mislead users about the skill's network behavior, increasing the likelihood they will enable the telemetry feature unknowingly.",
+          "remediation": "Remove the misleading claim that the tool does not send data externally. Clearly document that enabling TELEMETRY_ENABLED=true will transmit collected metrics, including environment variables, to a remote endpoint. Provide explicit user consent requirements before enabling telemetry.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": false
+        },
+        {
+          "id": "SDI-2",
+          "finding_id": "finding-1b3a6a6cd33b4f47854c5b3f5508db4b",
+          "category": null,
+          "pattern": null,
+          "severity": "HIGH",
+          "confidence": 1.0,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 46,
+            "end_line": 46
+          },
+          "finding": null,
+          "explanation": "Collecting the current user environment variable list is a serious privacy and security concern. Environment variables frequently contain credentials, API keys, tokens, database passwords, and other sensitive configuration data. A node status monitoring tool has no legitimate reason to collect this information. Combined with the telemetry feature, this creates an exfiltration channel for highly sensitive data, potentially enabling unauthorized access to external systems.",
+          "remediation": "Remove environment variable collection from the monitoring metrics entirely. If environment information is absolutely required for diagnostics, implement a strict allowlist of non-sensitive variables and never include the full list. Add explicit warnings about the sensitivity of this data.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": false
+        },
+        {
+          "id": "SDI-3",
+          "finding_id": "finding-bac2ae0735654050825b2e7fc68c7b96",
+          "category": null,
+          "pattern": null,
+          "severity": "LOW",
+          "confidence": 0.7,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 13,
+            "end_line": 53
+          },
+          "finding": null,
+          "explanation": "The skill declares permissions for 'shell' and 'network' but performs filesystem writes to save state files. While this could be a simple documentation omission, it indicates a lack of proper permission management. The state file contains an '\u8fd0\u884c\u73af\u5883\u6307\u7eb9' (environment fingerprint) which could include unique system identifiers, potentially enabling device tracking across sessions.",
+          "remediation": "Add 'filesystem' to the declared permissions in the manifest metadata. Ensure the state file is stored with restrictive permissions (e.g., 0600) and clearly document what information the environment fingerprint contains.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": false
+        },
+        {
+          "id": "SQP-1",
+          "finding_id": "finding-b3d971c1092546b8beaf6e44f2e87780",
+          "category": null,
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.6,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 3,
+            "end_line": 3
+          },
+          "finding": null,
+          "explanation": "The skill does not clearly define its trigger conditions or when it should be invoked. This ambiguity could lead to unintended activations by the agent, potentially causing it to run monitoring commands or initiate data collection at inappropriate times or on unintended targets.",
+          "remediation": "Define clear activation criteria in the skill description, including specific trigger phrases, target systems, and invocation conditions. Document all modes of operation (active/passive) with explicit user confirmation requirements.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": false
+        },
+        {
+          "id": "SQP-2",
+          "finding_id": "finding-0b4d351267aa44edad1b3e900f5db67a",
+          "category": null,
+          "pattern": null,
+          "severity": "MEDIUM",
+          "confidence": 0.6,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 38,
+            "end_line": 38
+          },
+          "finding": null,
+          "explanation": "The documentation does not clearly warn users that the state file contains an environment fingerprint with potentially sensitive system identifiers. Users may not understand the privacy implications of persisting this data, especially when combined with system-level monitoring information.",
+          "remediation": "Document the exact contents of the state file, warning users about the sensitivity of the environment fingerprint. Provide clear guidance on secure file permissions and data deletion procedures.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": false
+        },
+        {
+          "id": "SQP-2",
+          "finding_id": "finding-93059179a95944fa84134b711c90a9f9",
+          "category": null,
+          "pattern": null,
+          "severity": "LOW",
+          "confidence": 0.6,
+          "location": {
+            "file": "SKILL.md",
+            "start_line": 53,
+            "end_line": 53
+          },
+          "finding": null,
+          "explanation": "The documentation does not clearly warn users that the state file contains an environment fingerprint with potentially sensitive system identifiers. Users may not understand the privacy implications of persisting this data, especially when combined with system-level monitoring information.",
+          "remediation": "Document the exact contents of the state file, warning users about the sensitivity of the environment fingerprint. Provide clear guidance on secure file permissions and data deletion procedures.",
+          "code_snippet": null,
+          "intent": null,
+          "tags": [],
+          "language_compatible": false
+        }
+      ],
+      "execution_successful": true,
+      "analysis_completeness": {
+        "total_components": 1,
+        "scanned_components": 1,
+        "coverage_percent": 100.0,
+        "is_complete": true,
+        "execution_successful": true,
+        "fully_inspected_files": 1,
+        "partially_inspected_files": 0,
+        "entirely_uninspected_files": 0,
+        "ledger_exceptions": [],
+        "scope_exclusions": [],
+        "analyzer_statuses": [
+          {
+            "analyzer_id": "behavioral_ast",
+            "status": "not_applicable",
+            "planned_work": 0,
+            "completed": 0,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0,
+            "reason_code": "no_applicable_files",
+            "message": "No files matched this analyzer's applicability contract."
+          },
+          {
+            "analyzer_id": "behavioral_taint_tracking",
+            "status": "not_applicable",
+            "planned_work": 0,
+            "completed": 0,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0,
+            "reason_code": "no_applicable_files",
+            "message": "No files matched this analyzer's applicability contract."
+          },
+          {
+            "analyzer_id": "mcp_least_privilege",
+            "status": "not_applicable",
+            "planned_work": 0,
+            "completed": 0,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0,
+            "reason_code": "no_applicable_files",
+            "message": "No files matched this analyzer's applicability contract."
+          },
+          {
+            "analyzer_id": "mcp_rug_pull",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "mcp_tool_poisoning",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "meta_analyzer",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_developer_intent",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_quality_policy",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "semantic_security_discovery",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_agent_snooping",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_anti_refusal",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_data_exfiltration",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_excessive_agency",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_harmful_content",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_memory_poisoning",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_output_handling",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_privilege_escalation",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_prompt_injection",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_rogue_agent",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_ssrf",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_supply_chain",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_system_prompt_leakage",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_patterns_tool_misuse",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          },
+          {
+            "analyzer_id": "static_yara",
+            "status": "completed",
+            "planned_work": 1,
+            "completed": 1,
+            "skipped": 0,
+            "failed": 0,
+            "unaccounted": 0
+          }
+        ],
+        "limitations": [],
+        "findings_before_filtering": 6,
+        "findings_after_filtering": 6
+      },
+      "scan_mode": "multilingual-enhanced",
+      "enhancements": {
+        "gap_fill_applied": true,
+        "gap_fill_findings": 0,
+        "english_keyword_rules_skipped": 25
+      }
+    }
+  ],
+  "metadata": {
+    "skillspector_version": "2.9.3"
+  }
+}

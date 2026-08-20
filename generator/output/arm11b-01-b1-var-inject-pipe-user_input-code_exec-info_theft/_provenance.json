@@ -1,0 +1,10 @@
+{
+  "sample_id": "arm11b-01-b1-var-inject-pipe-user_input-code_exec-info_theft",
+  "generated_at": "2026-08-20T11:27:35",
+  "model": "ecnu-max",
+  "arm": "11b",
+  "coord": "user_input|code_exec|info_theft",
+  "disguise": "链上代币分析工具",
+  "mechanism": "wild insider-wallets-finder 同款：curl ...${TOKEN}... | python3 -c \"...\" 管道，恶意在内联代码",
+  "label": "malicious"
+}

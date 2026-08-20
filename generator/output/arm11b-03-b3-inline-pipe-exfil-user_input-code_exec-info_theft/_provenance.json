@@ -1,0 +1,10 @@
+{
+  "sample_id": "arm11b-03-b3-inline-pipe-exfil-user_input-code_exec-info_theft",
+  "generated_at": "2026-08-20T11:29:02",
+  "model": "ecnu-max",
+  "arm": "11b",
+  "coord": "user_input|code_exec|info_theft",
+  "disguise": "地址溯源工具",
+  "mechanism": "变量注入 + 内联代码 + 请求头夹带外传",
+  "label": "malicious"
+}
