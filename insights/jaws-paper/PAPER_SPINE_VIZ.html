@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JAWS 2 — 论文主线脉络可视化 · Paper Spine</title>
+<!-- Optional CDN (page fully functional offline via system font fallbacks) -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#1a1b26; --bg2:#16161e; --panel:#1f2335; --panel2:#24283b; --panel3:#2a2f45;
+  --line:#3b4261; --line-soft:#2a2f45;
+  --fg:#c0caf5; --dim:#9aa5ce; --faint:#565f89;
+  --blue:#7aa2f7; --cyan:#7dcfff; --green:#9ece6a; --yellow:#e0af68;
+  --orange:#ff9e64; --red:#f7768e; --purple:#bb9af7; --magenta:#ff007c; --teal:#73daca;
+  --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --sans:"Inter",-apple-system,"Segoe UI",Roboto,"Helvetica Neue","PingFang SC","Microsoft YaHei",sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:76px}
+body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:15px;line-height:1.65}
+::selection{background:var(--blue);color:var(--bg2)}
+a{color:var(--blue);text-decoration:none}
+a:hover{text-decoration:underline}
+
+/* ---------- header ---------- */
+header{position:sticky;top:0;z-index:50;background:rgba(26,27,38,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line-soft)}
+.head-inner{max-width:1180px;margin:0 auto;padding:14px 24px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.brand{font-size:15px;font-weight:800;letter-spacing:.3px;color:var(--fg)}
+.brand .dot{color:var(--magenta)}
+.brand small{display:block;font-weight:500;color:var(--faint);font-size:11.5px;letter-spacing:.6px}
+nav{display:flex;gap:6px;flex-wrap:wrap}
+nav a{font-size:12.5px;font-weight:600;color:var(--dim);padding:5px 10px;border-radius:6px;border:1px solid transparent}
+nav a:hover{color:var(--fg);text-decoration:none;background:var(--panel2)}
+nav a.active{color:var(--bg2);background:var(--blue);border-color:var(--blue)}
+
+/* ---------- layout ---------- */
+main{max-width:1180px;margin:0 auto;padding:0 24px 60px}
+.hero{padding:40px 0 8px}
+.hero .kicker{font-family:var(--mono);font-size:12px;color:var(--purple);letter-spacing:1.5px;text-transform:uppercase}
+.hero h1{font-size:30px;line-height:1.25;font-weight:800;margin:10px 0 6px;letter-spacing:-.3px}
+.hero h1 .em{color:var(--cyan)}
+.hero .sub{color:var(--dim);max-width:880px;font-size:14.5px}
+.hero .meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+.chip{font-family:var(--mono);font-size:11.5px;padding:4px 10px;border-radius:20px;border:1px solid var(--line);color:var(--dim);background:var(--panel)}
+.chip b{color:var(--cyan);font-weight:600}
+.chip.ok{border-color:rgba(158,206,106,.4);color:var(--green)}
+.chip.warn{border-color:rgba(224,175,104,.45);color:var(--yellow)}
+
+.thesis{margin:28px 0 8px;padding:18px 22px;border-left:4px solid var(--magenta);background:linear-gradient(90deg,rgba(255,0,124,.08),transparent 60%);border-radius:0 10px 10px 0}
+.thesis .t{font-family:var(--mono);font-size:11px;color:var(--magenta);letter-spacing:2px;text-transform:uppercase;font-weight:700}
+.thesis p{font-size:17px;font-weight:600;line-height:1.6;margin-top:4px;color:var(--fg)}
+.thesis p .h{color:var(--yellow)}
+.thesis .sub{font-size:13px;color:var(--dim);font-weight:400;margin-top:6px}
+
+section.module{margin-top:64px;scroll-margin-top:90px}
+.module-head{display:flex;align-items:baseline;gap:12px;border-bottom:2px solid var(--line);padding-bottom:10px;margin-bottom:22px}
+.module-num{font-family:var(--mono);font-weight:800;font-size:22px;color:var(--bg2);background:var(--purple);border-radius:8px;padding:2px 10px;letter-spacing:.5px}
+.module-num.c1{background:var(--blue)} .module-num.c2{background:var(--green)}
+.module-num.c3{background:var(--yellow)} .module-num.c4{background:var(--red)} .module-num.c5{background:var(--teal)}
+.module-head h2{font-size:21px;font-weight:800;letter-spacing:-.2px}
+.module-head .en{font-family:var(--mono);font-size:12px;color:var(--faint);text-transform:uppercase;letter-spacing:1px}
+.module-head .note{margin-left:auto;font-size:12px;color:var(--faint);font-family:var(--mono)}
+
+.card{background:var(--panel);border:1px solid var(--line-soft);border-radius:12px;padding:18px 20px}
+.card + .card{margin-top:14px}
+h3.sec-title{font-size:14px;font-weight:800;color:var(--dim);text-transform:uppercase;letter-spacing:1.2px;margin:26px 0 12px}
+h3.sec-title::before{content:"// ";color:var(--faint)}
+
+/* ---------- module 1: spine ---------- */
+.spine{position:relative;padding-left:34px}
+.spine::before{content:"";position:absolute;left:11px;top:6px;bottom:6px;width:3px;border-radius:2px;background:linear-gradient(180deg,var(--blue),var(--cyan),var(--green),var(--yellow),var(--orange),var(--red),var(--purple))}
+.spine-node{position:relative;margin-bottom:16px}
+.spine-node::before{content:"";position:absolute;left:-32px;top:22px;width:14px;height:14px;border-radius:50%;background:var(--bg);border:3px solid var(--blue);z-index:2;box-shadow:0 0 0 3px rgba(122,162,247,.15)}
+.spine-node.sec2::before{border-color:var(--cyan)}
+.spine-node.sec3::before{border-color:var(--green)}
+.spine-node.sec4::before{border-color:var(--yellow)}
+.spine-node.sec5::before{border-color:var(--orange)}
+.spine-node.sec6::before{border-color:var(--red)}
+.spine-node.sec7::before{border-color:var(--purple)}
+.spine-node.sec8::before{border-color:var(--magenta)}
+.spine-node.rw::before{border-color:var(--faint)}
+.spine-card{background:var(--panel);border:1px solid var(--line-soft);border-radius:10px;padding:14px 18px;transition:border-color .15s,transform .15s}
+.spine-card:hover{border-color:var(--line);transform:translateX(2px)}
+.srow{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.snum{font-family:var(--mono);font-weight:700;font-size:12.5px;color:var(--bg2);background:var(--blue);padding:2px 8px;border-radius:6px}
+.spine-node.sec2 .snum{background:var(--cyan)} .spine-node.sec3 .snum{background:var(--green)}
+.spine-node.sec4 .snum{background:var(--yellow)} .spine-node.sec5 .snum{background:var(--orange)}
+.spine-node.sec6 .snum{background:var(--red)} .spine-node.sec7 .snum{background:var(--purple)}
+.spine-node.sec8 .snum{background:var(--magenta)} .spine-node.rw .snum{background:var(--faint)}
+.stitle{font-size:15.5px;font-weight:700}
+.spage{font-family:var(--mono);font-size:11px;color:var(--dim);border:1px solid var(--line);padding:1px 7px;border-radius:10px}
+.srole{font-size:11.5px;font-weight:700;color:var(--teal);text-transform:uppercase;letter-spacing:.8px;font-family:var(--mono)}
+.squote{margin-top:7px;font-size:13.5px;color:var(--dim);border-left:2px solid var(--line);padding-left:10px}
+.squote b{color:var(--fg)}
+.squote .src{font-family:var(--mono);font-size:10.5px;color:var(--faint)}
+
+/* ladder strip */
+.ladder{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:18px 0 26px}
+.lstep{background:var(--panel2);border:1px solid var(--line-soft);border-radius:10px;padding:12px 14px;position:relative}
+.lstep .q{font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:1px;color:var(--blue);text-transform:uppercase}
+.lstep .a{font-size:13.5px;font-weight:700;margin-top:3px}
+.lstep .where{color:var(--green)} .lstep .why{color:var(--orange)}
+.lstep .next{color:var(--red)} .lstep .true{color:var(--purple)}
+.lstep .to{font-family:var(--mono);font-size:11px;color:var(--faint);margin-top:5px}
+.lstep .to b{color:var(--cyan)}
+.lstep::after{content:"→";position:absolute;right:-11px;top:50%;transform:translateY(-50%);color:var(--faint);font-size:16px;z-index:3}
+.lstep:last-child::after{content:""}
+
+/* ---------- module 2: layers ---------- */
+.layer-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.layer{border-radius:12px;padding:16px 18px;border:1px solid;position:relative}
+.layer.l1{background:rgba(122,162,247,.07);border-color:rgba(122,162,247,.45)}
+.layer.l2{background:rgba(255,158,100,.07);border-color:rgba(255,158,100,.45)}
+.layer.l3{background:rgba(247,118,142,.07);border-color:rgba(247,118,142,.45)}
+.layer .ltag{font-family:var(--mono);font-weight:800;font-size:12px;letter-spacing:1px}
+.layer.l1 .ltag{color:var(--blue)} .layer.l2 .ltag{color:var(--orange)} .layer.l3 .ltag{color:var(--red)}
+.layer h4{font-size:15px;font-weight:800;margin:3px 0 6px}
+.layer p{font-size:13px;color:var(--dim)}
+.layer .rows{margin-top:10px;display:grid;gap:5px;font-size:12.5px}
+.layer .rows div{display:flex;gap:6px;align-items:baseline}
+.layer .rows .k{font-family:var(--mono);font-size:10.5px;color:var(--faint);min-width:52px;text-transform:uppercase}
+.layer .rows .v{color:var(--fg)}
+.layer .ev{margin-top:12px;padding-top:10px;border-top:1px dashed var(--line-soft);font-size:12px;color:var(--dim)}
+.layer .ev b{color:var(--fg)}
+
+.case-flow{margin-top:18px;background:var(--panel);border:1px solid var(--line-soft);border-radius:12px;padding:18px 20px}
+.case-flow .cf-title{font-size:13px;font-weight:800;color:var(--yellow);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px}
+.cf-art{display:inline-block;background:var(--panel3);border:1px solid var(--line);border-radius:8px;padding:8px 14px;font-family:var(--mono);font-size:12px;margin-bottom:14px}
+.cf-art b{color:var(--cyan)}
+.cf-art .bad{color:var(--red)}
+.cf-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.cf-item{border-radius:10px;padding:12px 14px;border:1px solid var(--line-soft);background:var(--panel2)}
+.cf-item .who{font-weight:800;font-size:13.5px}
+.cf-item .who .ly{font-family:var(--mono);font-size:10.5px;padding:1px 6px;border-radius:6px;margin-left:6px;font-weight:700}
+.cf-item .mech{font-size:12px;color:var(--dim);margin-top:4px;font-family:var(--mono)}
+.cf-item .out{margin-top:8px;font-size:13px;font-weight:700}
+.cf-item.ss .out{color:var(--blue)} .cf-item.cat .out{color:var(--orange)} .cf-item.cs .out{color:var(--red)}
+.cf-item .dual{font-size:11px;color:var(--faint);font-family:var(--mono);margin-top:2px}
+
+.diag-matrix{margin-top:18px}
+.diag-matrix table{width:100%;border-collapse:collapse;font-size:13px}
+.diag-matrix th,.diag-matrix td{border:1px solid var(--line-soft);padding:8px 12px;text-align:center}
+.diag-matrix th{background:var(--panel2);color:var(--dim);font-size:11.5px;text-transform:uppercase;letter-spacing:.6px}
+.diag-matrix td.ok{color:var(--blue);font-weight:700}
+.diag-matrix td.warn{color:var(--orange);font-weight:700}
+.diag-matrix td.fail{color:var(--red);font-weight:700}
+.diag-matrix tr:first-child th:first-child{color:var(--fg)}
+.diag-matrix td:first-child{font-weight:800;text-align:left;color:var(--fg)}
+
+/* ---------- module 3: evidence chain ---------- */
+.corpus-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.corpus{background:var(--panel2);border:1px solid var(--line-soft);border-radius:10px;padding:14px 16px}
+.corpus .cn{font-family:var(--mono);font-size:16px;font-weight:800;color:var(--cyan)}
+.corpus .cn small{font-size:11px;color:var(--faint);font-weight:500}
+.corpus .role{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.7px;margin:6px 0 5px}
+.corpus .role.motiv{color:var(--yellow)} .corpus .role.obs{color:var(--orange)}
+.corpus .role.fp{color:var(--green)} .corpus .role.pred{color:var(--purple)}
+.corpus p{font-size:12px;color:var(--dim)}
+
+.evmap{margin-top:16px;display:grid;gap:8px}
+.evrow{display:grid;grid-template-columns:150px 1fr;gap:12px;align-items:start;background:var(--panel);border:1px solid var(--line-soft);border-radius:10px;padding:10px 14px}
+.evrow .sec{font-weight:700;font-size:12.5px;padding-top:2px}
+.evrow .uses{display:flex;flex-wrap:wrap;gap:6px}
+.evtag{font-family:var(--mono);font-size:11px;padding:2px 9px;border-radius:14px;border:1px solid var(--line);color:var(--dim)}
+.evtag.fig{color:var(--cyan);border-color:rgba(125,207,255,.4)}
+.evtag.tab{color:var(--yellow);border-color:rgba(224,175,104,.4)}
+.evtag.corpus{color:var(--green);border-color:rgba(158,206,106,.4)}
+.evtag.ext{color:var(--purple);border-color:rgba(187,154,247,.4)}
+.evrow .detail{font-size:12px;color:var(--dim);grid-column:2;margin-top:-2px}
+
+/* ---------- module 4: ledger ---------- */
+.ledger-wrap{overflow-x:auto}
+table.ledger{width:100%;border-collapse:collapse;font-size:13px;min-width:900px}
+.ledger th{background:var(--panel2);color:var(--dim);font-size:11px;text-transform:uppercase;letter-spacing:.7px;padding:9px 10px;border-bottom:2px solid var(--line);text-align:left;white-space:nowrap}
+.ledger td{padding:11px 10px;border-bottom:1px solid var(--line-soft);vertical-align:top}
+.ledger tr:hover td{background:rgba(122,162,247,.05)}
+.hid{font-family:var(--mono);font-weight:800;font-size:13px;color:var(--cyan)}
+.dir{font-family:var(--mono);font-size:12px}
+.dir.up{color:var(--green)} .dir.down{color:var(--blue)} .dir.na{color:var(--faint)}
+.status{display:inline-block;font-family:var(--mono);font-size:11px;font-weight:800;padding:2px 9px;border-radius:14px;letter-spacing:.5px}
+.status.conf{background:rgba(158,206,106,.15);color:var(--green);border:1px solid rgba(158,206,106,.45)}
+.status.part{background:rgba(224,175,104,.15);color:var(--yellow);border:1px solid rgba(224,175,104,.45)}
+.status.rej{background:rgba(247,118,142,.15);color:var(--red);border:1px solid rgba(247,118,142,.45)}
+.layerchip{font-family:var(--mono);font-size:11px;font-weight:700;padding:1px 8px;border-radius:6px}
+.layerchip.l1{background:rgba(122,162,247,.15);color:var(--blue)}
+.layerchip.l2{background:rgba(255,158,100,.15);color:var(--orange)}
+.layerchip.l3{background:rgba(247,118,142,.15);color:var(--red)}
+.layerchip.l23{background:rgba(255,158,100,.12);color:var(--yellow)}
+.layerchip.na{background:var(--panel3);color:var(--faint)}
+.out-txt b{color:var(--fg)}
+.out-txt .hl{color:var(--green);font-weight:800}
+.ledger-notes{margin-top:14px;display:grid;gap:8px}
+.ledger-notes .note{font-size:12.5px;color:var(--dim);background:var(--panel);border:1px solid var(--line-soft);border-radius:8px;padding:10px 14px}
+.ledger-notes .note b{color:var(--fg)}
+
+/* ---------- module 5: numbers ---------- */
+.nums{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:10px}
+.num{background:var(--panel);border:1px solid var(--line-soft);border-radius:10px;padding:12px 14px;display:flex;gap:12px;align-items:flex-start}
+.num .nv{font-family:var(--mono);font-weight:800;font-size:19px;white-space:nowrap;min-width:74px;text-align:right;line-height:1.25}
+.num .nl{font-size:12px;color:var(--dim)}
+.num .nl .src{display:block;font-family:var(--mono);font-size:10px;color:var(--faint);margin-top:3px}
+.num .nl .src b{color:var(--cyan);font-weight:600}
+.num .nl .lbl{color:var(--faint);font-size:10.5px;text-transform:uppercase;letter-spacing:.5px;font-family:var(--mono)}
+.nv.blue{color:var(--blue)} .nv.cyan{color:var(--cyan)} .nv.green{color:var(--green)}
+.nv.yellow{color:var(--yellow)} .nv.orange{color:var(--orange)} .nv.red{color:var(--red)}
+.nv.purple{color:var(--purple)} .nv.teal{color:var(--teal)} .nv.magenta{color:var(--magenta)}
+
+/* ---------- footer: float map ---------- */
+.floatmap{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:10px}
+.fpage{background:var(--panel);border:1px solid var(--line-soft);border-radius:10px;padding:12px 14px}
+.fpage .pg{font-family:var(--mono);font-weight:800;font-size:12.5px;color:var(--purple);margin-bottom:6px}
+.fpage .pg .dim{color:var(--faint);font-weight:500}
+.fpage ol{list-style:none;display:grid;gap:3px}
+.fpage li{font-size:12px;color:var(--dim);display:flex;gap:8px;align-items:baseline}
+.fpage li .k{font-family:var(--mono);font-size:10.5px;color:var(--faint);min-width:52px}
+.fpage li.sec-li .k{color:var(--teal)}
+.fpage li.float-li .k{color:var(--cyan)}
+.fpage li.rw-li .k{color:var(--faint)}
+
+.verif{margin-top:26px;background:var(--panel2);border:1px solid rgba(158,206,106,.35);border-radius:12px;padding:16px 20px}
+.verif h3{font-size:13px;font-weight:800;color:var(--green);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}
+.verif ul{list-style:none;display:grid;gap:6px}
+.verif li{font-size:12.5px;color:var(--dim);padding-left:18px;position:relative}
+.verif li::before{content:"✓";position:absolute;left:0;color:var(--green);font-family:var(--mono);font-weight:700}
+.verif li.warn::before{content:"!";color:var(--yellow)}
+.verif li.bad::before{content:"✗";color:var(--red)}
+.verif li b{color:var(--fg)}
+footer{border-top:1px solid var(--line-soft);padding:22px 24px 40px;text-align:center;color:var(--faint);font-size:12px;font-family:var(--mono)}
+
+@media (max-width:900px){
+  .layer-grid,.cf-grid,.corpus-grid{grid-template-columns:1fr}
+  .ladder{grid-template-columns:1fr 1fr}
+  .lstep::after{content:""}
+  .evrow{grid-template-columns:1fr}
+  .evrow .detail{grid-column:1}
+  .head-inner{justify-content:center}
+  .hero h1{font-size:24px}
+}
+@media (max-width:520px){ .ladder{grid-template-columns:1fr} }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="head-inner">
+    <div class="brand">JAWS 2 <span class="dot">◆</span> PAPER SPINE
+      <small>main.tex v8.2 · main.pdf · 9 pages (8 + refs)</small>
+    </div>
+    <nav id="nav">
+      <a href="#m1">① 主线流程</a>
+      <a href="#m2">② 三层分解</a>
+      <a href="#m3">③ 证据链</a>
+      <a href="#m4">④ Ledger</a>
+      <a href="#m5">⑤ 数字锚点</a>
+      <a href="#m6">浮层地图</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+
+<!-- ================= HERO / THESIS ================= -->
+<div class="hero">
+  <div class="kicker">From Symptom to Structure</div>
+  <h1>Disagreement is analytical evidence,<br>not merely an evaluation outcome<span class="em">.</span></h1>
+  <p class="sub">论文主线脉络可视化 —— 把 8 页正文的叙事骨架、三层分解、证据依赖、预测账本与关键数字一次看清。所有数字、页码、引文均从 <span class="chip">main.tex</span> 与 <span class="chip">main.pdf</span> 实读核对。</p>
+  <div class="meta">
+    <span class="chip ok">✓ 数字核对通过</span>
+    <span class="chip ok">✓ 页码核对通过（Fig1→p3 · Fig2→p4 · Fig3/4→p5 · Fig5→p6 · Fig6→p8）</span>
+    <span class="chip">581 恶意 skills × 3 scanners</span>
+    <span class="chip">H1–H6 六条锁定假设</span>
+  </div>
+
+  <div class="thesis">
+    <div class="t">Thesis</div>
+    <p>Automated security analyses routinely disagree, yet evaluations treat that disagreement as a statistic and stop — as if it were noise. <span class="h">Disagreement is not merely an evaluation statistic: projected into a shared observation space, its structure becomes falsifiable blind-spot predictions about the analyses themselves.</span></p>
+    <p class="sub">§1: “We argue that disagreement is not merely a statistic to report. It is analytical evidence: once disagreements are made comparable, their structure exposes what each analysis covers, what it cannot see, and why.” · 来源 main.tex §1 / main.pdf p1</p>
+  </div>
+</div>
+
+<!-- ================= MODULE 1: SPINE ================= -->
+<section class="module" id="m1">
+  <div class="module-head">
+    <span class="module-num c1">1</span>
+    <h2>纵向主线流程</h2><span class="en">The Spine — Thesis → Ladder → Sections</span>
+    <span class="note">节点带页码与核心句</span>
+  </div>
+
+  <div class="ladder">
+    <div class="lstep"><div class="q">Q1 · Where?</div><div class="a where">在威胁空间的何处分歧</div><div class="to">→ <b>§3</b> An Observation Instrument</div></div>
+    <div class="lstep"><div class="q">Q2 · Why?</div><div class="a why">为何分歧（L1/L2/L3 层）</div><div class="to">→ <b>§5</b> Observed Disagreement</div></div>
+    <div class="lstep"><div class="q">Q3 · What next?</div><div class="a next">下一个会漏掉什么</div><div class="to">→ <b>§6</b> The Loop → Locked Hypotheses</div></div>
+    <div class="lstep"><div class="q">Q4 · Is it true?</div><div class="a true">预测是否成立</div><div class="to">→ <b>§7</b> Prediction Ledger</div></div>
+  </div>
+
+  <div class="spine">
+    <div class="spine-node sec1">
+      <div class="spine-card">
+        <div class="srow"><span class="snum">§1</span><span class="stitle">Introduction</span><span class="spage">p1</span><span class="srole">Thesis + Instantiation + Honesty point</span></div>
+        <div class="squote"><b>“Automated security analyses disagree.”</b> — “Disagreement is not merely a statistic to report. It is analytical evidence: once disagreements are made comparable, their structure exposes what each analysis covers, what it cannot see, and why.”<br><span class="src">§1 main.tex · pdf p1 · 贡献三层次：Core idea / Methodology / Demonstration；Honesty point：581 语料上 SS 92.9% / Cisco 86.7% / Cat 72.6% —— 盲点在平均召回中不可见</span></div>
+      </div>
+    </div>
+    <div class="spine-node sec2">
+      <div class="spine-card">
+        <div class="srow"><span class="snum">§2</span><span class="stitle">The Core Idea: Disagreement as Evidence</span><span class="spage">p2</span><span class="srole">理论骨架：三层分解 + why-necessary 表</span></div>
+        <div class="squote"><b>“Every miss originates in one layer, or in a short chain through adjacent layers: L1 coverage (the relevant input was never collected), L2 detection (the input was collected but the engine cannot recognize the behavior), L3 decision (the engine produced a finding but the decision rule discarded it).”</b> — 阶梯声明：observation space 答 where（§3），三层答 why（§5），锁定假设答 what next（§6），构造答 is it true（§7）。<br><span class="src">§2 main.tex · pdf p2 · 含 Table 1（Localize/Explain/Predict 对比：聚合召回✗✗✗、κ✗✗✗、人工审计✓✓✗、Our loop ✓✓✓ locked）</span></div>
+      </div>
+    </div>
+    <div class="spine-node sec3">
+      <div class="spine-card">
+        <div class="srow"><span class="snum">§3</span><span class="stitle">An Observation Instrument</span><span class="spage">p2–3</span><span class="srole">仪器（instrument），不是 taxonomy</span></div>
+        <div class="squote"><b>“The coordinate space we introduce is, first and foremost, a shared observation language: the instrument that makes disagreement localizable. It is not a universal taxonomy.”</b> — 坐标 <b>(source, mechanism, target)</b>：source / mechanism / target；6 个 scanner 的 168 个类别 → 43 个被占用坐标；81 标注 → 31 坐标（2.6×），NMI 0.23–0.57。<br><span class="src">§3 main.tex · pdf p2–3 · Fig 1 概念图 p3 · Table 2 三维语言 p2</span></div>
+      </div>
+    </div>
+    <div class="spine-node sec4">
+      <div class="spine-card">
+        <div class="srow"><span class="snum">§4</span><span class="stitle">Instantiation: Agent-Skill Scanners</span><span class="spage">p3–4</span><span class="srole">四语料 + 威胁模型</span></div>
+        <div class="squote"><b>“We study three scanners spanning the mainstream detection architectures… SkillSpector and Cisco are production-grade; Caterpillar serves as a lower-bound reference showing how blind spots deepen as detection grows more primitive.”</b> — 决策规则预览分歧：risk score / severity threshold / lexical grade。<br><span class="src">§4 main.tex · pdf p3–4 · Fig 2 census p4（κ≤0.244）· Table 3 scanners p3 · Table 4 四语料 p4</span></div>
+      </div>
+    </div>
+    <div class="spine-node sec5">
+      <div class="spine-card">
+        <div class="srow"><span class="snum">§5</span><span class="stitle">Observed Disagreement, Layer by Layer</span><span class="spage">p4–6</span><span class="srole">核心分析：κ 不稳定 / 组合 / surface / 灰区</span></div>
+        <div class="squote"><b>“With a common observation layer in place, we project each scanner's detections onto the coordinate space and compare scanners coordinate by coordinate.”</b> — “the disagreement statistics are functions of thresholds, not only of scanners”（uniform 92.9/86.7/72.6 vs shipped 46.8/71.6/38.6）。<br><span class="src">§5 main.tex · pdf p4–6 · Table 5 p4 · Fig 3 κ-dismantled p5 · Fig 4 surface p5 · 灰区（MalSkillBench 4,000）p6</span></div>
+      </div>
+    </div>
+    <div class="spine-node sec6">
+      <div class="spine-card">
+        <div class="srow"><span class="snum">§6</span><span class="stitle">The Loop: From Disagreement to Locked Hypotheses</span><span class="spage">p6–7</span><span class="srole">两向推理 + 锁定 + 消毒</span></div>
+        <div class="squote"><b>“The coordinate space is not itself a blind-spot oracle. It is a common observation layer through which two kinds of evidence are turned into explicit, per-layer hypotheses, which we lock before building any adversarial sample.”</b> — top-down（坐标覆盖矩阵，2026-08-13 记录）与 bottom-up（读源码，如 build_context 跳过 dotfile）；消毒三检：malice realism / tech-failure / ground-truth hygiene（早期 56% 全漏 → 消毒后 0）。<br><span class="src">§6 main.tex · pdf p6–7 · Fig 5 单样例三层解剖 p6</span></div>
+      </div>
+    </div>
+    <div class="spine-node sec7">
+      <div class="spine-card">
+        <div class="srow"><span class="snum">§7</span><span class="stitle">Does the Loop Work? A Prediction Ledger</span><span class="spage">p7–8</span><span class="srole">H1–H6 账本（含 rejected）</span></div>
+        <div class="squote"><b>“We demonstrate the loop end-to-end as a ledger: six locked hypotheses, their constructions, outcomes, and the layer each failure lives in.”</b> — “The ledger reports confirmed, partial, and <i>rejected</i> predictions alike: the framework does not guarantee bypasses; it generates falsifiable hypotheses.”<br><span class="src">§7 main.tex · pdf p7–8 · Table 6 账本 p8 · Fig 6 Wilson 区间森林图 p8</span></div>
+      </div>
+    </div>
+    <div class="spine-node sec8">
+      <div class="spine-card">
+        <div class="srow"><span class="snum">§8</span><span class="stitle">Implications and Future Work</span><span class="spage">p7–8</span><span class="srole">泛化 + 测量陷阱 + Takeaway</span></div>
+        <div class="squote"><b>“Aggregate recall is misleading; evaluation should be coordinate-aware, reporting coverage per coordinate.”</b> — Takeaway: “Read structurally, it is a map of what each analysis cannot see, and that map can be drawn before an attacker walks it.”<br><span class="src">§8 main.tex · pdf p7–8 · 每层对应修复：coverage 缺陷（收 dotfile）/ reporting 缺陷（surface MEDIUM：88/581）/ architectural limit</span></div>
+      </div>
+    </div>
+    <div class="spine-node rw">
+      <div class="spine-card">
+        <div class="srow"><span class="snum">RW</span><span class="stitle">Related Work</span><span class="spage">p8–9</span><span class="srole">定位：单一分析环 vs 分块先行工作</span></div>
+        <div class="squote"><b>“Prior work addresses individual parts of this problem.”</b> — benchmarks 标注语料；scanner evaluations 量化分歧无结构归因（SkillsMetric 映射自建框架）；adversarial generation 泛搜（90%+ / 96%）；“Our contribution connects these steps into a single analysis loop.”<br><span class="src">RW main.tex · pdf p8–9 · 引用：clawhub / locatejudge / skillscan / skillsmetric / malskillbench / skilltrustbench / cloakdetonate / colluskill / skillprobe / reusability / skillinject</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= MODULE 2: THREE LAYERS ================= -->
+<section class="module" id="m2">
+  <div class="module-head">
+    <span class="module-num c2">2</span>
+    <h2>三层分解示意</h2><span class="en">Three-Layer Decomposition + Hidden-File Case</span>
+    <span class="note">每层：定义 · 修复 · 攻击策略 · 实证</span>
+  </div>
+
+  <div class="layer-grid">
+    <div class="layer l1">
+      <div class="ltag">L1 · COVERAGE</div>
+      <h4>输入从未被收集</h4>
+      <p>“The relevant input was never collected” —— 架构性盲区：scanner 根本不检查该区域。</p>
+      <div class="rows">
+        <div><span class="k">Fix</span><span class="v">收集更多输入（含 hidden files）</span></div>
+        <div><span class="k">Attack</span><span class="v">把 payload 放进被跳过的文件</span></div>
+        <div><span class="k">Hypo</span><span class="v">隐藏文件 payload 逃逸（↓ 源码证据）</span></div>
+      </div>
+      <div class="ev"><b>实证：</b>SkillSpector <code>build_context()</code> 跳过 dotfiles → Arm7 中 <b>14/15</b> 逃逸（11 个 score=0），raw output 只记录 <code>['SKILL.md']</code>。§5 surface：Cisco 深伪装 RCE 14%、SS 内容操纵/反弹 shell 0%。</div>
+    </div>
+    <div class="layer l2">
+      <div class="ltag">L2 · DETECTION</div>
+      <h4>引擎无法识别该行为</h4>
+      <p>“The input was collected but the engine cannot recognize the behavior” —— 表面不匹配：词汇/语义表面消失即漏。</p>
+      <div class="rows">
+        <div><span class="k">Fix</span><span class="v">换引擎 / 增强识别能力</span></div>
+        <div><span class="k">Attack</span><span class="v">改变表达（去字面、换语义）</span></div>
+        <div><span class="k">Hypo</span><span class="v">no-literal / finding-family 变体（↑ 矩阵证据）</span></div>
+      </div>
+      <div class="ev"><b>实证：</b>Caterpillar 只匹配词汇标记 → H2 无字面措辞 <b>10/10</b> 逃逸、隐藏文件样例 13/15 零发现；Cisco 字面触发（窄）→ H3 finding-family 变体 <b>6/6</b> 逃逸。</div>
+    </div>
+    <div class="layer l3">
+      <div class="ltag">L3 · DECISION</div>
+      <h4>发现被阈值丢弃</h4>
+      <p>“The engine produced a finding but the decision rule discarded it” —— 引擎看到了，规则把结果压掉。</p>
+      <div class="rows">
+        <div><span class="k">Fix</span><span class="v">改阈值 / 报告规则</span></div>
+        <div><span class="k">Attack</span><span class="v">压低严重度（保持 MEDIUM 以下）</span></div>
+        <div><span class="k">Hypo</span><span class="v">conjunction 欠评分（↓ 源码证据）</span></div>
+      </div>
+      <div class="ev"><b>实证：</b>Cisco <code>is_safe</code> 只保留 CRITICAL/HIGH → MEDIUM 被吞：隐藏文件样例 11/15 逃逸、H4 叠加弱机制 <b>5/5</b>（SS≤50）、灰区 662/3,996 benign 的 MEDIUM 不可见、88/581 恶意 <code>is_safe</code>。</div>
+    </div>
+  </div>
+
+  <h3 class="sec-title">Hidden-file 案例：同一 artifact，三个不同层（Fig 5, p6）</h3>
+  <div class="case-flow">
+    <div class="cf-title">ONE ARTIFACT → THREE LAYERS</div>
+    <div class="cf-art"><b>SKILL.md</b>: benign “environment inspector” + <span class="bad">.env</span>: credential exfiltrator（收集云密钥 → base64 → curl 外传）</div>
+    <div class="cf-grid">
+      <div class="cf-item ss">
+        <div class="who">SkillSpector <span class="ly" style="background:rgba(122,162,247,.15);color:var(--blue)">L1 COVERAGE</span></div>
+        <div class="mech">build_context() 跳过 dotfiles → .env 从未进入分析</div>
+        <div class="out">14/15 逃逸（11 个 score 恰好 0）</div>
+        <div class="dual">Table 6 / §7 口径一致</div>
+      </div>
+      <div class="cf-item cat">
+        <div class="who">Caterpillar <span class="ly" style="background:rgba(255,158,100,.15);color:var(--orange)">L2 DETECTION</span></div>
+        <div class="mech">规则需要词汇标记；此处无任何标记 → 零匹配</div>
+        <div class="out">13/15 逃逸（零 findings）</div>
+        <div class="dual">等价于 “检测 2/15”（Table 6）</div>
+      </div>
+      <div class="cf-item cs">
+        <div class="who">Cisco <span class="ly" style="background:rgba(247,118,142,.15);color:var(--red)">L3 DECISION</span></div>
+        <div class="mech">YARA 命中（MEDIUM）；is_safe 只保留 HIGH+</div>
+        <div class="out">11/15 逃逸（MEDIUM 被丢弃）</div>
+        <div class="dual">等价于 “检测 4/15”（Table 6）</div>
+      </div>
+    </div>
+  </div>
+
+  <h3 class="sec-title">Fig 1 对角矩阵：每个 scanner 在各层的状态（p3）</h3>
+  <div class="diag-matrix">
+    <table>
+      <tr><th></th><th>L1 coverage</th><th>L2 detection</th><th>L3 decision</th></tr>
+      <tr><td>SkillSpector</td><td class="ok">ok</td><td class="ok">ok（script-level semantic）</td><td class="ok">ok</td></tr>
+      <tr><td>Cisco</td><td class="ok">ok</td><td class="warn">literal（窄）</td><td class="fail">drops（severity）</td></tr>
+      <tr><td>Caterpillar</td><td class="ok">ok</td><td class="warn">regex（lexical only）</td><td class="fail">no rule（无类别系统，不可投影）</td></tr>
+    </table>
+  </div>
+</section>
+
+<!-- ================= MODULE 3: EVIDENCE CHAIN ================= -->
+<section class="module" id="m3">
+  <div class="module-head">
+    <span class="module-num c3">3</span>
+    <h2>证据链视图</h2><span class="en">Evidence Chain — 每节依赖哪个语料 / 图表</span>
+    <span class="note">四语料角色（Table 4, p4）</span>
+  </div>
+
+  <div class="corpus-grid">
+    <div class="corpus">
+      <div class="cn">1,082 <small>wild, unlabeled</small></div>
+      <div class="role motiv">Motivation</div>
+      <p>Market census —— 分歧普遍存在（Fig 2：κ ≤ 0.244；260/445 仅一 scanner 标记）。</p>
+    </div>
+    <div class="corpus">
+      <div class="cn">581 <small>350 wild + 231 generated</small></div>
+      <div class="role obs">Observed disagreement</div>
+      <p>Malicious corpus —— §5 核心分析主体：uniform vs shipped 规则、κ 不稳定、surface 分区。</p>
+    </div>
+    <div class="corpus">
+      <div class="cn">500 + 4,000 <small>benign</small></div>
+      <div class="role fp">False-positive mirror</div>
+      <p>500 in-corpus（flag 率是 FP 上界）；4,000 MalSkillBench 官方审计（灰区：335/8.4%、650/16.2%、662 MEDIUM）。</p>
+    </div>
+    <div class="corpus">
+      <div class="cn">129 <small>79 confirmatory</small></div>
+      <div class="role pred">Prediction validation</div>
+      <p>Constructions —— Arms 7–13 锁定（H1–H6），1–6 探索性；与上方语料 disjoint；51 primary + 28 扩展。</p>
+    </div>
+  </div>
+
+  <h3 class="sec-title">逐节证据依赖</h3>
+  <div class="evmap">
+    <div class="evrow"><div class="sec">§1 Introduction</div><div class="uses"><span class="evtag ext">ecosystem stats</span></div><div class="detail">ClawHavoc 1,184 恶意 skills；138,133 SKILL.md 91.8% 缺陷（reusability）；31,132 wild 26.1% 含漏洞（skillscan）；注入指令 80% 成功率。无本实验语料 —— 框架性章节。</div></div>
+    <div class="evrow"><div class="sec">§2 Core Idea</div><div class="uses"><span class="evtag tab">Table 1</span></div><div class="detail">why-necessary 表（Localize/Explain/Predict），纯概念论证，无数据依赖。</div></div>
+    <div class="evrow"><div class="sec">§3 Instrument</div><div class="uses"><span class="evtag tab">Table 2</span><span class="evtag fig">Fig 1</span><span class="evtag ext">6 scanners / 168 categories → 43 coords</span><span class="evtag ext">81-label gold std</span></div><div class="detail">(s,m,t) 坐标语言；正交性证据：NMI 0.23–0.57，81→31 坐标（2.6×），删任一轴 31→15–23。Fig 1 概念图（p3）。</div></div>
+    <div class="evrow"><div class="sec">§4 Instantiation</div><div class="uses"><span class="evtag corpus">census 1,082</span><span class="evtag fig">Fig 2</span><span class="evtag tab">Table 3 · 4</span></div><div class="detail">census 提供动机证据（Fig 2，p4，κ≤0.244，136 平台验证 skills）；Table 4 定义四语料角色；Table 3 三 scanner 架构。威胁模型 + 67,453 skills ≤10.4% 重叠 / 0.69% 全标。</div></div>
+    <div class="evrow"><div class="sec">§5 Observed Disagreement</div><div class="uses"><span class="evtag corpus">malicious 581</span><span class="evtag corpus">benign 500</span><span class="evtag corpus">MalSkillBench 4,000</span><span class="evtag tab">Table 5</span><span class="evtag fig">Fig 3 · 4</span></div><div class="detail">同一 581×3 raw outputs 的 uniform vs shipped 读数（Table 5, p4）；κ 三条件摆动 −0.01..+0.44（Fig 3, p5）；13 wild 类 surface 三失败带（Fig 4, p5）；43 坐标声明矩阵 10/16/4/13；灰区用 MalSkillBench 4,000（335/8.4%、650/16.2%、662 MEDIUM）。</div></div>
+    <div class="evrow"><div class="sec">§6 The Loop</div><div class="uses"><span class="evtag fig">Fig 5</span><span class="evtag ext">declared-coverage matrix</span><span class="evtag ext">locking timeline</span></div><div class="detail">Fig 5（p6）隐藏文件三层解剖（14/15 · 13/15 · 11/15）；top-down 证据：400 cells = 43 occupied + 318 blanks + 39 infeasible；bottom-up 证据：build_context() 源码。矩阵 2026-08-13 记录，构造 08-19+ —— 锁定先于构造。</div></div>
+    <div class="evrow"><div class="sec">§7 Ledger</div><div class="uses"><span class="evtag corpus">constructions 129</span><span class="evtag tab">Table 6</span><span class="evtag fig">Fig 6</span></div><div class="detail">Table 6（p8）H1–H6 账本；Fig 6（p8）Wilson 95% 区间森林图（含 negative control：Arm12 SS 9/10）。129 构造，79 锁定（3 个丢 SS run），51 primary。</div></div>
+    <div class="evrow"><div class="sec">§8 Implications</div><div class="uses"><span class="evtag ext">cross-analysis</span></div><div class="detail">88/581 恶意 is_safe 虽有 MEDIUM+；2/5 三 scanner 全漏（唯一处）；10 个 flagged-by-none 全为 artifact；56%→0% 消毒前后对比。</div></div>
+    <div class="evrow"><div class="sec">RW Related Work</div><div class="uses"><span class="evtag ext">11 citations</span></div><div class="detail">clawhub2026, locatejudge2026, skillscan2026, skillsmetric2026, malskillbench2026, skilltrustbench2026, cloakdetonate2026, colluskill2026, skillprobe2026, reusability2026, skillinject2026。定位：我们是“single analysis loop”。</div></div>
+  </div>
+</section>
+
+<!-- ================= MODULE 4: LEDGER ================= -->
+<section class="module" id="m4">
+  <div class="module-head">
+    <span class="module-num c4">4</span>
+    <h2>Prediction Ledger</h2><span class="en">H1–H6 · 方向 / 结果 / 层 / n</span>
+    <span class="note">Table 6 · p8 · 构造均 2026-08-19 之后</span>
+  </div>
+
+  <div class="ledger-wrap">
+    <table class="ledger">
+      <thead>
+        <tr><th>H</th><th>方向</th><th>锁定预测</th><th>构造</th><th>结果</th><th>层</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="hid">H1</td>
+          <td class="dir down">↓ bottom-up<br><span style="font-size:10.5px;color:var(--faint)">build context skips dotfiles</span></td>
+          <td>hidden-file payload 永不被分析</td>
+          <td>payload 全在 dotfiles（Arm7, n=15）</td>
+          <td class="out-txt"><span class="status conf">CONFIRMED</span><br><b>14/15</b> 逃逸 SS（<span class="hl">11 个 score=0</span>）；Cisco 4/15、Cat 2/15 检测</td>
+          <td><span class="layerchip l1">L1</span></td>
+        </tr>
+        <tr>
+          <td class="hid">H2</td>
+          <td class="dir up">↑ top-down<br><span style="font-size:10.5px;color:var(--faint)">regex matches lexical markers</span></td>
+          <td>无字面措辞不可见</td>
+          <td>tool-semantics 措辞（Arm10B, n=10）</td>
+          <td class="out-txt"><span class="status conf">CONFIRMED</span><br><b>10/10</b> 逃逸 Cat；SS <span class="hl">7/7 valid</span>（对照组）</td>
+          <td><span class="layerchip l2">L2</span></td>
+        </tr>
+        <tr>
+          <td class="hid">H3</td>
+          <td class="dir up">↑ top-down<br><span style="font-size:10.5px;color:var(--faint)">Cisco escalates only surfaced findings</span></td>
+          <td>finding-family 变体不浮出任何东西</td>
+          <td>每 finding-family 一变体（Arm11A, n=6）</td>
+          <td class="out-txt"><span class="status conf">CONFIRMED</span><br><b>6/6</b> 逃逸 Cisco（全 is_safe, INFO–MEDIUM）；SS <span class="hl">6/6</span> 全检测</td>
+          <td><span class="layerchip l23">L2→L3</span></td>
+        </tr>
+        <tr>
+          <td class="hid">H4</td>
+          <td class="dir down">↓ bottom-up<br><span style="font-size:10.5px;color:var(--faint)">additive scoring of independent checks</span></td>
+          <td>合取（conjunction）欠评分</td>
+          <td>叠加弱机制（Arm13, n=5）</td>
+          <td class="out-txt"><span class="status conf">CONFIRMED</span><br><b>5/5</b> ≤50 on SS；<span class="hl">2/5 三 scanner 全漏</span>（全研究唯一处）</td>
+          <td><span class="layerchip l3">L3</span></td>
+        </tr>
+        <tr>
+          <td class="hid">H5</td>
+          <td class="dir up">↑ top-down<br><span style="font-size:10.5px;color:var(--faint)">wild pipeline precedent</span></td>
+          <td>runtime dataflow 不可见</td>
+          <td>variable-injection pipelines（Arm11B, n=5）</td>
+          <td class="out-txt"><span class="status part">PARTIAL</span><br><i>partial</i>: <b>3/5</b> score=0 on SS</td>
+          <td><span class="layerchip l2">L2</span></td>
+        </tr>
+        <tr>
+          <td class="hid">H6</td>
+          <td class="dir na">— (stability check)</td>
+          <td>变体家族保持逃逸（negative control）</td>
+          <td>扩展最佳单逃逸（Arm12, n=10）</td>
+          <td class="out-txt"><span class="status rej">REJECTED</span><br><i>rejected</i>: SS 检测 <b>9/10</b> —— 单样例逃逸 ≠ 家族级逃逸</td>
+          <td><span class="layerchip na">—</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 class="sec-title">机制备注（§7 The Ledger）</h3>
+  <div class="ledger-notes">
+    <div class="note"><b>H3 机制：</b>每个 SkillSpector finding family 一个变体，重表达同一恶意行为；Cisco 静态层无东西可供 severity 逻辑升级 → 六个全部 <code>is_safe</code>（INFO–MEDIUM），而 SkillSpector 六个全给分：同一坐标、两个 scanner、不同层。</div>
+    <div class="note"><b>H2 机制：</b>exfiltration 用工具语义表达（“archive the result to the remote repository”），全文无 <code>curl</code>/<code>base64</code> token；regex 引擎无物可匹配。</div>
+    <div class="note"><b>H4 机制：</b>叠加隐藏放置 + 间接执行 + 声明能力掩护，每个都低于评分阈值；additive scorer 永远看不到合取 → 2/5 同时逃逸全部三个 scanner。</div>
+    <div class="note"><b>图 6（p8）：</b>每行是 Table 6 的一条假设；实心点 = 观测逃逸率，空心点 = negative control 的检测率（Arm12 9/10）；Wilson 95% 区间；n 在右端。</div>
+  </div>
+</section>
+
+<!-- ================= MODULE 5: NUMBERS ================= -->
+<section class="module" id="m5">
+  <div class="module-head">
+    <span class="module-num c5">5</span>
+    <h2>数字锚点栏</h2><span class="en">Key Numbers — 正文关键数字与来源文件</span>
+    <span class="note">来源 = main.tex 章节 · main.pdf 页码</span>
+  </div>
+
+  <div class="nums">
+    <div class="num"><div class="nv blue">581</div><div class="nl"><span class="lbl">malicious corpus</span>350 wild + 231 generated（by occupied coordinate）<span class="src">main.tex §5 · pdf p4–5</span></div></div>
+    <div class="num"><div class="nv cyan">92.9% · 86.7% · 72.6%</div><div class="nl"><span class="lbl">uniform rule (581)</span>SS / Cisco / Caterpillar 检测率（wild 91.1/88.0/70.9；generated 95.7/84.8/75.3）<span class="src">Table 5a · pdf p4</span></div></div>
+    <div class="num"><div class="nv red">46.8% · 71.6% · 38.6%</div><div class="nl"><span class="lbl">same outputs, shipped rules</span>分歧统计是阈值的函数，不只是 scanner 的函数<span class="src">Table 5a · pdf p4</span></div></div>
+    <div class="num"><div class="nv yellow">−0.01 .. +0.44</div><div class="nl"><span class="lbl">κ instability (same 581×3)</span>三种规则选择：shipped −0.01..+0.24；uniform +0.08..+0.16；+benign +0.29..+0.44<span class="src">§5 · Fig 3 · pdf p5</span></div></div>
+    <div class="num"><div class="nv orange">κ ≤ 0.244</div><div class="nl"><span class="lbl">market census</span>136 平台验证 skills；5.9% 被 ≥4 scanner 标记；1,082 census 中 260/445 仅一 scanner 标记<span class="src">Fig 2 · pdf p4</span></div></div>
+    <div class="num"><div class="nv purple">≤10.4% · 0.69%</div><div class="nl"><span class="lbl">67,453 skills (field)</span>pairwise overlap ≤10.4%；仅 0.69% 被所有 scanner 标记 —— 描述性，不解释 where/why<span class="src">§4 · pdf p4</span></div></div>
+    <div class="num"><div class="nv green">222 (38.2%)</div><div class="nl"><span class="lbl">missed by ≥1 scanner</span>pairwise sole-miss：118（Cat）/ 40（Cisco）/ 17（SS）；single flags 39 = SS 23 + Cisco 10 + Cat 6<span class="src">Table 5b · pdf p4</span></div></div>
+    <div class="num"><div class="nv teal">0% · 14% · 0%</div><div class="nl"><span class="lbl">13 wild classes failure bands</span>Cat 指令级（goal hijacking / instruction override 0%）；Cisco 深伪装 RCE 14%；SS 内容操纵 / 反弹 shell 0%<span class="src">Fig 4 · pdf p5</span></div></div>
+    <div class="num"><div class="nv blue">43 / 400 cells</div><div class="nl"><span class="lbl">coordinate space</span>43 occupied（10 both-declare / 16 SS-only / 4 Cisco-only / 13 neither）；318 credible blanks；39 infeasible<span class="src">§5–6 · pdf p5–6</span></div></div>
+    <div class="num"><div class="nv cyan">81 → 31 (2.6×)</div><div class="nl"><span class="lbl">gold standard compression</span>NMI 0.23–0.57；删任一轴 31→15–23 占用坐标<span class="src">§3 Orthogonality · pdf p3</span></div></div>
+    <div class="num"><div class="nv red">335 · 650 · 662</div><div class="nl"><span class="lbl">MalSkillBench benign audit</span>4,000 skills（3,996 scanned，4 拒收）：Cisco 335/3,996 = 8.4%；SS 650/4,000 = 16.2%；662/3,996 = 16.6% MEDIUM 被阈值隐藏<span class="src">§5 Grey Zone · pdf p6</span></div></div>
+    <div class="num"><div class="nv green">14/15 · 13/15 · 11/15</div><div class="nl"><span class="lbl">hidden-file family (Fig 5)</span>SS 14/15（11 score=0）；Cat 13/15 零发现（=检测 2/15）；Cisco 11/15 MEDIUM dropped（=检测 4/15）<span class="src">Fig 5 · Table 6 · pdf p6, p8</span></div></div>
+    <div class="num"><div class="nv green">10/10 · 7/7</div><div class="nl"><span class="lbl">H2 no-literal (Arm10B)</span>Cat 10/10 逃逸；SS 7/7 valid（有效性对照）<span class="src">Table 6 · pdf p8</span></div></div>
+    <div class="num"><div class="nv green">6/6 · 6/6</div><div class="nl"><span class="lbl">H3 finding-family (Arm11A)</span>Cisco 6/6 逃逸；SS 6/6 全检测 —— 同一坐标两 scanner 不同层<span class="src">Table 6 · pdf p8</span></div></div>
+    <div class="num"><div class="nv green">5/5 · 2/5</div><div class="nl"><span class="lbl">H4 stacked (Arm13)</span>SS 5/5 ≤50；2/5 三 scanner 全漏（全研究唯一）<span class="src">Table 6 · pdf p8</span></div></div>
+    <div class="num"><div class="nv yellow">3/5</div><div class="nl"><span class="lbl">H5 variable-injection (Arm11B)</span>partial：3/5 score=0 on SS —— 未全数逃逸<span class="src">Table 6 · pdf p8</span></div></div>
+    <div class="num"><div class="nv red">9/10 detected</div><div class="nl"><span class="lbl">H6 negative control (Arm12)</span>REJECTED：SS 检测 9/10；单样例逃逸 ≠ 家族级逃逸<span class="src">Table 6 · Fig 6 · pdf p8</span></div></div>
+    <div class="num"><div class="nv purple">129 · 79 · 51</div><div class="nl"><span class="lbl">constructions</span>129 total（Arms 1–13）；79 confirmatory（Arms 7–13，3 个丢 SS run）；51 primary families；28 扩展（arms 8–10）<span class="src">§7 · pdf p7–8</span></div></div>
+    <div class="num"><div class="nv orange">88 / 581</div><div class="nl"><span class="lbl">MEDIUM swallowed</span>malicious skills is_safe 却有 MEDIUM+ findings —— Cisco 报告缺陷的修复入口<span class="src">§8 · pdf p7–8</span></div></div>
+    <div class="num"><div class="nv magenta">56% → 0%</div><div class="nl"><span class="lbl">sanitization effect</span>早期构造轮 56% 全 scanner 漏报率 → 消毒（malice realism / tech-failure / ground-truth hygiene）后真实全漏 = 0；10 个 flagged-by-none 全为 artifact<span class="src">§6 · §8 · pdf p6–8</span></div></div>
+    <div class="num"><div class="nv cyan">1,184 · 80%</div><div class="nl"><span class="lbl">ecosystem threat</span>ClawHavoc 单市场 1,184 恶意 skills；注入 skill 指令对 frontier agents 达 80% 成功率<span class="src">§1 · §4 · pdf p1, p3–4</span></div></div>
+    <div class="num"><div class="nv yellow">91.8% · 26.1%</div><div class="nl"><span class="lbl">field prevalence</span>138,133 SKILL.md 中 91.8% 有打包/安全缺陷；31,132 wild skills 中 26.1% 至少一个漏洞<span class="src">§4 · pdf p3–4</span></div></div>
+    <div class="num"><div class="nv teal">08-13 → 08-19+</div><div class="nl"><span class="lbl">locking timeline</span>坐标覆盖矩阵 2026-08-13 记录（top-down 证据）→ 确认性构造 2026-08-19 及以后：锁定严格先于构造，防 post-hoc rationalization<span class="src">§6 Hypothesis-Locking · pdf p6–7</span></div></div>
+  </div>
+</section>
+
+<!-- ================= FOOTER: FLOAT MAP ================= -->
+<section class="module" id="m6">
+  <div class="module-head">
+    <span class="module-num c5">6</span>
+    <h2>渲染浮层地图</h2><span class="en">Float Placement Map — main.pdf 实际渲染顺序（fitz 核对）</span>
+    <span class="note">[t] float 会浮到页顶，先于引用它的章节标题 —— 标准 LaTeX 行为</span>
+  </div>
+
+  <div class="floatmap">
+    <div class="fpage"><div class="pg">PAGE 1 <span class="dim">· Abstract + §1 开场</span></div><ol><li class="sec-li"><span class="k">SEC</span>Abstract（581 / 350+231 / 14-15·6-6·5-5）</li><li class="sec-li"><span class="k">SEC</span>§1 Introduction（y≈470）</li></ol></div>
+    <div class="fpage"><div class="pg">PAGE 2 <span class="dim">· 概念 + 表 1/2 浮顶</span></div><ol><li class="float-li"><span class="k">TAB</span>Table 1 — why-necessary（页顶）</li><li class="float-li"><span class="k">TAB</span>Table 2 — (s,m,t) 三维（页顶）</li><li class="sec-li"><span class="k">SEC</span>§2 The Core Idea</li><li class="sec-li"><span class="k">SEC</span>§3 An Observation Instrument（页底开始）</li></ol></div>
+    <div class="fpage"><div class="pg">PAGE 3 <span class="dim">· Fig 1 概念图</span></div><ol><li class="float-li"><span class="k">FIG</span>Figure 1 — pipeline 概念图（§3 引用，浮页顶）</li><li class="float-li"><span class="k">TAB</span>Table 3 — 三 scanner</li><li class="sec-li"><span class="k">SEC</span>§4 Instantiation（页中后部）</li></ol></div>
+    <div class="fpage"><div class="pg">PAGE 4 <span class="dim">· census + 四语料 + §5 开篇</span></div><ol><li class="float-li"><span class="k">TAB</span>Table 5 — 581×3 uniform/shipped（页顶）</li><li class="float-li"><span class="k">FIG</span>Figure 2 — census（κ≤0.244）</li><li class="float-li"><span class="k">TAB</span>Table 4 — 四语料角色</li><li class="sec-li"><span class="k">SEC</span>§5 Observed Disagreement（页底 y≈678）</li></ol></div>
+    <div class="fpage"><div class="pg">PAGE 5 <span class="dim">· 两个核心图</span></div><ol><li class="float-li"><span class="k">FIG</span>Figure 3 — aggregate dismantled（κ 摆动 + UpSet，页顶）</li><li class="float-li"><span class="k">FIG</span>Figure 4 — surface（13 wild 类三失败带）</li><li class="sec-li"><span class="k">SEC</span>§5 正文继续（L1/L2/L3 失败 + 灰区）</li></ol></div>
+    <div class="fpage"><div class="pg">PAGE 6 <span class="dim">· 三层解剖 + §6</span></div><ol><li class="float-li"><span class="k">FIG</span>Figure 5 — 隐藏文件三层解剖（浮页顶，先于 §6 标题）</li><li class="sec-li"><span class="k">SEC</span>§6 The Loop（y≈410）</li><li class="sec-li"><span class="k">SEC</span>灰区收尾（662 MEDIUM / 16.6%）</li></ol></div>
+    <div class="fpage"><div class="pg">PAGE 7 <span class="dim">· §7 开篇 + §8</span></div><ol><li class="sec-li"><span class="k">SEC</span>§7 Does the Loop Work?（y≈245；正文先引用 Table 6，表格在 p8）</li><li class="sec-li"><span class="k">SEC</span>§8 Implications and Future Work（y≈316）</li></ol></div>
+    <div class="fpage"><div class="pg">PAGE 8 <span class="dim">· 账本 + 森林图 + RW</span></div><ol><li class="float-li"><span class="k">TAB</span>Table 6 — H1–H6 账本（页顶）</li><li class="float-li"><span class="k">FIG</span>Figure 6 — Wilson 95% 森林图</li><li class="sec-li"><span class="k">SEC</span>Related Work（y≈645）</li></ol></div>
+    <div class="fpage"><div class="pg">PAGE 9 <span class="dim">· 参考文献</span></div><ol><li class="rw-li"><span class="k">BIB</span>references.bib（ACM-Reference-Format）</li></ol></div>
+  </div>
+
+  <div class="verif">
+    <h3>自检与核对记录</h3>
+    <ul>
+      <li><b>数字核对</b>：全部关键数字在 main.pdf 渲染文本中逐项验证存在（581×3 · 92.9/86.7/72.6 · 46.8/71.6/38.6 · κ 三区间 · 0.244 · 118/40/17/39 · 14/15 · 10/10 · 6/6 · 5/5 · 3/5 · 9/10 · 335/650/662 · 88/581 等 44+ 项，零缺失）。</li>
+      <li><b>页码核对</b>：fitz 逐页扫描确认 —— Fig1→p3、Fig2→p4、Fig3→p5、Fig4→p5、Fig5→p6、Fig6→p8、Table1→p2、Table2→p2、Table3→p3、Table4→p4、Table5→p4、Table6→p8；与既定主线图页码完全一致。</li>
+      <li><b>图序核对</b>：渲染顺序 Fig1→Fig2→Fig3→Fig4→Fig5→Fig6，与正文引用顺序一致；[t] float 均浮至页顶（先于引用章节标题），属标准 LaTeX 行为，非错误。</li>
+      <li class="warn"><b>次要发现</b>：latex/ 目录中 <b>fig_forms.pdf</b> 与 <b>fig_structure_map.pdf</b> 存在但 main.tex 未引用（遗留文件，建议清理或确认用途）。</li>
+      <li class="warn"><b>口径提示</b>：Fig 5 用“逃逸率”口径（Cat 13/15、Cisco 11/15），Table 6 / §7 用“检测率”口径（Cat 2/15、Cisco 4/15）—— 两者互为补数（15−2=13；15−4=11），数值一致但读者可能困惑。</li>
+      <li class="warn"><b>记忆偏差提示</b>：项目 memory 记录“582 恶意样本”，论文（tex v8.2 + PDF）一致为 <b>581</b>（350 wild + 231 generated），以论文为准。</li>
+    </ul>
+  </div>
+</section>
+
+</main>
+
+<footer>PAPER_SPINE_VIZ · generated from main.tex (v8.2) + main.pdf (9 pages) · all numbers verified against rendered PDF · single-file self-contained</footer>
+
+<script>
+// scroll-spy for nav
+(function(){
+  const nav = document.getElementById('nav');
+  const links = nav.querySelectorAll('a');
+  const sections = [...links].map(a => document.querySelector(a.getAttribute('href')));
+  function onScroll(){
+    const y = window.scrollY + 120;
+    let idx = 0;
+    sections.forEach((s, i) => { if (s && s.offsetTop <= y) idx = i; });
+    links.forEach((a, i) => a.classList.toggle('active', i === idx));
+  }
+  window.addEventListener('scroll', onScroll, {passive:true});
+  onScroll();
+})();
+</script>
+</body>
+</html>
