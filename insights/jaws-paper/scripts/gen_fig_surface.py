@@ -37,7 +37,6 @@ groups = [
     ("Caterpillar collapses", ["B14", "B12", "B10", "B11"]),
     ("Cisco collapses", ["B3", "B5"]),
     ("SkillSpector collapses", ["B15", "B6"]),
-    ("held by all three", ["B4", "B9", "B2", "B1", "B8"]),
 ]
 
 labels, M, ns, header_rows = [], [], [], []
