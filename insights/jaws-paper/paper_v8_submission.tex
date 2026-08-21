@@ -123,7 +123,7 @@ The reason disagreement cannot currently be interrogated is that the scanners sp
 
 \begin{figure*}[t]
 \centering
-\begin{tikzpicture}[node distance=4mm and 7mm,
+\resizebox{\textwidth}{!}{\begin{tikzpicture}[node distance=4mm and 7mm,
   box/.style={draw=black!40, rounded corners=1pt, font=\footnotesize, align=center, inner sep=3pt},
   plain/.style={font=\footnotesize, align=center},
   arrow/.style={-{Stealth[length=2mm]}, thick, black!60},
@@ -131,53 +131,46 @@ The reason disagreement cannot currently be interrogated is that the scanners sp
 
 % ============ LEFT: current practice ============
 \node[plain, font=\footnotesize\bfseries, black!55] (lp) at (0,4.35) {CURRENT PRACTICE};
-\node[inflow, minimum width=16mm] (art) {artifact $X$};
-\node[inflow, above right=4mm and 4mm of art] (sa) {Scanner A};
-\node[inflow, right=4mm of art] (sb) {Scanner B};
-\node[inflow, below right=4mm and 4mm of art] (sc) {Scanner C};
+% ---- left panel: fixed coordinates, total width <= 57mm ----
+\node[inflow, minimum width=15mm] (art) at (0,1.6) {artifact $X$};
+\node[inflow, minimum width=15mm] (sa) at (2.7,2.7) {Scanner A};
+\node[inflow, minimum width=15mm] (sb) at (2.7,1.6) {Scanner B};
+\node[inflow, minimum width=15mm] (sc) at (2.7,0.5) {Scanner C};
 \draw[arrow] (art.east) -- (sa.west); \draw[arrow] (art.east) -- (sb.west); \draw[arrow] (art.east) -- (sc.west);
-\node[plain, right=1.5mm of sa] {$\checkmark$};
-\node[plain, right=1.5mm of sb] {$\times$};
-\node[plain, right=1.5mm of sc] {$\times$};
-\node[box, right=9mm of sb, fill=black!5, minimum width=14mm] (kap) {$\kappa$, overlap};
-\draw[arrow] (sb.east) -- (kap.west);
-\node[box, below=4mm of kap, fill=black!12, text width=30mm] (stop) {``they disagree.''\\ \emph{Evaluation ends here.}};
+\node[plain] at (4.35,2.7) {$\checkmark$};
+\node[plain] at (4.35,1.6) {$\times$};
+\node[plain] at (4.35,0.5) {$\times$};
+\node[box, fill=black!5, minimum width=13mm] (kap) at (6.1,1.6) {$\kappa$, overlap};
+\draw[arrow] (4.8,1.6) -- (kap.west);
+\node[box, below=3.5mm of kap, fill=black!12, text width=30mm] (stop) {``they disagree.''\\ \emph{Evaluation ends here.}};
 \draw[arrow] (kap) -- (stop);
 
-% ============ divider ============
-\draw[dashed, black!30] ($(art.north west)+(0,1.5mm)$) -- ($(stop.south east)+(0,-1.5mm)$);
-
-% ============ RIGHT: our view ============
-\node[inflow, right=36mm of art, minimum width=16mm] (art2) {artifact $X$};
-\node[box, right=5mm of art2, fill=blue!8, text width=21mm] (coord) {\textbf{observation space}\\ $(s,m,t)$ coordinate};
+% ============ RIGHT: our view (starts x=6.6cm; no overlap with left) ============
+\node[inflow, minimum width=15mm] (art2) at (7.3,1.6) {artifact $X$};
+\node[box, fill=blue!8, text width=20mm] (coord) at (9.6,1.6) {\textbf{observation space}\\ $(s,m,t)$ coordinate};
 \draw[arrow] (art2) -- (coord);
-
-% three layers column
-\node[box, right=6mm of coord, fill=orange!12, text width=21mm] (l1) {\textbf{L1 coverage}\\ did it collect the input?};
-\node[box, below=2.5mm of l1, fill=orange!12, text width=21mm] (l2) {\textbf{L2 detection}\\ can the engine see it?};
-\node[box, below=2.5mm of l2, fill=orange!12, text width=21mm] (l3) {\textbf{L3 decision}\\ is the finding kept?};
+\node[box, fill=orange!12, text width=20mm] (l1) at (12.1,2.7) {\textbf{L1 coverage}\\ did it collect the input?};
+\node[box, fill=orange!12, text width=20mm] (l2) at (12.1,1.6) {\textbf{L2 detection}\\ can the engine see it?};
+\node[box, fill=orange!12, text width=20mm] (l3) at (12.1,0.5) {\textbf{L3 decision}\\ is the finding kept?};
 \draw[arrow] (coord.east) -- (l1.west);
-\draw[arrow] (coord.east) -- ($(l2.west)+(0,0)$);
+\draw[arrow] (coord.east) -- (l2.west);
 \draw[arrow] (coord.east) -- (l3.west);
-
-% per-scanner layer diagnosis as an aligned matrix
-\node[box, right=7mm of l2, fill=white, inner sep=3.5pt] (diag) {\footnotesize
+\node[box, fill=white, inner sep=3pt] (diag) at (14.9,1.6) {\footnotesize
 \begin{tabular}{@{}lccc@{}}
  & \textbf{L1} & \textbf{L2} & \textbf{L3} \\[-1pt]
-\textbf{SS} & \textcolor{blue!70!black}{collect} & \textcolor{blue!70!black}{semantic} & \textcolor{blue!70!black}{score} \\[1.5pt]
-\textbf{Cisco} & \textcolor{blue!70!black}{collect} & \textcolor{orange!85!black}{literal} & \textcolor{orange!85!black}{drops} \\[1.5pt]
-\textbf{Cat} & \textcolor{blue!70!black}{collect} & \textcolor{orange!85!black}{regex} & \textcolor{orange!85!black}{no rule} \\
+\textbf{SS} & \textcolor{blue!70!black}{ok} & \textcolor{blue!70!black}{ok} & \textcolor{blue!70!black}{ok} \\[1.5pt]
+\textbf{Cisco} & \textcolor{blue!70!black}{ok} & \textcolor{orange!85!black}{literal} & \textcolor{orange!85!black}{drops} \\[1.5pt]
+\textbf{Cat} & \textcolor{blue!70!black}{ok} & \textcolor{orange!85!black}{regex} & \textcolor{orange!85!black}{no rule} \\
 \end{tabular}};
 \draw[arrow] (l1.east) -- (diag.west);
 \draw[arrow] (l2.east) -- (diag.west);
 \draw[arrow] (l3.east) -- (diag.west);
-
-\node[box, below=9mm of diag, fill=blue!8, text width=42mm] (hyp) {\textbf{blind-spot hypothesis per scanner, per layer}};
+\node[box, fill=blue!8, text width=44mm] (hyp) at (14.9,-0.7) {\textbf{blind-spot hypothesis per scanner, per layer}};
 \draw[arrow] (diag.south) -- (hyp.north);
-\node[box, below=3mm of hyp, fill=green!10, text width=40mm] (val) {\textbf{locked construction $\rightarrow$ validation $\rightarrow$ mechanism}};
+\node[box, fill=green!10, text width=44mm] (val) at (14.9,-1.9) {\textbf{locked construction $\rightarrow$ validation $\rightarrow$ mechanism}};
 \draw[arrow] (hyp) -- (val);
-\node[plain, font=\footnotesize\bfseries, black!55] at ($(coord.north)+(0,4.5mm)$) {OUR VIEW};
-\end{tikzpicture}
+\node[plain, font=\footnotesize\bfseries, black!55] at (9.6,4.35) {OUR VIEW};
+\end{tikzpicture}}
 \caption{\textbf{The same disagreement, read two ways.} Current practice collapses three verdicts on artifact $X$ into a scalar and stops. Our view localizes $X$ in a shared observation space, decomposes each scanner's failure into one architectural layer (coverage L1, detection L2, or decision L3), derives per-scanner blind-spot hypotheses, and validates them by construction locked before the fact.}
 \label{fig:pipeline}
 \end{figure*}
